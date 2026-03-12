@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: mini_t1_app
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=docker-secret-key-12345
+      - JWT_SECRET_KEY=docker-jwt-secret-key-67890
+      - FLASK_ENV=development
+      - FLASK_DEBUG=True
+    networks:
+      - mini_t1_network
+
+networks:
+  mini_t1_network:
+    driver: bridge
