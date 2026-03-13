@@ -34,7 +34,7 @@ docker-compose exec web flask db upgrade
 
 ---
 
-## 📋 Основные команды
+## Основные команды
 
 | Команда | Описание |
 | :--- | :--- |
@@ -47,7 +47,7 @@ docker-compose exec web flask db upgrade
 
 ---
 
-## 📡 API Endpoints
+## API Endpoints
 
 | Метод | Endpoint | Описание |
 | :--- | :--- | :--- |
@@ -55,7 +55,7 @@ docker-compose exec web flask db upgrade
 
 ---
 
-## 🔧 Для разработчиков
+## Для разработчиков
 
 ### Добавить новую миграцию
 
