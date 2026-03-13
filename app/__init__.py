@@ -1,41 +1,56 @@
+import os
+import logging
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from pathlib import Path
-
-from app.config import Config
+from app.config import config
 from app.extensions import db, migrate
 from app import routes
 
 
-def create_app():
-    """
-    Factory function для создания Flask приложения и инициализации бд
-    """
+def create_app(config_name=None):
+    """Factory function для создания Flask приложения"""
+    if config_name is None:
+        config_name = os.environ.get('FLASK_CONFIG', 'default')
 
-    app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object(Config)
+    app = Flask(__name__)
+    app.config.from_object(config[config_name])
 
-    # Если DATABASE_URL не задана, используем SQLite в instance/app.db
-    if not app.config.get("SQLALCHEMY_DATABASE_URI"):
-        Path(app.instance_path).mkdir(parents=True, exist_ok=True)
-        db_path = Path(app.instance_path) / "app.db"
-        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+    # CORS для Angular
+    CORS(app, resources={r"/api/*": {"origins": app.config.get('CORS_ORIGINS', '*')}})
 
-    # Инициализация CORS
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
-
-    # Инициализация JWT менеджера
+    # JWT для аутентификации
     jwt = JWTManager()
     jwt.init_app(app)
 
-    # Инициализация SQLAlchemy
+    # SQLAlchemy для работы с БД
     db.init_app(app)
 
-    # Инициализация Flask-Migrate (Alembic)
+    # Flask-Migrate для миграций
     migrate.init_app(app, db)
 
-    # Регистрация Blueprint (маршруты)
+    # Маршруты (Blueprint)
     app.register_blueprint(routes.bp)
+
+    # Настройка логирования
+    if not app.debug:
+        log_dir = Path(app.root_path).parent / 'logs'
+        log_dir.mkdir(exist_ok=True)
+
+        file_handler = RotatingFileHandler(
+            log_dir / 'app.log',
+            maxBytes=10 * 1024 * 1024,
+            backupCount=5
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(app.config.get('LOG_LEVEL', 'INFO'))
+        app.logger.addHandler(file_handler)
+
+    app.logger.setLevel(app.config.get('LOG_LEVEL', 'INFO'))
+    app.logger.info(f'Application startup with config: {config_name}')
 
     return app

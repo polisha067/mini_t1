@@ -2,17 +2,87 @@ version: '3.8'
 
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: mini_t1_app
+    restart: unless-stopped
+
+    # Монтируем код для горячей перезагрузки в разработке
     volumes:
       - .:/app
+      - ./logs:/app/logs
+
+    # Пробрасываем порт
     ports:
       - "5000:5000"
+
+    # Переменные окружения
     env_file:
       - .env
+    environment:
+      - FLASK_CONFIG=${FLASK_CONFIG:-development}
+      - FLASK_DEBUG=${FLASK_DEBUG:-True}
+      - DATABASE_URL=${DATABASE_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+
+    # Ждём, пока база данных будет готова
+    depends_on:
+      db:
+        condition: service_healthy
+
+    # Сеть
     networks:
       - mini_t1_network
 
+    # Health check для самого приложения
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/hello"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  db:
+    image: postgres:15-alpine
+    container_name: mini_t1_db
+    restart: unless-stopped
+
+    # Переменные для PostgreSQL
+    environment:
+      POSTGRES_DB: ${DB_NAME:-hackathon_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
+
+    # Пробрасываем порт для доступа извне
+    ports:
+      - "5432:5432"
+
+    # Постоянное хранилище данных
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    # Сеть
+    networks:
+      - mini_t1_network
+
+    # Health check для базы данных
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-hackathon_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+
+# === Сети ===
 networks:
   mini_t1_network:
     driver: bridge
+    name: mini_t1_network
+
+volumes:
+  postgres_data:

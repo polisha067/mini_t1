@@ -1,17 +1,36 @@
 FROM python:3.11-slim
 
+# Рабочая директория
 WORKDIR /app
 
-COPY requirements.txt .
+# Системные зависимости (для psycopg2 и curl в healthcheck)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
+# Копируем зависимости и устанавливаем их
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Копируем код проекта
 COPY . .
 
+# Создаём папку для логов
+RUN mkdir -p /app/logs
+
+# Переменные окружения
+ENV FLASK_APP=manage.py
+ENV FLASK_CONFIG=development
+ENV PYTHONUNBUFFERED=1
+
+# Открываем порт
 EXPOSE 5000
 
-ENV FLASK_APP=main.py
-ENV FLASK_ENV=development
-ENV FLASK_DEBUG=True
+# Health check для Docker
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5000/api/hello || exit 1
 
-CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+# Команда запуска
+CMD ["python", "manage.py"]
