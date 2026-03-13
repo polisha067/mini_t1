@@ -32,7 +32,7 @@ def create_app():
     # Инициализация SQLAlchemy
     db.init_app(app)
 
-    # Инициализация Flask-Migrate (Alembic)
+    # Инициализация Flask-Migrate 
     migrate.init_app(app, db)
 
     # Регистрация Blueprint (маршруты)
