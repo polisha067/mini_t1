@@ -17,3 +17,7 @@ class Config:
 
     # Режим отладки
     DEBUG = os.environ.get('FLASK_DEBUG') == 'True'
+
+    # Настройки базы данных, если DATABASE_URL не задана, то путь к SQLite зададется в create_app()
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
