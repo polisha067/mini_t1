@@ -60,7 +60,7 @@ docker-compose exec web flask db upgrade
 ### Добавить новую миграцию
 
 ```bash
-# 1. Измени модели в app/models.py
+# 1. Измени модели в app/models/
 # 2. Создай миграцию
 docker-compose exec web flask db migrate -m "Описание изменений"
 
