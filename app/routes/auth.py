@@ -50,3 +50,30 @@ def register():
         "message": "Пользователь успешно зарегистрирован",
         "user": user.to_dict()
     }), 201
+
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    """Аутентификация пользователя и выдача JWT токена"""
+    data = request.get_json(silent=True)
+    if not data:
+        raise BadRequestError("Тело запроса должно быть в формате JSON")
+
+    valid, error = validate_login_data(data)
+    if not valid:
+        raise ValidationError(error)
+
+    email = data['email'].strip().lower()
+    password = data['password']
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user or not user.check_password(password):
+        raise UnauthorizedError("Неверный email или пароль")
+
+    access_token = create_access_token(identity=user.id)
+
+    return jsonify({
+        "status": "success",
+        "access_token": access_token,
+        "user": user.to_dict()
+    }), 200
