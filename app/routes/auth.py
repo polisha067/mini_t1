@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
 from app.extensions import db
 from app.models.user import User
@@ -75,5 +75,20 @@ def login():
     return jsonify({
         "status": "success",
         "access_token": access_token,
+        "user": user.to_dict()
+    }), 200
+
+@auth_bp.route('/me', methods=['GET'])
+@jwt_required()
+def me():
+    """Защищённый эндпоинт: данные текущего пользователя"""
+    user_id = get_jwt_identity()
+    user = db.session.get(User, user_id)
+
+    if not user:
+        raise UnauthorizedError("Пользователь не найден")
+
+    return jsonify({
+        "status": "success",
         "user": user.to_dict()
     }), 200
