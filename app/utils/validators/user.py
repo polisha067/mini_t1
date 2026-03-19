@@ -60,8 +60,7 @@ def validate_registration_data(data: dict) -> Tuple[bool, Optional[str]]:
     if not valid:
         return False, error
 
-    # Проверка роли
-    role = data.get('role', 'expert')
+    role = data.get('role')
     valid, error = validate_user_role(role)
     if not valid:
         return False, error

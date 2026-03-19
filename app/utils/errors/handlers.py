@@ -90,3 +90,47 @@ def register_error_handlers(app):
                 'message': 'Внутренняя ошибка сервера'
             }
         }), 500
+
+
+def register_jwt_error_handlers(jwt_manager):
+    """Обработчики JWT-ошибок"""
+
+    @jwt_manager.expired_token_loader
+    def handle_expired_token(jwt_header, jwt_payload):
+        return jsonify({
+            'status': 'error',
+            'error': {
+                'code': 'TOKEN_EXPIRED',
+                'message': 'Токен истёк'
+            }
+        }), 401
+
+    @jwt_manager.invalid_token_loader
+    def handle_invalid_token(error_string):
+        return jsonify({
+            'status': 'error',
+            'error': {
+                'code': 'INVALID_TOKEN',
+                'message': 'Недействительный токен'
+            }
+        }), 401
+
+    @jwt_manager.unauthorized_loader
+    def handle_missing_token(error_string):
+        return jsonify({
+            'status': 'error',
+            'error': {
+                'code': 'MISSING_TOKEN',
+                'message': 'Токен не предоставлен'
+            }
+        }), 401
+
+    @jwt_manager.revoked_token_loader
+    def handle_revoked_token(jwt_header, jwt_payload):
+        return jsonify({
+            'status': 'error',
+            'error': {
+                'code': 'TOKEN_REVOKED',
+                'message': 'Токен отозван'
+            }
+        }), 401

@@ -8,7 +8,7 @@ from app.utils.errors.exceptions import (
     ValidationError
 )
 
-from app.utils.errors.handlers import register_error_handlers
+from app.utils.errors.handlers import register_error_handlers, register_jwt_error_handlers
 
 __all__ = [
     'APIError',
@@ -19,4 +19,5 @@ __all__ = [
     'ConflictError',
     'ValidationError',
     'register_error_handlers',
+    'register_jwt_error_handlers',
 ]

@@ -22,3 +22,5 @@ def status():
     }), 200
 
 
+from app.routes.auth import auth_bp 
+bp.register_blueprint(auth_bp)

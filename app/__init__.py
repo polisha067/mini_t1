@@ -7,7 +7,7 @@ from flask_cors import CORS
 from app.config import config
 from app.extensions import db, migrate, jwt
 from app import routes
-from app.utils.errors import register_error_handlers
+from app.utils.errors import register_error_handlers, register_jwt_error_handlers
 
 
 def create_app(config_name=None):
@@ -23,6 +23,7 @@ def create_app(config_name=None):
 
     # JWT для аутентификации
     jwt.init_app(app)
+    register_jwt_error_handlers(jwt)
 
     # SQLAlchemy для работы с БД
     db.init_app(app)
