@@ -1,5 +1,6 @@
 from flask import jsonify
 from werkzeug.exceptions import HTTPException
+from .exceptions import APIError
 
 def register_error_handlers(app):
     """Регистрирует обработчики ошибок для Flask приложения"""

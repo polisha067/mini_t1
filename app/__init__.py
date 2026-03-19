@@ -4,10 +4,10 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from flask import Flask
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
 from app.config import config
-from app.extensions import db, migrate
+from app.extensions import db, migrate, jwt
 from app import routes
+from app.utils.errors import register_error_handlers
 
 
 def create_app(config_name=None):
@@ -22,7 +22,6 @@ def create_app(config_name=None):
     CORS(app, resources={r"/api/*": {"origins": app.config.get('CORS_ORIGINS', '*')}})
 
     # JWT для аутентификации
-    jwt = JWTManager()
     jwt.init_app(app)
 
     # SQLAlchemy для работы с БД
@@ -30,6 +29,9 @@ def create_app(config_name=None):
 
     # Flask-Migrate для миграций
     migrate.init_app(app, db)
+
+    # Обработчики ошибок
+    register_error_handlers(app)
 
     # Маршруты (Blueprint)
     app.register_blueprint(routes.bp)
