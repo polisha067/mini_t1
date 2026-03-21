@@ -1,0 +1,38 @@
+<div class="container">
+  <div class="auth-buttons">
+    <button class="btn-register">регистрация</button>
+    <button class="btn-login">вход</button>
+  </div>
+
+  <div class="hero">
+    <h1 class="logo">МЕТКА</h1>
+    <p class="subtitle">сервис для удобных и честных соревнований</p>
+  </div>
+
+  <div class="search">
+    <input type="text" placeholder="найдите конкурс">
+  </div>
+
+  <h2 class="section-title">актуальные<br>конкурсы</h2>
+
+  <div class="scroll-container">
+    <div class="scroll-list">
+      <div class="contest-card" *ngFor="let contest of activeContests">
+        <h3>{{ contest.title }}</h3>
+        <p class="year">{{ contest.year }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div class="description">
+      <h3>нашли сервис:</h3>
+      <p>Метка - это порядок там, где обычно хаос. Эксперты выставляют оценки в удобной форме, организаторы не сводят таблицы вручную, а участники видят прозрачные результаты и хранят историю всех хакатонов в избранном. Никаких потерянных баллов, никакого «кто кому что поставил» - просто честный рейтинг.</p>
+    </div>
+
+    <div class="team">
+      <h3>работали:</h3>
+      <p>команда студентов МАИ программы топ айти</p>
+    </div>
+  </div>
+</div>
