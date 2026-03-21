@@ -10,8 +10,9 @@ import { CommonModule } from '@angular/common';
 })
 export class ContestListComponent {
   activeContests = [
-    { id: 1, title: 'хакатон 1', year: '2025' },
-    { id: 2, title: 'хакатон 2', year: '2025' },
-    { id: 3, title: 'хакатон 3', year: '2025' }
+    { id: 1, title: 'хакатон 1', year: '2025', image: 'assets/images/photo.jpg' },
+    { id: 2, title: 'хакатон 2', year: '2025', image: 'assets/images/photo.jpg' },
+    { id: 3, title: 'хакатон 3', year: '2025', image: 'assets/images/photo.jpg' }
   ];
 }
+

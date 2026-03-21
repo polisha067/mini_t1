@@ -18,9 +18,10 @@
   <div class="scroll-container">
     <div class="scroll-list">
       <div class="contest-card" *ngFor="let contest of activeContests">
-        <h3>{{ contest.title }}</h3>
+        <img [src]="contest.image" alt="{{ contest.title }}" class="contest-image">
+            <h3>{{ contest.title }}</h3>
         <p class="year">{{ contest.year }}</p>
-      </div>
+        </div>
     </div>
   </div>
 
