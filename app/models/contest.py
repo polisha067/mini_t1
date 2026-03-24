@@ -10,8 +10,8 @@ class Contest(db.Model):
     description = db.Column(db.Text, nullable=True)
     start_date = db.Column(db.DateTime, nullable=True)
     end_date = db.Column(db.DateTime, nullable=True)
+    logo_path = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
     organizer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
 
     organizer = db.relationship("User", back_populates="contests")
@@ -26,7 +26,9 @@ class Contest(db.Model):
             'description': self.description,
             'start_date': self.start_date.isoformat() if self.start_date else None,
             'end_date': self.end_date.isoformat() if self.end_date else None,
-            'organizer_id': self.organizer_id
+            'logo_path': self.logo_path,
+            'organizer_id': self.organizer_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
     def __repr__(self):

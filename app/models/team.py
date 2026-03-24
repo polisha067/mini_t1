@@ -8,7 +8,7 @@ class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    description = db.Column(db.Text, nullable=True)
     contest_id = db.Column(db.Integer, db.ForeignKey("contests.id"), nullable=False, index=True)
 
     contest = db.relationship("Contest", back_populates="teams")
@@ -18,7 +18,9 @@ class Team(db.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'contest_id': self.contest_id
+            'description': self.description,
+            'contest_id': self.contest_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
     def __repr__(self):

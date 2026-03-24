@@ -6,6 +6,9 @@ from flask import Flask
 from flask_cors import CORS
 from app.config import config
 from app.extensions import db, migrate, jwt
+from app.admin import init_admin
+from app.extensions import login_manager
+from app.cli import init_cli
 from app import routes
 from app.utils.errors import register_error_handlers, register_jwt_error_handlers
 
@@ -36,6 +39,12 @@ def create_app(config_name=None):
 
     # Маршруты (Blueprint)
     app.register_blueprint(routes.bp)
+
+    # Инициализация Flask-Admin
+    init_admin(app)
+    login_manager.init_app(app)
+
+    init_cli(app)
 
     # Настройка логирования
     if not app.debug:

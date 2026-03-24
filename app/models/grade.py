@@ -7,6 +7,7 @@ class Grade(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.Integer, nullable=False)
+    comment = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -26,10 +27,12 @@ class Grade(db.Model):
         return {
             'id': self.id,
             'value': self.value,
+            'comment': self.comment,
             'expert_id': self.expert_id,
             'team_id': self.team_id,
             'criterion_id': self.criterion_id,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
     def __repr__(self):
