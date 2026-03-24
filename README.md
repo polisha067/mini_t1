@@ -34,6 +34,70 @@ docker-compose exec web flask db upgrade
 
 ---
 
+## Админ-панель
+
+Для управления данными через веб-интерфейс предусмотрена админ-панель.
+
+### Доступ
+
+| Параметр | Значение |
+|----------|----------|
+| **URL** | `http://localhost:5000/admin` |
+| **Аутентификация** | Session Cookie (Flask-Login) |
+
+### Создание суперпользователя
+
+Суперпользователь создаётся только через CLI:
+
+```bash
+docker-compose exec web flask create-superuser
+```
+
+**Введите данные:**
+```
+Username: admin
+Email: admin@hackathon.local
+Password: ******
+Repeat for confirmation: ******
+```
+
+### Вход в админ-панель
+
+1. Откройте `http://localhost:5000/admin`
+2. Введите логин и пароль созданные через CLI
+
+### Разделы админ-панели
+
+| Раздел | Описание |
+|--------|----------|
+| Суперпользователи | Управление доступом к админке (только просмотр) |
+| Пользователи | Организаторы и эксперты системы |
+| Конкурсы | Хакатоны и интеллектуальные конкурсы |
+| Команды | Команды участников |
+| Критерии | Критерии оценивания |
+| Оценки | Оценки экспертов |
+| Назначения экспертов | Назначение экспертов на конкурсы |
+
+### Безопасность
+
+- Отдельная таблица `super_users` (изолирована от основных пользователей)
+- Нет API endpoint для создания SuperUser
+- Блокировка после 5 неудачных попыток входа (30 минут)
+- Session Cookie: HttpOnly + Secure + SameSite=Lax
+- Все действия логируются в консоль приложения
+
+### Полезные команды
+
+```bash
+# Посмотреть список суперпользователей
+docker-compose exec db psql -U postgres -d hackathon_db -c "SELECT id, username, email, is_active FROM super_users;"
+
+# Сбросить блокировку после неудачных попыток
+docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users SET failed_attempts=0, locked_until=NULL WHERE username='admin';"
+```
+
+---
+
 ## Основные команды
 
 | Команда | Описание |
@@ -44,6 +108,7 @@ docker-compose exec web flask db upgrade
 | `flask db migrate -m "Описание"` | Создать новую миграцию |
 | `flask db upgrade` | Применить миграции |
 | `flask db downgrade` | Откатить миграцию |
+| `flask create-superuser` | Создать суперпользователя для админки |
 
 ---
 
@@ -51,7 +116,11 @@ docker-compose exec web flask db upgrade
 
 | Метод | Endpoint | Описание |
 | :--- | :--- | :--- |
-| GET | `/api/hello` | Проверка работы API |
+| POST | `/api/auth/register` | Регистрация пользователя |
+| POST | `/api/auth/login` | Вход (получение JWT токена) |
+| POST | `/api/auth/logout` | Выход (инвалидация токена) |
+| GET | `/admin/*` | Админ-панель (требуется Session Cookie) |
+| GET | `/api/auth/me` | Получить текущего пользователя | JWT |
 
 ---
 
@@ -78,5 +147,17 @@ docker-compose exec web flask db upgrade
 ```bash
 docker-compose exec db psql -U postgres -d hackathon_db -c "\dt"
 ```
-
 ---
+
+## Технологии
+
+| Компонент | Технология |
+|-----------|------------|
+| Backend | Python 3.11 + Flask |
+| Database | PostgreSQL 15 |
+| ORM | SQLAlchemy |
+| Migrations | Alembic (Flask-Migrate) |
+| Admin Panel | Flask-Admin + Flask-Login |
+| API Auth | JWT (Flask-JWT-Extended) |
+| Admin Auth | Session Cookie (Flask-Login) |
+| Containerization | Docker + Docker Compose |
