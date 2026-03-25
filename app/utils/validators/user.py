@@ -26,7 +26,7 @@ def validate_username(username: str) -> Tuple[bool, Optional[str]]:
 
 def validate_user_role(role: str) -> Tuple[bool, Optional[str]]:
     """Проверка роли пользователя"""
-    valid_roles = ['organizer', 'expert']
+    valid_roles = ['admin', 'organizer', 'expert', 'user']
 
     if not role or not isinstance(role, str):
         return False, "Роль обязательна"

@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, get_jwt
 
 from app.extensions import db
 from app.models.user import User
+from app.models.contest import Contest
 from app.utils.validators import validate_registration_data, validate_login_data
 from app.utils.errors import (
     ValidationError,
@@ -10,6 +11,7 @@ from app.utils.errors import (
     UnauthorizedError,
     BadRequestError,
 )
+from app.utils.decorators import role_required, admin_required
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -70,7 +72,8 @@ def login():
     if not user or not user.check_password(password):
         raise UnauthorizedError("Неверный email или пароль")
 
-    access_token = create_access_token(identity=user.id)
+    additional_claims = {'role': user.role}
+    access_token = create_access_token(identity=user.id, additional_claims=additional_claims)
 
     return jsonify({
         "status": "success",
@@ -83,7 +86,7 @@ def login():
 def me():
     """Защищённый эндпоинт: данные текущего пользователя"""
     user_id = get_jwt_identity()
-    user = db.session.get(User, user_id)
+    user = db.session.get(User, int(user_id))
 
     if not user:
         raise UnauthorizedError("Пользователь не найден")
@@ -91,4 +94,54 @@ def me():
     return jsonify({
         "status": "success",
         "user": user.to_dict()
+    }), 200
+
+
+@auth_bp.route('/organizer', methods=['GET'])
+@role_required('organizer')
+def organizer_panel():
+    """Эндпоинт только для организаторов: сводка по своим конкурсам"""
+    user_id = int(get_jwt_identity())
+    contests_count = Contest.query.filter_by(organizer_id=user_id).count()
+
+    return jsonify({
+        "status": "success",
+        "message": "Панель организатора",
+        "data": {
+            "contests_count": contests_count,
+            "features": [
+                "create_contest",
+                "manage_teams",
+                "manage_criteria",
+                "assign_experts",
+                "view_ranking",
+            ],
+        },
+    }), 200
+
+
+@auth_bp.route('/admin', methods=['GET'])
+@admin_required
+def admin_panel():
+    """Эндпоинт только для администраторов"""
+    return jsonify({
+        "status": "success",
+        "message": "Панель администратора",
+        "data": {
+            "users_count": User.query.count(),
+            "admin_features": ["user_management", "system_settings", "audit_logs"]
+        }
+    }), 200
+
+
+@auth_bp.route('/expert', methods=['GET'])
+@role_required('expert')
+def expert_panel():
+    """Эндпоинт только для экспертов"""
+    return jsonify({
+        "status": "success",
+        "message": "Панель эксперта",
+        "data": {
+            "features": ["contest_evaluation", "grade_submission", "results_review"]
+        }
     }), 200

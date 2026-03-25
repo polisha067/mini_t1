@@ -20,6 +20,11 @@ from app.utils.errors import (
     register_error_handlers
 )
 
+from app.utils.decorators import (
+    role_required,
+    admin_required
+)
+
 __all__ = [
     'validate_email',
     'validate_password',
@@ -37,4 +42,6 @@ __all__ = [
     'ConflictError',
     'ValidationError',
     'register_error_handlers',
+    'role_required',
+    'admin_required',
 ]
