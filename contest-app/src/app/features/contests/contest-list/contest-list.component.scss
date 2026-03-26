@@ -50,13 +50,19 @@
 }
 
 .logo {
-  font-family: 'GeneralFont', sans-serif !important;
   font-size: 180px;
   font-weight: bold;
   margin: 0;
   letter-spacing: 4px;
-  color: #383A51;
   line-height: 1;
+}
+
+.vowel {
+  color: #8F8B4D;
+}
+
+.consonant {
+  color: #383A51;
 }
 
 .subtitle {
@@ -155,6 +161,16 @@
     margin: 0;
     color: #8F8B4D;
     font-size: 16px;
+  }
+
+}
+
+.contest-card {
+  cursor: pointer;
+  transition: opacity 0.3s;
+
+  &:hover {
+    opacity: 0.7;
   }
 }
 

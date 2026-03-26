@@ -5,9 +5,15 @@
   </div>
 
   <div class="hero">
-    <h1 class="logo">МЕТКА</h1>
-    <p class="subtitle">сервис для удобных и честных соревнований</p>
-  </div>
+  <h1 class="logo">
+    <span class="consonant">М</span>
+    <span class="vowel">Е</span>
+    <span class="consonant">Т</span>
+    <span class="consonant">К</span>
+    <span class="vowel">А</span>
+  </h1>
+  <p class="subtitle">сервис для удобных и честных соревнований</p>
+</div>
 
   <div class="search">
     <input type="text" placeholder="найдите конкурс">
@@ -17,11 +23,11 @@
 
   <div class="scroll-container">
     <div class="scroll-list">
-      <div class="contest-card" *ngFor="let contest of activeContests">
+      <div class="contest-card" *ngFor="let contest of activeContests" (click)="goToContest(contest.id)">
         <img [src]="contest.image" alt="{{ contest.title }}" class="contest-image">
-            <h3>{{ contest.title }}</h3>
+        <h3>{{ contest.title }}</h3>
         <p class="year">{{ contest.year }}</p>
-        </div>
+      </div>
     </div>
   </div>
 

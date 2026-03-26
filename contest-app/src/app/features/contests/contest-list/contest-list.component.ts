@@ -25,6 +25,10 @@ export class ContestListComponent {
     this.router.navigate(['/login']);
   }
 
+  goToContest(contestId: number) {
+    this.router.navigate(['/contest', contestId]);
+}
+
   goToRegister() {  
     this.router.navigate(['/register']);
   }
