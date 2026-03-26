@@ -1,10 +1,8 @@
 # mini_t1
 
-Система оценки хакатонов. Backend на Flask + PostgreSQL.
+Система оценки хакатонов. Backend на Flask + PostgreSQL, frontend на Angular.
 
 ---
-## фронтенд работа
-# папка с фронтом contest-app
 
 
 ## Быстрый старт
@@ -27,12 +25,59 @@ copy .env.example .env
 docker-compose up --build
 ```
 
-Сервер доступен: `http://127.0.0.1:5000`
+**Сервисы будут доступны:**
+- Frontend (Angular): `http://localhost:4200`
+- Backend (Flask API): `http://localhost:5000`
+- База данных: `localhost:5432`
 
 ### 3. Примени миграции
 
 ```bash
 docker-compose exec web flask db upgrade
+```
+
+---
+
+## Запуск отдельных сервисов
+
+### Только фронтенд
+
+```bash
+docker-compose up frontend --build
+```
+
+### Только бекенд + база данных
+
+```bash
+docker-compose up web db --build
+```
+
+### Только база данных
+
+```bash
+docker-compose up db
+```
+
+### Все сервисы в фоновом режиме
+
+```bash
+docker-compose up -d
+```
+
+### Остановить сервисы
+
+```bash
+# Остановить все
+docker-compose down
+
+# Остановить всё с удалением базы данных
+docker-compose down -v
+
+# Остановить только фронтенд
+docker-compose stop frontend
+
+# Остановить только бекенд
+docker-compose stop web
 ```
 
 ---
@@ -105,9 +150,14 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 
 | Команда | Описание |
 | :--- | :--- |
-| `docker-compose up --build` | Собрать и запустить проект |
-| `docker-compose down` | Остановить контейнеры |
+| `docker-compose up --build` | Собрать и запустить все сервисы |
+| `docker-compose up frontend --build` | Запустить только фронтенд |
+| `docker-compose up web db --build` | Запустить бекенд с базой данных |
+| `docker-compose up -d` | Запустить все сервисы в фоне |
+| `docker-compose down` | Остановить все сервисы |
 | `docker-compose down -v` | Остановить + удалить базу данных |
+| `docker-compose stop frontend` | Остановить только фронтенд |
+| `docker-compose stop web` | Остановить только бекенд |
 | `flask db migrate -m "Описание"` | Создать новую миграцию |
 | `flask db upgrade` | Применить миграции |
 | `flask db downgrade` | Откатить миграцию |

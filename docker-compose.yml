@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  frontend:
+    build:
+      context: ./contest-app
+      dockerfile: Dockerfile
+    container_name: mini_t1_frontend
+    restart: unless-stopped
+
+    # Монтируем код для горячей перезагрузки
+    volumes:
+      - ./contest-app:/app
+      - /app/node_modules
+
+    # Пробрасываем порт
+    ports:
+      - "4200:4200"
+
+    # Сеть
+    networks:
+      - mini_t1_network
+
   web:
     build:
       context: .
