@@ -10,8 +10,16 @@ services:
 
     # Монтируем код для горячей перезагрузки
     volumes:
-      - ./contest-app:/app
-      - /app/node_modules
+      - ./contest-app/src:/app/src
+      - ./contest-app/public:/app/public
+      - ./contest-app/angular.json:/app/angular.json
+      - ./contest-app/tsconfig.app.json:/app/tsconfig.app.json
+      - ./contest-app/tsconfig.json:/app/tsconfig.json
+      - ./contest-app/tsconfig.spec.json:/app/tsconfig.spec.json
+      - ./contest-app/package.json:/app/package.json
+      - ./contest-app/package-lock.json:/app/package-lock.json
+      - ./contest-app/.editorconfig:/app/.editorconfig
+      - ./contest-app/.prettierrc:/app/.prettierrc
 
     # Пробрасываем порт
     ports:
