@@ -1,18 +1,13 @@
-FROM node:22-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Копируем package файлы для кэширования зависимостей
 COPY package*.json ./
 
-# Устанавливаем зависимости
-RUN npm ci
+RUN npm install
 
-# Копируем исходный код
 COPY . .
 
-# Открываем порт для dev-сервера
 EXPOSE 4200
 
-# Запускаем dev-сервер с хостом 0.0.0.0 для доступа извне контейнера
-CMD ["npm", "start", "--", "--host", "0.0.0.0", "--port", "4200", "--poll", "2000"]
+CMD ["npm", "run", "start", "--", "--host", "0.0.0.0"]
