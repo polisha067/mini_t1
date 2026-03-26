@@ -30,7 +30,7 @@ EXPOSE 5000
 
 # Health check для Docker
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:5000/api/hello || exit 1
+    CMD curl -f http://localhost:5000/api/status || exit 1
 
 # Команда запуска
 CMD ["python", "manage.py"]

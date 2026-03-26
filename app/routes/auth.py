@@ -13,6 +13,13 @@ from app.utils.errors import (
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
+
+def get_redirect_url_for_role(role: str) -> str:
+    """
+    Все пользователи перенаправляются на /home полсле аторизации или регистрации
+    """
+    return '/home'
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
     """Регистрация нового пользователя"""
@@ -48,7 +55,8 @@ def register():
     return jsonify({
         "status": "success",
         "message": "Пользователь успешно зарегистрирован",
-        "user": user.to_dict()
+        "user": user.to_dict(),
+        "redirect_url": get_redirect_url_for_role(user.role)
     }), 201
 
 @auth_bp.route('/login', methods=['POST'])
@@ -76,7 +84,8 @@ def login():
     return jsonify({
         "status": "success",
         "access_token": access_token,
-        "user": user.to_dict()
+        "user": user.to_dict(),
+        "redirect_url": get_redirect_url_for_role(user.role)
     }), 200
 
 @auth_bp.route('/me', methods=['GET'])
@@ -92,4 +101,14 @@ def me():
     return jsonify({
         "status": "success",
         "user": user.to_dict()
+    }), 200
+
+
+@auth_bp.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    """Выход из системы (на клиенте нужно удалить токен)"""
+    return jsonify({
+        "status": "success",
+        "message": "Выход выполнен успешно"
     }), 200
