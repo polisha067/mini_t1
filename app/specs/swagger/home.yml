@@ -1,0 +1,32 @@
+tags:
+  - General
+summary: Главная страница
+description: Информация для отображения главной страницы. Доступно без аутентификации.
+responses:
+  200:
+    description: Данные для главной страницы
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        page:
+          type: string
+          example: "home"
+        user:
+          type: object
+          nullable: true
+          description: Данные пользователя (null если не авторизован)
+          properties:
+            id:
+              type: integer
+            username:
+              type: string
+            email:
+              type: string
+            role:
+              type: string
+        is_authenticated:
+          type: boolean
+          example: false

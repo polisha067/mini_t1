@@ -1,0 +1,16 @@
+tags:
+  - General
+summary: Статус сервера
+description: Проверка работоспособности API
+responses:
+  200:
+    description: Сервер работает
+    schema:
+      type: object
+      properties:
+        server:
+          type: string
+          example: "running"
+        version:
+          type: string
+          example: "0.1.0"

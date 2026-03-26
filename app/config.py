@@ -13,6 +13,15 @@ class Config:
     # Время жизни JWT токена в секундах (1 час)
     JWT_ACCESS_TOKEN_EXPIRES = 3600
 
+    # Настройки JWT - искать токен в заголовке Authorization и query параметре
+    JWT_TOKEN_LOCATION = ['headers', 'query_string']
+    JWT_HEADER_NAME = 'Authorization'
+    JWT_HEADER_TYPE = 'Bearer'
+    JWT_QUERY_STRING_NAME = 'token'
+    
+    # Отключаем CSRF для API (используем только для Stateless API)
+    JWT_COOKIE_CSRF_PROTECT = False
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 

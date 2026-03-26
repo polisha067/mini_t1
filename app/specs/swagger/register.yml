@@ -1,0 +1,101 @@
+tags:
+  - Authentication
+summary: Регистрация нового пользователя
+description: Создаёт нового пользователя с ролью organizer или expert
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - role
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 64
+          description: Имя пользователя (только буквы, цифры, подчёркивания)
+          example: "john_doe"
+        email:
+          type: string
+          format: email
+          description: Email адрес
+          example: "john@example.com"
+        password:
+          type: string
+          minLength: 6
+          description: Пароль (минимум 6 символов, буквы и цифры)
+          example: "password123"
+        role:
+          type: string
+          enum: [organizer, expert]
+          description: Роль пользователя
+          example: "organizer"
+responses:
+  201:
+    description: Пользователь успешно зарегистрирован
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Пользователь успешно зарегистрирован"
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            username:
+              type: string
+              example: "john_doe"
+            email:
+              type: string
+              example: "john@example.com"
+            role:
+              type: string
+              example: "organizer"
+        redirect_url:
+          type: string
+          example: "/home"
+  400:
+    description: Ошибка валидации данных
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Имя пользователя должно быть не менее 3 символов"
+  409:
+    description: Пользователь уже существует
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "CONFLICT"
+            message:
+              type: string
+              example: "Пользователь с таким email уже существует"

@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from flasgger import swag_from
 
 from app.extensions import db
 from app.models.user import User
@@ -21,6 +22,7 @@ def get_redirect_url_for_role(role: str) -> str:
     return '/home'
 
 @auth_bp.route('/register', methods=['POST'])
+@swag_from('../specs/swagger/register.yml')
 def register():
     """Регистрация нового пользователя"""
     data = request.get_json(silent=True)
@@ -60,6 +62,7 @@ def register():
     }), 201
 
 @auth_bp.route('/login', methods=['POST'])
+@swag_from('../specs/swagger/login.yml')
 def login():
     """Аутентификация пользователя и выдача JWT токена"""
     data = request.get_json(silent=True)
@@ -79,7 +82,7 @@ def login():
         raise UnauthorizedError("Неверный email или пароль")
 
     additional_claims = {'role': user.role}
-    access_token = create_access_token(identity=user.id, additional_claims=additional_claims)
+    access_token = create_access_token(identity=str(user.id), additional_claims=additional_claims)
 
     return jsonify({
         "status": "success",
@@ -90,6 +93,7 @@ def login():
 
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
+@swag_from('../specs/swagger/me.yml')
 def me():
     """Защищённый эндпоинт: данные текущего пользователя"""
     user_id = get_jwt_identity()
@@ -106,6 +110,7 @@ def me():
 
 @auth_bp.route('/logout', methods=['POST'])
 @jwt_required()
+@swag_from('../specs/swagger/logout.yml')
 def logout():
     """Выход из системы (на клиенте нужно удалить токен)"""
     return jsonify({

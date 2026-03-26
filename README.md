@@ -112,6 +112,22 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 
 ---
 
+## API Documentation (Swagger)
+
+Документация API доступна через Swagger UI:
+
+| Описание | URL |
+|----------|-----|
+| **Swagger UI** | `http://localhost:5000/apidocs/` |
+| **API Spec (JSON)** | `http://localhost:5000/apispec_1.json` |
+
+В Swagger UI можно:
+- Просматривать все доступные endpoints
+- Тестировать API прямо из браузера
+- Авторизоваться через JWT токен (кнопка Authorize)
+
+---
+
 ## API Endpoints
 
 | Метод | Endpoint | Описание |

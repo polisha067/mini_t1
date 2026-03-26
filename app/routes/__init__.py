@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flasgger import swag_from
 from app.extensions import db
 from app.models.user import User
 from app.routes.auth import auth_bp
@@ -8,6 +9,7 @@ bp = Blueprint('api', __name__, url_prefix='/api')
 
 
 @bp.route('/status', methods=['GET'])
+@swag_from('../specs/swagger/status.yml')
 def status():
     """Статус сервера"""
     return jsonify({
@@ -18,6 +20,7 @@ def status():
 
 @bp.route('/home', methods=['GET'])
 @jwt_required(optional=True)
+@swag_from('../specs/swagger/home.yml')
 def home():
     """Главная страница - информация для отображения home page"""
     user_id = get_jwt_identity()

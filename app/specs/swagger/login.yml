@@ -1,0 +1,71 @@
+tags:
+  - Authentication
+summary: Аутентификация пользователя и выдача JWT токена
+description: Проверяет credentials и возвращает access token
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email адрес
+          example: "john@example.com"
+        password:
+          type: string
+          description: Пароль
+          example: "password123"
+responses:
+  200:
+    description: Успешная аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        access_token:
+          type: string
+          description: JWT токен доступа
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            username:
+              type: string
+              example: "john_doe"
+            email:
+              type: string
+              example: "john@example.com"
+            role:
+              type: string
+              example: "organizer"
+        redirect_url:
+          type: string
+          example: "/home"
+  401:
+    description: Неверный email или пароль
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Неверный email или пароль"

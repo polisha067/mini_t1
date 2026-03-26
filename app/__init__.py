@@ -4,6 +4,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from flask import Flask
 from flask_cors import CORS
+from flasgger import Swagger
 from app.config import config
 from app.extensions import db, migrate, jwt
 from app.jwt_config import init_jwt
@@ -23,11 +24,58 @@ def create_app(config_name=None):
     app.config.from_object(config[config_name])
 
     # CORS для Angular
-    CORS(app, resources={r"/api/*": {"origins": app.config.get('CORS_ORIGINS', '*')}})
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": app.config.get('CORS_ORIGINS', '*'),
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"]
+        }
+    })
 
-    # JWT для аутентификации
+    # JWT для аутентификации - явно устанавливаем секрет перед инициализацией
+    if not app.config.get('JWT_SECRET_KEY'):
+        app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev-secret-key-for-jwt')
+    
     jwt.init_app(app)
     register_jwt_error_handlers(jwt)
+
+    # Swagger документация
+    app.config['SWAGGER'] = {
+        'title': 'Hackathon Evaluation System API',
+        'uiversion': 3,
+        'version': '1.0.0',
+        'description': 'API для системы оценки результатов хакатонов и интеллектуальных конкурсов',
+        'contact': {
+            'name': 'Development Team'
+        }
+    }
+    app.config['SWAGGER_UI_DOC_EXPANSION'] = 'list'
+
+    # Swagger спецификация
+    swagger_config = {
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": 'apispec_1',
+                "route": '/apispec_1.json',
+                "rule_filter": lambda rule: True,
+                "model_filter": lambda tag: True,
+            }
+        ],
+        "static_url_path": "/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/apidocs/",
+        "securityDefinitions": {
+            "Bearer": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header",
+                "description": "JWT Authorization header. Пример: Bearer <token>"
+            }
+        }
+    }
+
+    Swagger(app, config=swagger_config)
 
     # SQLAlchemy для работы с БД
     db.init_app(app)

@@ -1,0 +1,35 @@
+tags:
+  - Authentication
+summary: Выход из системы
+description: Завершает сессию пользователя (на клиенте нужно удалить токен)
+security:
+  - Bearer: []
+responses:
+  200:
+    description: Успешный выход
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Выход выполнен успешно"
+  401:
+    description: Токен не предоставлен или истёк
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "TOKEN_EXPIRED"
+            message:
+              type: string
+              example: "Токен истёк"

@@ -1,0 +1,68 @@
+tags:
+  - Authentication
+summary: Получение данных текущего пользователя
+description: Возвращает информацию об авторизованном пользователе
+security:
+  - Bearer: []
+responses:
+  200:
+    description: Данные текущего пользователя
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            username:
+              type: string
+              example: "john_doe"
+            email:
+              type: string
+              example: "john@example.com"
+            role:
+              type: string
+              example: "organizer"
+            created_at:
+              type: string
+              format: date-time
+              example: "2024-01-01T12:00:00"
+  401:
+    description: Токен не предоставлен или истёк
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "TOKEN_EXPIRED"
+            message:
+              type: string
+              example: "Токен истёк"
+  404:
+    description: Пользователь не найден
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Пользователь не найден"
