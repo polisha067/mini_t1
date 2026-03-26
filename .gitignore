@@ -68,3 +68,9 @@ logs/
 .coverage
 htmlcov/
 .tox/
+
+# === Angular / Frontend ===
+contest-app/.angular/
+contest-app/node_modules/
+contest-app/dist/
+contest-app/.tsbuildinfo
