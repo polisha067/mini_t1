@@ -70,7 +70,8 @@ def login():
     if not user or not user.check_password(password):
         raise UnauthorizedError("Неверный email или пароль")
 
-    access_token = create_access_token(identity=user.id)
+    additional_claims = {'role': user.role}
+    access_token = create_access_token(identity=user.id, additional_claims=additional_claims)
 
     return jsonify({
         "status": "success",
@@ -83,7 +84,7 @@ def login():
 def me():
     """Защищённый эндпоинт: данные текущего пользователя"""
     user_id = get_jwt_identity()
-    user = db.session.get(User, user_id)
+    user = db.session.get(User, int(user_id))
 
     if not user:
         raise UnauthorizedError("Пользователь не найден")
