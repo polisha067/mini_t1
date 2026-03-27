@@ -28,7 +28,6 @@ docker-compose up --build
 **Сервисы будут доступны:**
 - Frontend (Angular): `http://localhost:4200`
 - Backend (Flask API): `http://localhost:5000`
-- База данных: `localhost:5432`
 
 ### 3. Примени миграции
 
