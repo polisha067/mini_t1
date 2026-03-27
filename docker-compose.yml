@@ -49,6 +49,8 @@ services:
     env_file:
       - .env
     environment:
+      - FLASK_APP=app:create_app
+      - FLASK_ENV=development
       - FLASK_CONFIG=${FLASK_CONFIG:-development}
       - FLASK_DEBUG=${FLASK_DEBUG:-True}
       - DATABASE_URL=${DATABASE_URL}
