@@ -83,6 +83,12 @@ def create_app(config_name=None):
     # Flask-Migrate для миграций
     migrate.init_app(app, db)
 
+    # Инициализация админки
+    init_admin(app)
+
+    # Инициализация CLI команд
+    init_cli(app)
+
     # Обработчики ошибок
     register_error_handlers(app)
 
