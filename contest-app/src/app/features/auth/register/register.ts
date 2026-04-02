@@ -51,13 +51,13 @@ export class Register {
     this.errorMessage = '';
 
     this.authService.register(this.userData).subscribe({
-      next: (response) => {
+      next: () => {
         this.isLoading = false;
-        this.router.navigate([response.redirect_url || '/home']);
+        this.router.navigate(['/login']);
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Ошибка регистрации. Попробуйте снова.';
+        this.errorMessage = err.error?.error?.message || err.error?.message || 'Ошибка регистрации. Попробуйте снова.';
         console.error('Registration error:', err);
       }
     });

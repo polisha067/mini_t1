@@ -39,7 +39,7 @@ export class Login {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Ошибка входа. Проверьте email и пароль.';
+        this.errorMessage = err.error?.error?.message || err.error?.message || 'Ошибка входа. Проверьте email и пароль.';
         console.error('Login error:', err);
       }
     });

@@ -7,10 +7,27 @@
     <span class="vowel">А</span>
   </h1>
 
-  <div class="form">
-    <input type="email" placeholder="введите почту" class="input-field">
-    <input type="password" placeholder="введите пароль" class="input-field">
-    
-    <button class="login-btn">ВОЙТИ</button>
-  </div>
+  <form class="form" (ngSubmit)="onSubmit()">
+    <input
+      type="email"
+      name="email"
+      placeholder="введите почту"
+      class="input-field"
+      [(ngModel)]="credentials.email"
+    >
+
+    <input
+      type="password"
+      name="password"
+      placeholder="введите пароль"
+      class="input-field"
+      [(ngModel)]="credentials.password"
+    >
+
+    <button type="submit" class="login-btn" [disabled]="isLoading">
+      {{ isLoading ? 'Загрузка...' : 'ВОЙТИ' }}
+    </button>
+
+    <p *ngIf="errorMessage">{{ errorMessage }}</p>
+  </form>
 </div>

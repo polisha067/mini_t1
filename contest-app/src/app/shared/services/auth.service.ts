@@ -74,24 +74,9 @@ export class AuthService {
     );
   }
 
-  register(userData: RegisterRequest): Observable<RegisterResponse> {
-    return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, userData).pipe(
-      tap((response: RegisterResponse) => {
-        // После регистрации автоматически логиним пользователя
-        this.login({
-          email: userData.email,
-          password: userData.password
-        }).subscribe({
-          next: () => {
-            // Перенаправление будет обработано в компоненте
-          },
-          error: (err: any) => {
-            console.error('Auto-login after registration failed:', err);
-          }
-        });
-      })
-    );
-  }
+register(userData: RegisterRequest): Observable<RegisterResponse> {
+  return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, userData);
+}
 
   logout(): void {
     this.http.post(`${this.apiUrl}/logout`, {}).subscribe({
