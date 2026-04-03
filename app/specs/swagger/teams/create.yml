@@ -1,0 +1,130 @@
+tags:
+  - Teams
+summary: Создание команды
+description: Создаёт новую команду в конкурсе (только для организаторов)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 200
+          description: Название команды
+          example: "Team Alpha"
+        description:
+          type: string
+          maxLength: 2000
+          description: Описание команды
+          example: "Команда по машинному обучению"
+responses:
+  201:
+    description: Команда успешно создана
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Команда успешно создана"
+        team:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "Team Alpha"
+            description:
+              type: string
+              example: "Команда по машинному обучению"
+            contest_id:
+              type: integer
+              example: 5
+            created_at:
+              type: string
+              format: date-time
+              example: "2026-04-03T12:00:00"
+  400:
+    description: Ошибка валидации данных
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Название команды должно быть не менее 2 символов"
+  401:
+    description: Требуется аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Токен не предоставлен"
+  403:
+    description: Требуется роль organizer
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "FORBIDDEN"
+            message:
+              type: string
+              example: "Требуется роль 'organizer'"
+  404:
+    description: Конкурс не найден
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            message:
+              type: string
+              example: "Конкурс с id=999 не найден"

@@ -1,0 +1,127 @@
+tags:
+  - Teams
+summary: Обновление команды
+description: Обновляет данные команды (только для организатора конкурса)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: team_id
+    type: integer
+    required: true
+    description: ID команды
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 200
+          description: Название команды
+          example: "Team Alpha Updated"
+        description:
+          type: string
+          maxLength: 2000
+          description: Описание команды
+          example: "Обновлённое описание"
+responses:
+  200:
+    description: Команда успешно обновлена
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Команда успешно обновлена"
+        team:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "Team Alpha Updated"
+            description:
+              type: string
+              example: "Обновлённое описание"
+            contest_id:
+              type: integer
+              example: 5
+            created_at:
+              type: string
+              format: date-time
+  400:
+    description: Ошибка валидации
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Название команды должно быть не менее 2 символов"
+  401:
+    description: Требуется аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Токен не предоставлен"
+  403:
+    description: Нет прав на редактирование
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "FORBIDDEN"
+            message:
+              type: string
+              example: "Только организатор конкурса может выполнять это действие"
+  404:
+    description: Команда не найдена
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            message:
+              type: string
+              example: "Команда с id=999 не найдена"

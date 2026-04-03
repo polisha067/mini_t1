@@ -1,0 +1,75 @@
+tags:
+  - Teams
+summary: Удаление команды
+description: Удаляет команду и все связанные оценки (cascade)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: team_id
+    type: integer
+    required: true
+    description: ID команды
+responses:
+  200:
+    description: Команда успешно удалена
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Команда 'Team Alpha' успешно удалена"
+  401:
+    description: Требуется аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Токен не предоставлен"
+  403:
+    description: Нет прав на удаление
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "FORBIDDEN"
+            message:
+              type: string
+              example: "Только организатор конкурса может выполнять это действие"
+  404:
+    description: Команда не найдена
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            message:
+              type: string
+              example: "Команда с id=999 не найдена"

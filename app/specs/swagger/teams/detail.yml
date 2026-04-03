@@ -1,0 +1,55 @@
+tags:
+  - Teams
+summary: Детали команды
+description: Возвращает полную информацию о команде по ID. Доступно без авторизации.
+parameters:
+  - in: path
+    name: team_id
+    type: integer
+    required: true
+    description: ID команды
+responses:
+  200:
+    description: Информация о команде
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        team:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "Team Alpha"
+            description:
+              type: string
+              example: "Команда по машинному обучению"
+            contest_id:
+              type: integer
+              example: 5
+            created_at:
+              type: string
+              format: date-time
+              example: "2026-04-03T12:00:00"
+  404:
+    description: Команда не найдена
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            message:
+              type: string
+              example: "Команда с id=999 не найдена"
