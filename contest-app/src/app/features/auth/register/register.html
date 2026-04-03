@@ -45,9 +45,8 @@
       class="input-field"
       [(ngModel)]="userData.role"
     >
-      <option value="participant">Участник</option>
       <option value="expert">Эксперт</option>
-      <option value="admin">Администратор</option>
+      <option value="organizer">Организатор</option>
     </select>
 
     <button type="submit" class="register-btn" [disabled]="isLoading">

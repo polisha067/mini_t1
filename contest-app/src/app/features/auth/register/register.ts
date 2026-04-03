@@ -15,15 +15,14 @@ export class Register {
     username: '',
     email: '',
     password: '',
-    role: 'participant'
+    role: 'expert'
   };
   confirmPassword: string = '';
   errorMessage: string = '';
   isLoading: boolean = false;
   roles = [
-    { value: 'participant', label: 'Участник' },
     { value: 'expert', label: 'Эксперт' },
-    { value: 'admin', label: 'Администратор' }
+    { value: 'organizer', label: 'Организатор' }
   ];
 
   constructor(
