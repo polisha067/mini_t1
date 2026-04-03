@@ -1,9 +1,7 @@
 tags:
   - Contests
 summary: Детали конкурса
-description: Возвращает полную информацию о конкурсе по ID
-security:
-  - Bearer: []
+description: Возвращает полную информацию о конкурсе по ID. Доступно без авторизации.
 parameters:
   - in: path
     name: contest_id
@@ -49,23 +47,6 @@ responses:
               type: string
               format: date-time
               example: "2026-04-01T12:00:00"
-  401:
-    description: Требуется аутентификация
-    schema:
-      type: object
-      properties:
-        status:
-          type: string
-          example: "error"
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: "UNAUTHORIZED"
-            message:
-              type: string
-              example: "Токен не предоставлен"
   404:
     description: Конкурс не найден
     schema:

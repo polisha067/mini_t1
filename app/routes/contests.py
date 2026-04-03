@@ -78,7 +78,7 @@ def create_contest():
 
 
 @contests_bp.route('', methods=['GET'])
-@jwt_required()
+@jwt_required(optional=True)
 @swag_from('../specs/swagger/contests/list.yml')
 def list_contests():
     """Получение списка всех конкурсов с пагинацией"""
@@ -115,7 +115,7 @@ def list_contests():
 
 
 @contests_bp.route('/<int:contest_id>', methods=['GET'])
-@jwt_required()
+@jwt_required(optional=True)
 @swag_from('../specs/swagger/contests/detail.yml')
 def get_contest(contest_id: int):
     """Получение деталей конкурса по ID"""
