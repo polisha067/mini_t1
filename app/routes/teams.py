@@ -42,7 +42,7 @@ def _check_organizer_ownership(contest: Contest, user_id: int) -> None:
 @teams_bp.route('', methods=['POST'])
 @jwt_required()
 @role_required('organizer')
-# @swag_from('../specs/swagger/teams/create.yml')
+@swag_from('../specs/swagger/teams/create.yml')
 def create_team(contest_id: int):
     """Создание новой команды (только организатор может)"""
 
@@ -77,7 +77,7 @@ def create_team(contest_id: int):
 
 @teams_bp.route('', methods=['GET'])
 @jwt_required(optional=True)
-# @swag_from('../specs/swagger/teams/list.yml')
+@swag_from('../specs/swagger/teams/list.yml')
 def list_teams(contest_id: int):
     """Получение списка всех команд с пагинацией"""
 
@@ -109,7 +109,7 @@ def list_teams(contest_id: int):
 
 @teams_detail_bp.route('/<int:team_id>', methods=['GET'])
 @jwt_required(optional=True)
-# @swag_from('../specs/swagger/teams/detail.yml')
+@swag_from('../specs/swagger/teams/detail.yml')
 def get_team(team_id: int):
     """Получение деталей команды по ID"""
     team = _get_team_or_404(team_id)
@@ -122,7 +122,7 @@ def get_team(team_id: int):
 @teams_detail_bp.route('/<int:team_id>', methods=['PUT'])
 @jwt_required()
 @role_required('organizer')
-# @swag_from('../specs/swagger/teams/update.yml')
+@swag_from('../specs/swagger/teams/update.yml')
 def update_team(team_id: int):
     """Обновление команды (только для организатора конкурса)"""
 
@@ -159,7 +159,7 @@ def update_team(team_id: int):
 @teams_detail_bp.route('/<int:team_id>', methods=['DELETE'])
 @jwt_required()
 @role_required('organizer')
-# @swag_from('../specs/swagger/teams/delete.yml')
+@swag_from('../specs/swagger/teams/delete.yml')
 def delete_team(team_id: int):
     """Удаление команды и всех связанных оценок"""
     team = _get_team_or_404(team_id)

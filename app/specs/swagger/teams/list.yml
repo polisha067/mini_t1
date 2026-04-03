@@ -1,0 +1,87 @@
+tags:
+  - Teams
+summary: Список команд конкурса
+description: Возвращает список команд конкурса с пагинацией. Доступно без авторизации.
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+  - in: query
+    name: page
+    type: integer
+    default: 1
+    description: Номер страницы
+  - in: query
+    name: per_page
+    type: integer
+    default: 10
+    description: Количество элементов на странице (макс. 100)
+responses:
+  200:
+    description: Список команд
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        teams:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: "Team Alpha"
+              description:
+                type: string
+                example: "Команда по ML"
+              contest_id:
+                type: integer
+                example: 5
+              created_at:
+                type: string
+                format: date-time
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            per_page:
+              type: integer
+              example: 10
+            total:
+              type: integer
+              example: 25
+            pages:
+              type: integer
+              example: 3
+            has_next:
+              type: boolean
+              example: true
+            has_prev:
+              type: boolean
+              example: false
+  404:
+    description: Конкурс не найден
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            message:
+              type: string
+              example: "Конкурс с id=999 не найден"
