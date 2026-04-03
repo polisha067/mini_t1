@@ -1,9 +1,7 @@
 tags:
   - Contests
 summary: Список всех конкурсов
-description: Возвращает список конкурсов с пагинацией. Опциональная фильтрация по organizer_id.
-security:
-  - Bearer: []
+description: Возвращает список конкурсов с пагинацией. Опциональная фильтрация по organizer_id. Доступно без авторизации.
 parameters:
   - in: query
     name: page
@@ -75,20 +73,3 @@ responses:
             has_prev:
               type: boolean
               example: false
-  401:
-    description: Требуется аутентификация
-    schema:
-      type: object
-      properties:
-        status:
-          type: string
-          example: "error"
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: "UNAUTHORIZED"
-            message:
-              type: string
-              example: "Токен не предоставлен"
