@@ -33,7 +33,7 @@ def _get_contest_or_404(contest_id: int) -> Contest:
 
 
 def _check_organizer_ownership(contest: Contest, user_id: int) -> None:
-    """Проверить, что пользователь — владелец конкурса"""
+    """Проверить, что пользователь - владелец конкурса"""
     if contest.organizer_id != user_id:
         raise ForbiddenError("Только организатор конкурса может выполнять это действие")
 

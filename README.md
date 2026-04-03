@@ -182,13 +182,30 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 
 ## API Endpoints
 
-| Метод | Endpoint | Описание |
-| :--- | :--- | :--- |
-| POST | `/api/auth/register` | Регистрация пользователя |
-| POST | `/api/auth/login` | Вход (получение JWT токена) |
-| POST | `/api/auth/logout` | Выход (инвалидация токена) |
-| GET | `/admin/*` | Админ-панель (требуется Session Cookie) |
+### Authentication
+
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/auth/register` | Регистрация пользователя | — |
+| POST | `/api/auth/login` | Вход (получение JWT токена) | — |
+| POST | `/api/auth/logout` | Выход (инвалидация токена) | JWT |
 | GET | `/api/auth/me` | Получить текущего пользователя | JWT |
+
+### Contests (Конкурсы)
+
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/contests` | Создать конкурс | JWT + organizer |
+| GET | `/api/contests` | Список конкурсов (пагинация) | JWT |
+| GET | `/api/contests/<id>` | Детали конкурса | JWT |
+| PUT | `/api/contests/<id>` | Обновить конкурс | JWT + organizer (owner) |
+| DELETE | `/api/contests/<id>` | Удалить конкурс (cascade) | JWT + organizer (owner) |
+
+### Admin
+
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| GET | `/admin/*` | Админ-панель | Session Cookie |
 
 ---
 
