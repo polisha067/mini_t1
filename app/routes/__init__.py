@@ -4,6 +4,7 @@ from flasgger import swag_from
 from app.extensions import db
 from app.models.user import User
 from app.routes.auth import auth_bp
+from app.routes.contests import contests_bp
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -40,3 +41,4 @@ def home():
     }), 200
 
 bp.register_blueprint(auth_bp)
+bp.register_blueprint(contests_bp)

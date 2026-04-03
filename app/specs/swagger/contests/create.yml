@@ -1,0 +1,131 @@
+tags:
+  - Contests
+summary: Создание нового конкурса
+description: Создаёт новый конкурс (только для организаторов)
+security:
+  - Bearer: []
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: Название конкурса
+          example: "Hackathon 2026"
+        description:
+          type: string
+          maxLength: 5000
+          description: Описание конкурса
+          example: "Хакатон по машинному обучению"
+        start_date:
+          type: string
+          format: date-time
+          description: Дата начала конкурса
+          example: "2026-04-10T09:00:00"
+        end_date:
+          type: string
+          format: date-time
+          description: Дата окончания конкурса
+          example: "2026-04-12T18:00:00"
+        logo_path:
+          type: string
+          maxLength: 255
+          description: Путь к логотипу конкурса
+          example: "/uploads/logos/hackathon2026.png"
+responses:
+  201:
+    description: Конкурс успешно создан
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Конкурс успешно создан"
+        contest:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "Hackathon 2026"
+            description:
+              type: string
+              example: "Хакатон по машинному обучению"
+            start_date:
+              type: string
+              format: date-time
+              example: "2026-04-10T09:00:00"
+            end_date:
+              type: string
+              format: date-time
+              example: "2026-04-12T18:00:00"
+            organizer_id:
+              type: integer
+              example: 5
+            created_at:
+              type: string
+              format: date-time
+              example: "2026-04-01T12:00:00"
+  400:
+    description: Ошибка валидации данных
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Название конкурса должно быть не менее 3 символов"
+  401:
+    description: Требуется аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Токен не предоставлен"
+  403:
+    description: Требуется роль organizer
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "FORBIDDEN"
+            message:
+              type: string
+              example: "Требуется роль 'organizer'"

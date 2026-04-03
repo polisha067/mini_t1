@@ -1,0 +1,94 @@
+tags:
+  - Contests
+summary: Список всех конкурсов
+description: Возвращает список конкурсов с пагинацией. Опциональная фильтрация по organizer_id.
+security:
+  - Bearer: []
+parameters:
+  - in: query
+    name: page
+    type: integer
+    default: 1
+    description: Номер страницы
+  - in: query
+    name: per_page
+    type: integer
+    default: 10
+    description: Количество элементов на странице (макс. 100)
+  - in: query
+    name: organizer_id
+    type: integer
+    description: Фильтрация по ID организатора
+responses:
+  200:
+    description: Список конкурсов
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        contests:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: "Hackathon 2026"
+              description:
+                type: string
+                example: "Хакатон по ML"
+              start_date:
+                type: string
+                format: date-time
+              end_date:
+                type: string
+                format: date-time
+              organizer_id:
+                type: integer
+                example: 5
+              created_at:
+                type: string
+                format: date-time
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            per_page:
+              type: integer
+              example: 10
+            total:
+              type: integer
+              example: 25
+            pages:
+              type: integer
+              example: 3
+            has_next:
+              type: boolean
+              example: true
+            has_prev:
+              type: boolean
+              example: false
+  401:
+    description: Требуется аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Токен не предоставлен"
