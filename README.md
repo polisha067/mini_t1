@@ -201,6 +201,16 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 | PUT | `/api/contests/<id>` | Обновить конкурс | JWT + organizer (owner) |
 | DELETE | `/api/contests/<id>` | Удалить конкурс (cascade) | JWT + organizer (owner) |
 
+### Teams (Команды)
+
+| Метод   | Endpoint | Описание  | Auth |
+| :--- | :--- | :--- | :--- |
+|POST  | `/api/contests/<contest_id>/teams`| Создать команду  | JWT + organizer  |
+|GET   | `/api/contests/<contest_id>/teams` | Список команд конкурса (пагинация) | JWT |
+|GET   | `/api/teams/<id>` | Детали команды   | JWT    |
+|PUT   | `/api/teams/<id>` | Обновить команду  | JWT + organizer (owner)   |
+|DELETE| `/api/teams/<id>`  | Удалить команду     | JWT + organizer (owner)   |
+
 ### Admin
 
 | Метод | Endpoint | Описание | Auth |
