@@ -5,6 +5,7 @@ from app.extensions import db
 from app.models.user import User
 from app.routes.auth import auth_bp
 from app.routes.contests import contests_bp
+from app.routes.teams import teams_bp, teams_detail_bp
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -42,3 +43,5 @@ def home():
 
 bp.register_blueprint(auth_bp)
 bp.register_blueprint(contests_bp)
+bp.register_blueprint(teams_bp)
+bp.register_blueprint(teams_detail_bp)
