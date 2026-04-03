@@ -1,0 +1,148 @@
+tags:
+  - Contests
+summary: Обновление конкурса
+description: Обновляет данные конкурса (только для организатора-владельца)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: Название конкурса
+          example: "Hackathon 2026 Updated"
+        description:
+          type: string
+          maxLength: 5000
+          description: Описание конкурса
+          example: "Обновлённое описание"
+        start_date:
+          type: string
+          format: date-time
+          description: Дата начала
+          example: "2026-04-15T09:00:00"
+        end_date:
+          type: string
+          format: date-time
+          description: Дата окончания
+          example: "2026-04-17T18:00:00"
+        logo_path:
+          type: string
+          maxLength: 255
+          description: Путь к логотипу
+          example: "/uploads/logos/new_logo.png"
+responses:
+  200:
+    description: Конкурс успешно обновлён
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Конкурс успешно обновлён"
+        contest:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "Hackathon 2026 Updated"
+            description:
+              type: string
+              example: "Обновлённое описание"
+            start_date:
+              type: string
+              format: date-time
+            end_date:
+              type: string
+              format: date-time
+            organizer_id:
+              type: integer
+              example: 5
+            created_at:
+              type: string
+              format: date-time
+  400:
+    description: Ошибка валидации
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Дата начала должна быть раньше даты окончания"
+  401:
+    description: Требуется аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Токен не предоставлен"
+  403:
+    description: Нет прав на редактирование
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "FORBIDDEN"
+            message:
+              type: string
+              example: "Только организатор конкурса может выполнять это действие"
+  404:
+    description: Конкурс не найден
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            message:
+              type: string
+              example: "Конкурс с id=999 не найден"

@@ -1,0 +1,75 @@
+tags:
+  - Contests
+summary: Удаление конкурса
+description: Удаляет конкурс и все связанные данные (команды, критерии, оценки) — cascade
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+responses:
+  200:
+    description: Конкурс успешно удалён
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Конкурс 'Hackathon 2026' успешно удалён"
+  401:
+    description: Требуется аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Токен не предоставлен"
+  403:
+    description: Нет прав на удаление
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "FORBIDDEN"
+            message:
+              type: string
+              example: "Только организатор конкурса может выполнять это действие"
+  404:
+    description: Конкурс не найден
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            message:
+              type: string
+              example: "Конкурс с id=999 не найден"
