@@ -1,0 +1,73 @@
+tags:
+  - Criteria
+summary: Обновление критерия
+description: Обновляет данные критерия (только для организатора конкурса)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: criterion_id
+    type: integer
+    required: true
+    description: ID критерия
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 200
+          description: Название критерия
+          example: "Инновационность обновлённая"
+        description:
+          type: string
+          maxLength: 5000
+          description: Описание
+          example: "Обновлённое описание"
+        max_score:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Максимальный балл
+          example: 15
+responses:
+  200:
+    description: Критерий успешно обновлён
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Критерий успешно обновлён"
+        criterion:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "Инновационность обновлённая"
+            description:
+              type: string
+              example: "Обновлённое описание"
+            max_score:
+              type: integer
+              example: 15
+            contest_id:
+              type: integer
+              example: 5
+  400:
+    description: Ошибка валидации
+  401:
+    description: Требуется аутентификация
+  403:
+    description: Нет прав на редактирование
+  404:
+    description: Критерий или конкурс не найден

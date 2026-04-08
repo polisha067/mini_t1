@@ -20,6 +20,13 @@ from app.utils.validators.contest import (
     validate_score
 )
 
+from app.utils.validators.criterion import (
+    validate_criterion_name,
+    validate_criterion_description,
+    validate_max_score,
+    validate_criterion_data
+)
+
 __all__ = [
     # Common
     'validate_string',
@@ -37,4 +44,9 @@ __all__ = [
     'validate_contest_dates',
     'validate_contest_data',
     'validate_score',
+    # Criterion
+    'validate_criterion_name',
+    'validate_criterion_description',
+    'validate_max_score',
+    'validate_criterion_data',
 ]

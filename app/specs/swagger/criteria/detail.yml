@@ -1,0 +1,39 @@
+tags:
+  - Criteria
+summary: Детали критерия
+description: Возвращает полную информацию о критерии по ID. Доступно без авторизации.
+parameters:
+  - in: path
+    name: criterion_id
+    type: integer
+    required: true
+    description: ID критерия
+responses:
+  200:
+    description: Информация о критерии
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        criterion:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "Инновационность"
+            description:
+              type: string
+              example: "Оценка новизны и оригинальности решения"
+            max_score:
+              type: integer
+              example: 10
+            contest_id:
+              type: integer
+              example: 5
+  404:
+    description: Критерий не найден
