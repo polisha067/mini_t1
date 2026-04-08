@@ -201,13 +201,23 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 
 ### Teams (Команды)
 
-| Метод   | Endpoint | Описание  | Auth |
+| Метод | Endpoint | Описание | Auth |
 | :--- | :--- | :--- | :--- |
-|POST  | `/api/contests/<contest_id>/teams`| Создать команду  | JWT + organizer  |
-|GET   | `/api/contests/<contest_id>/teams` | Список команд конкурса (пагинация) | JWT |
-|GET   | `/api/teams/<id>` | Детали команды   | JWT    |
-|PUT   | `/api/teams/<id>` | Обновить команду  | JWT + organizer (owner)   |
-|DELETE| `/api/teams/<id>`  | Удалить команду     | JWT + organizer (owner)   |
+| POST | `/api/contests/<contest_id>/teams` | Создать команду | JWT + organizer |
+| GET | `/api/contests/<contest_id>/teams` | Список команд конкурса (пагинация) | optional |
+| GET | `/api/teams/<id>` | Детали команды | optional |
+| PUT | `/api/teams/<id>` | Обновить команду | JWT + organizer (owner) |
+| DELETE | `/api/teams/<id>` | Удалить команду (cascade: grades) | JWT + organizer (owner) |
+
+### Criteria (Критерии оценивания)
+
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/contests/<contest_id>/criteria` | Создать критерий | JWT + organizer |
+| GET | `/api/contests/<contest_id>/criteria` | Список критериев конкурса | optional |
+| GET | `/api/criteria/<id>` | Детали критерия | optional |
+| PUT | `/api/criteria/<id>` | Обновить критерий | JWT + organizer (owner) |
+| DELETE | `/api/criteria/<id>` | Удалить критерий (cascade: grades) | JWT + organizer (owner) |
 
 ### Admin
 
