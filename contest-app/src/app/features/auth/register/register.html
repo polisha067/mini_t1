@@ -7,11 +7,52 @@
     <span class="vowel">А</span>
   </h1>
 
-  <div class="form">
-    <input type="email" placeholder="введите почту" class="input-field">
-    <input type="password" placeholder="введите пароль" class="input-field">
-    <input type="text" placeholder="введите роль" class="input-field">
-    
-    <button class="register-btn">ЗАРЕГИСТРИРОВАТЬСЯ</button>
-  </div>
+  <form class="form" (ngSubmit)="onSubmit()">
+    <input
+      type="text"
+      name="username"
+      placeholder="введите имя"
+      class="input-field"
+      [(ngModel)]="userData.username"
+    >
+
+    <input
+      type="email"
+      name="email"
+      placeholder="введите почту"
+      class="input-field"
+      [(ngModel)]="userData.email"
+    >
+
+    <input
+      type="password"
+      name="password"
+      placeholder="введите пароль"
+      class="input-field"
+      [(ngModel)]="userData.password"
+    >
+
+    <input
+      type="password"
+      name="confirmPassword"
+      placeholder="повторите пароль"
+      class="input-field"
+      [(ngModel)]="confirmPassword"
+    >
+
+    <select
+      name="role"
+      class="input-field"
+      [(ngModel)]="userData.role"
+    >
+      <option value="expert">Эксперт</option>
+      <option value="organizer">Организатор</option>
+    </select>
+
+    <button type="submit" class="register-btn" [disabled]="isLoading">
+      {{ isLoading ? 'Загрузка...' : 'ЗАРЕГИСТРИРОВАТЬСЯ' }}
+    </button>
+
+    <p *ngIf="errorMessage">{{ errorMessage }}</p>
+  </form>
 </div>

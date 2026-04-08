@@ -182,13 +182,11 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 
 ## API Endpoints
 
-### Authentication
-
-| Метод | Endpoint | Описание | Auth |
-| :--- | :--- | :--- | :--- |
-| POST | `/api/auth/register` | Регистрация пользователя | — |
-| POST | `/api/auth/login` | Вход (получение JWT токена) | — |
-| POST | `/api/auth/logout` | Выход (инвалидация токена) | JWT |
+| Метод | Endpoint | Описание |
+| :--- | :--- | :--- |
+| POST | `/api/auth/register` | Регистрация пользователя |
+| POST | `/api/auth/login` | Вход (получение JWT токена) |
+| POST | `/api/auth/logout` | Выход (инвалидация токена) |
 | GET | `/api/auth/me` | Получить текущего пользователя | JWT |
 
 ### Contests (Конкурсы)
