@@ -18,6 +18,7 @@ services:
       - ./contest-app/tsconfig.spec.json:/app/tsconfig.spec.json
       - ./contest-app/package.json:/app/package.json
       - ./contest-app/package-lock.json:/app/package-lock.json
+      - ./contest-app/proxy.conf.json:/app/proxy.conf.json
       - ./contest-app/.editorconfig:/app/.editorconfig
       - ./contest-app/.prettierrc:/app/.prettierrc
 

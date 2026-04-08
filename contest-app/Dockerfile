@@ -14,5 +14,5 @@ COPY . .
 # Открываем порт для dev-сервера
 EXPOSE 4200
 
-# Запускаем dev-сервер через npx для гарантии использования локального ng
-CMD ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--poll", "2000"]
+# Запускаем dev-сервер с proxy для API
+CMD ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--poll", "2000", "--proxy-config", "proxy.conf.json"]
