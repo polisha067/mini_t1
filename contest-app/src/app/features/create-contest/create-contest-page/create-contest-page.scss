@@ -1,0 +1,223 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.create-contest-page {
+  min-height: 100vh;
+  padding: 16px 24px 40px;
+  background: #f5f1e8;
+  box-sizing: border-box;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.back-button,
+.account-button,
+.add-button {
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.back-button:hover,
+.account-button:hover,
+.add-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.96;
+}
+
+.back-button {
+  height: 56px;
+  width: 70px;             
+  border-radius: 16px;
+  background: #34345a;
+  color: #f5f1e8;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 50px;          
+  font-weight: 700;
+}
+
+.arrow {
+  display: inline-block;
+  transform: translateY(-2px);
+  font-size: 20px;
+}
+
+.account-button {
+  height: 56px;
+  padding: 0 28px;
+  border-radius: 16px;
+  background: #34345a;
+  color: #f5f1e8;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.create-contest-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.page-title {
+  margin: 0 0 28px;
+  font-size: 72px;
+  line-height: 1;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #34345a;
+  text-align: center;
+}
+
+.upload-section {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 72px;
+  margin-bottom: 34px;
+}
+
+.image-card {
+  width: 270px;
+  height: 205px;
+  background: #f7f4ef;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-text {
+  font-size: 28px;
+  line-height: 1.25;
+  color: #34345a;
+  text-align: left;
+}
+
+.form-box {
+  width: 100%;
+  max-width: 820px;
+  min-height: 420px;
+  background: #d8d3c2;
+  border-radius: 24px;
+  padding: 44px 52px;
+  box-sizing: border-box;
+}
+
+.form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-row,
+.criteria-row,
+.criterion-item {
+  color: #34345a;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.criteria-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.add-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #9d984d;
+  color: #f5f1e8;
+  font-size: 22px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.criterion-item {
+  padding-left: 42px;
+}
+
+@media (max-width: 900px) {
+  .page-title {
+    font-size: 50px;
+  }
+
+  .upload-section {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .upload-text {
+    text-align: center;
+  }
+
+  .form-box {
+    padding: 28px 24px;
+  }
+
+  .form-row,
+  .criteria-row,
+  .criterion-item {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 600px) {
+  .create-contest-page {
+    padding: 12px 16px 24px;
+  }
+
+  .page-title {
+    font-size: 34px;
+  }
+
+  .image-card {
+    width: 100%;
+    max-width: 270px;
+  }
+
+  .upload-text {
+    font-size: 22px;
+  }
+
+  .form-box {
+    min-height: 320px;
+    border-radius: 18px;
+    padding: 22px 18px;
+  }
+
+  .form-row,
+  .criteria-row,
+  .criterion-item {
+    font-size: 18px;
+  }
+}
