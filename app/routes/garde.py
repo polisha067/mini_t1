@@ -139,5 +139,40 @@ def list_expert_grades(expert_id: int):
         "total": len(grades)
     }), 200
 
+@grades_bp.route('/<int:grade_id>', methods=['PUT'])
+@jwt_required()
+@role_required('expert')
+# @swag_from('../specs/swagger/grades/update.yml')
+def update_grade(grade_id: int):
+    """Редактирование оценки (только владелец)"""
+    grade = _get_grade_or_404(grade_id)
 
+    user_id = _get_current_user_id()
+    _check_expert_ownership(grade, user_id)
+
+    data = request.get_json(silent=True)
+    if not data:
+        raise BadRequestError("Тело запроса должно быть в формате JSON")
+
+    valid, error = validate_grade_data(data)
+    if not valid:
+        raise ValidationError(error)
+    
+    if 'value' in data:
+        criterion = _get_criterion_or_404(grade.criterion_id)
+        grade.value = data['value']
+    if 'comment' in data:
+        grade.comment = data['comment'].strip() or None
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise   
+    
+    return jsonify({
+        "status": "success",
+        "message": "Оценка успешно обновлена",
+        "grade": grade.to_dict()
+    }), 200
 
