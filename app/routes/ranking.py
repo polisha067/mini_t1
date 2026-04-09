@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from sqlalchemy import func
-# from flasgger import swag_from
+from flasgger import swag_from
 
 from app.extensions import db
 from app.models.team import Team
@@ -20,7 +20,7 @@ def _get_contest_or_404(contest_id: int) -> Contest:
 
 @ranking_bp.route('', methods = ['GET'])
 @jwt_required(optional=True)
-# @swag_from('../specs/swagger/ranking/get.yml')
+@swag_from('../specs/swagger/ranking/get.yml')
 def get_contest_ranking(contest_id):
     """Получение итогового рейтинга команд (с пагинацией)"""
 

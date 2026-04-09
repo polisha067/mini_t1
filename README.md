@@ -228,6 +228,11 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 | PUT | `/api/grades/<id>` | Обновить оценку |JWT + expert (owner) |
 | DELETE | `/api/grades/<id>` | Удалить оценку | 	JWT + expert (owner) |
 
+### Ranking (Рейтинг)
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| GET | `/api/contests/<contest_id>/ranking` | Итоговый рейтинг команд конкурса | optional |
+
 ### Admin
 
 | Метод | Endpoint | Описание | Auth |
