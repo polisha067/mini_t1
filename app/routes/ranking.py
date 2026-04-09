@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from sqlalchemy import func
+from sqlalchemy import func, text
 from flasgger import swag_from
 
 from app.extensions import db
@@ -32,20 +32,33 @@ def get_contest_ranking(contest_id):
 
     sort_order = request.args.get('sort', 'desc')
 
-    order_func = func.avg(Grade.value).desc() if sort_order == 'desc' else func.avg(Grade.value).asc()
+    subquery = (
+        db.session.query(
+            Team.id.label('team_id'),
+            Team.name.label('team_name'),
+            func.avg(Grade.value).label('avg_per_criterion'),
+            func.count(Grade.id).label('grades_for_criterion')
+        )
+        .outerjoin(Grade, Grade.team_id == Team.id)
+        .filter(Team.contest_id == contest_id)
+        .group_by(Team.id, Team.name, Grade.criterion_id)
+        .subquery()
+    )
 
     query = db.session.query(
-        Team.id.label('team_id'),
-        Team.name.label('team_name'),
-        func.avg(Grade.value).label('total_score'),
-        func.count(Grade.id).label('grades_count')
-    ).outerjoin(
-        Grade, Grade.team_id == Team.id
-    ).filter(
-        Team.contest_id == contest_id
+        subquery.c.team_id,
+        subquery.c.team_name,
+        func.sum(subquery.c.avg_per_criterion).label('total_score'),
+        func.sum(subquery.c.grades_for_criterion).label('grades_count')
     ).group_by(
-        Team.id, Team.name
-    ).order_by(order_func)
+        subquery.c.team_id,
+        subquery.c.team_name
+    )
+
+    if sort_order == 'desc':
+        query = query.order_by(text('total_score DESC'))
+    else:
+        query = query.order_by(text('total_score ASC'))
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
