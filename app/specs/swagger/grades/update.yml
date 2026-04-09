@@ -1,0 +1,137 @@
+tags:
+  - Grades
+summary: Обновление оценки
+description: Обновляет данные оценки (только эксперт, выставивший оценку)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: grade_id
+    type: integer
+    required: true
+    description: ID оценки
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        value:
+          type: integer
+          minimum: 0
+          description: Новая оценка
+          example: 9
+        comment:
+          type: string
+          maxLength: 3000
+          description: Обновлённый комментарий
+          example: "Обновлённый комментарий - отличная работа"
+responses:
+  200:
+    description: Оценка успешно обновлена
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Оценка успешно обновлена"
+        grade:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            value:
+              type: integer
+              example: 9
+            comment:
+              type: string
+              example: "Обновлённый комментарий - отличная работа"
+            expert_id:
+              type: integer
+              example: 3
+            team_id:
+              type: integer
+              example: 7
+            criterion_id:
+              type: integer
+              example: 2
+            created_at:
+              type: string
+              format: date-time
+              example: "2026-04-09T12:00:00"
+            updated_at:
+              type: string
+              format: date-time
+              example: "2026-04-09T12:30:00"
+  400:
+    description: Ошибка валидации
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Оценка должна быть в диапазоне от max_score"
+  401:
+    description: Требуется аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Токен не предоставлен"
+  403:
+    description: Эксперт может редактировать только свои оценки
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "FORBIDDEN"
+            message:
+              type: string
+              example: "Эксперт может редактировать только свои оценки"
+  404:
+    description: Оценка не найдена
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            message:
+              type: string
+              example: "Оценка с id=999 не найдена"

@@ -5,7 +5,6 @@ from flasgger import swag_from
 from app.extensions import db
 from app.models.grade import Grade
 from app.models.team import Team
-from app.models.contest import Contest
 from app.models.criterion import Criterion
 from app.utils.validators.grade import validate_grade_data
 from app.utils.decorators.rbac import role_required
@@ -57,7 +56,7 @@ def _check_expert_ownership(grade: Grade, user_id: int) -> None:
 @grades_bp.route('', methods=['POST'])
 @jwt_required()
 @role_required('expert')
-# @swag_from('../specs/swagger/grades/create.yml')
+@swag_from('../specs/swagger/grades/create.yml')
 def create_grade():
     """Выставление оценки (только эксперт конкурса)"""
 
@@ -103,7 +102,7 @@ def create_grade():
 
 @grades_by_team_bp.route('', methods = ['GET'])
 @jwt_required(optional=True)
-# @swag_from('../specs/swagger/grades/list.yml')
+@swag_from('../specs/swagger/grades/list.yml')
 def lisr_grades(team_id: int):
     """Получение всех оценок команды"""
 
@@ -122,7 +121,7 @@ def lisr_grades(team_id: int):
 
 @grades_by_expert_bp.route('', methods=['GET'])
 @jwt_required()
-# @swag_from('../specs/swagger/grades/expert_grades.yml')
+@swag_from('../specs/swagger/grades/expert_grades.yml')
 def list_expert_grades(expert_id: int):
     """Получение всех оценок эксперта"""
 
@@ -145,7 +144,7 @@ def list_expert_grades(expert_id: int):
 @grades_bp.route('/<int:grade_id>', methods=['PUT'])
 @jwt_required()
 @role_required('expert')
-# @swag_from('../specs/swagger/grades/update.yml')
+@swag_from('../specs/swagger/grades/update.yml')
 def update_grade(grade_id: int):
     """Редактирование оценки (только владелец)"""
     grade = _get_grade_or_404(grade_id)
@@ -182,7 +181,7 @@ def update_grade(grade_id: int):
 @grades_bp.route('/<int:grade_id>', methods=['DELETE'])
 @jwt_required()
 @role_required('expert')
-# @swag_from('../specs/swagger/grades/delete.yml')
+@swag_from('../specs/swagger/grades/delete.yml')
 def delete_grade(grade_id: int):
     """Удаление оценки (только владелец)"""
     grade = _get_grade_or_404(grade_id)

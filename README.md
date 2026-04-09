@@ -219,6 +219,15 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 | PUT | `/api/criteria/<id>` | Обновить критерий | JWT + organizer (owner) |
 | DELETE | `/api/criteria/<id>` | Удалить критерий (cascade: grades) | JWT + organizer (owner) |
 
+### Grade (Оценки)
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/grades` | 	Выставить оценку |JWT + expert |
+| GET | `/api/teams/<team_id>/grades` | Список оценок команды | optional |
+| GET | `/api/experts/<expert_id>/grades` |Список оценок эксперта |JWT + expert (owner) |
+| PUT | `/api/grades/<id>` | Обновить оценку |JWT + expert (owner) |
+| DELETE | `/api/grades/<id>` | Удалить оценку | 	JWT + expert (owner) |
+
 ### Admin
 
 | Метод | Endpoint | Описание | Auth |
