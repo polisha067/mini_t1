@@ -7,7 +7,7 @@ from app.models.grade import Grade
 from app.models.team import Team
 from app.models.contest import Contest
 from app.models.criterion import Criterion
-from app.utils.validators.criterion import validate_grade_data
+from app.utils.validators.grade import validate_grade_data
 from app.utils.decorators.rbac import role_required
 from app.utils.errors import (
     ValidationError,
@@ -36,9 +36,11 @@ def _get_grade_or_404(grade_id: int) -> Grade:
     return grade
 
 def _get_criterion_or_404(criterion_id: int) -> Criterion:
-    criterion = db.sessin.get(Criterion, criterion_id)
+    criterion = db.session.get(Criterion, criterion_id)
     if not criterion:
         raise NotFoundError(f"Критерий с id {criterion_id} не найден")
+    return criterion 
+    
 
 def _get_team_or_404(team_id: int) -> Team:
     """Получить команду или выбросить NotFoundError"""
@@ -59,9 +61,6 @@ def _check_expert_ownership(grade: Grade, user_id: int) -> None:
 def create_grade():
     """Выставление оценки (только эксперт конкурса)"""
 
-    team = _get_team_or_404(team_id)
-    criterion = _get_criterion_or_404(criterion_id)   
-
     data = request.get_json(silent=True)
     if not data:
         raise BadRequestError("Тело запроса должно быть в формате JSON")
@@ -73,6 +72,10 @@ def create_grade():
     team_id = data['team_id']
     criterion_id = data['criterion_id']
     expert_id = data['expert_id']
+
+    team = _get_team_or_404(team_id)
+    criterion = _get_criterion_or_404(criterion_id)   
+
 
     if criterion.contest_id != team.contest_id:
         raise ValidationError("Критерий не принадлежит данной команде")
@@ -98,7 +101,7 @@ def create_grade():
         "grade": grade.to_dict()
     }), 201
 
-@grades_by_expert_bp.route('', methods = ['GET'])
+@grades_by_team_bp.route('', methods = ['GET'])
 @jwt_required(optional=True)
 # @swag_from('../specs/swagger/grades/list.yml')
 def lisr_grades(team_id: int):
@@ -176,3 +179,25 @@ def update_grade(grade_id: int):
         "grade": grade.to_dict()
     }), 200
 
+@grades_bp.route('/<int:grade_id>', methods=['DELETE'])
+@jwt_required()
+@role_required('expert')
+# @swag_from('../specs/swagger/grades/delete.yml')
+def delete_grade(grade_id: int):
+    """Удаление оценки (только владелец)"""
+    grade = _get_grade_or_404(grade_id)
+
+    current_user_id = _get_current_user_id()
+    _check_expert_ownership(grade, current_user_id)
+
+    try:
+        db.session.delete(grade)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+
+    return jsonify({
+        "status": "success",
+        "message": f"Оценка {grade.value} успешно удалена"
+    }), 200
