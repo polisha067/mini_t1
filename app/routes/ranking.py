@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from sqlalchemy import func, text
+from sqlalchemy import func
 from flasgger import swag_from
 
 from app.extensions import db
@@ -9,7 +9,8 @@ from app.models.grade import Grade
 from app.models.contest import Contest
 from app.utils.errors import NotFoundError
 
-ranking_bp = Blueprint('ranking', __name__,url_prefix='/contests/<int:contest_id>/ranking')
+ranking_bp = Blueprint('ranking', __name__, url_prefix='/contests/<int:contest_id>/ranking')
+
 
 def _get_contest_or_404(contest_id: int) -> Contest:
     """Получить конкурс или выбросить NotFoundError"""
@@ -18,10 +19,11 @@ def _get_contest_or_404(contest_id: int) -> Contest:
         raise NotFoundError(f"Конкурс с id={contest_id} не найден")
     return contest
 
-@ranking_bp.route('', methods = ['GET'])
+
+@ranking_bp.route('', methods=['GET'])
 @jwt_required(optional=True)
 @swag_from('../specs/swagger/ranking/get.yml')
-def get_contest_ranking(contest_id):
+def get_contest_ranking(contest_id: int):
     """Получение итогового рейтинга команд (с пагинацией)"""
 
     _get_contest_or_404(contest_id)
@@ -32,12 +34,13 @@ def get_contest_ranking(contest_id):
 
     sort_order = request.args.get('sort', 'desc')
 
+    # Подзапрос: среднее по каждому (команда, критерий)
+    # group_by по criterion_id гарантирует, что среднее считается отдельно по каждому критерию
     subquery = (
         db.session.query(
             Team.id.label('team_id'),
             Team.name.label('team_name'),
-            func.avg(Grade.value).label('avg_per_criterion'),
-            func.count(Grade.id).label('grades_for_criterion')
+            func.avg(Grade.value).label('avg_score'),
         )
         .outerjoin(Grade, Grade.team_id == Team.id)
         .filter(Team.contest_id == contest_id)
@@ -45,25 +48,33 @@ def get_contest_ranking(contest_id):
         .subquery()
     )
 
+    # Внешний запрос: суммируем средние по всем критериям для каждой команды
     query = db.session.query(
         subquery.c.team_id,
         subquery.c.team_name,
-        func.sum(subquery.c.avg_per_criterion).label('total_score'),
-        func.sum(subquery.c.grades_for_criterion).label('grades_count')
+        func.coalesce(func.sum(subquery.c.avg_score), 0).label('total_score'),
     ).group_by(
         subquery.c.team_id,
         subquery.c.team_name
     )
 
     if sort_order == 'desc':
-        query = query.order_by(text('total_score DESC'))
+        query = query.order_by(func.sum(subquery.c.avg_score).desc())
     else:
-        query = query.order_by(text('total_score ASC'))
+        query = query.order_by(func.sum(subquery.c.avg_score).asc())
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
+    # Считаем количество оценок для каждой команды (отдельным запросом)
+    grades_count_map = dict(
+        db.session.query(Grade.team_id, func.count(Grade.id))
+        .join(Team, Grade.team_id == Team.id)
+        .filter(Team.contest_id == contest_id)
+        .group_by(Grade.team_id)
+        .all()
+    )
+
     ranking = []
-    # Место команды на каждой новой странице, чтобы не начиналась с 1 каждый раз
     start_rank = (page - 1) * per_page + 1
 
     for idx, row in enumerate(pagination.items, start=start_rank):
@@ -71,8 +82,8 @@ def get_contest_ranking(contest_id):
             "rank": idx,
             "team_id": row.team_id,
             "team_name": row.team_name,
-            "total_score": round(float(row.total_score or 0), 2),
-            "grades_count": row.grades_count
+            "total_score": round(float(row.total_score), 2),
+            "grades_count": grades_count_map.get(row.team_id, 0)
         })
 
     return jsonify({

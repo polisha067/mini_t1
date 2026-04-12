@@ -21,25 +21,27 @@ grades_by_team_bp = Blueprint('grades_by_team', __name__, url_prefix='/teams/<in
 
 grades_bp = Blueprint('grades', __name__, url_prefix='/grades')
 
+
 def _get_current_user_id() -> int:
     """Получить ID текущего пользователя из JWT токена"""
     return int(get_jwt_identity())
 
-def _get_grade_or_404(grade_id: int) -> Grade:
-    """Получить оценку или выбросить NotGoundError"""
 
+def _get_grade_or_404(grade_id: int) -> Grade:
+    """Получить оценку или выбросить NotFoundError"""
     grade = db.session.get(Grade, grade_id)
     if not grade:
-        raise NotFoundError(f"Оценка с id = {grade_id} не найдена")
-    
+        raise NotFoundError(f"Оценка с id={grade_id} не найдена")
     return grade
 
+
 def _get_criterion_or_404(criterion_id: int) -> Criterion:
+    """Получить критерий или выбросить NotFoundError"""
     criterion = db.session.get(Criterion, criterion_id)
     if not criterion:
-        raise NotFoundError(f"Критерий с id {criterion_id} не найден")
-    return criterion 
-    
+        raise NotFoundError(f"Критерий с id={criterion_id} не найден")
+    return criterion
+
 
 def _get_team_or_404(team_id: int) -> Team:
     """Получить команду или выбросить NotFoundError"""
@@ -48,10 +50,12 @@ def _get_team_or_404(team_id: int) -> Team:
         raise NotFoundError(f"Команда с id={team_id} не найдена")
     return team
 
+
 def _check_expert_ownership(grade: Grade, user_id: int) -> None:
     """Проверить, что пользователь — владелец оценки"""
     if grade.expert_id != user_id:
         raise ForbiddenError("Эксперт может редактировать только свои оценки")
+
 
 @grades_bp.route('', methods=['POST'])
 @jwt_required()
@@ -63,22 +67,27 @@ def create_grade():
     data = request.get_json(silent=True)
     if not data:
         raise BadRequestError("Тело запроса должно быть в формате JSON")
-    
-    valid, error = validate_grade_data(data)
-    if not valid:
-        raise ValidationError(error)
-    
-    team_id = data['team_id']
-    criterion_id = data['criterion_id']
-    expert_id = data['expert_id']
+
+    team_id = data.get('team_id')
+    criterion_id = data.get('criterion_id')
+
+    if not team_id or not criterion_id or 'value' not in data:
+        raise ValidationError("Поля team_id, criterion_id и value обязательны")
 
     team = _get_team_or_404(team_id)
-    criterion = _get_criterion_or_404(criterion_id)   
-
+    criterion = _get_criterion_or_404(criterion_id)
 
     if criterion.contest_id != team.contest_id:
         raise ValidationError("Критерий не принадлежит данной команде")
-    
+
+    # Валидация через валидатор (max_score берём из модели критерия)
+    valid, error = validate_grade_data(data, criterion.max_score)
+    if not valid:
+        raise ValidationError(error)
+
+    # expert_id из JWT — эксперт не может подделать чужую оценку
+    expert_id = _get_current_user_id()
+
     grade = Grade(
         expert_id=expert_id,
         team_id=team_id,
@@ -100,15 +109,16 @@ def create_grade():
         "grade": grade.to_dict()
     }), 201
 
-@grades_by_team_bp.route('', methods = ['GET'])
+
+@grades_by_team_bp.route('', methods=['GET'])
 @jwt_required(optional=True)
 @swag_from('../specs/swagger/grades/list.yml')
-def lisr_grades(team_id: int):
+def list_grades(team_id: int):
     """Получение всех оценок команды"""
 
     _get_team_or_404(team_id)
 
-    query = Grade.query.filter_by(team_id = team_id)
+    query = Grade.query.filter_by(team_id=team_id)
     query = query.order_by(Grade.id.asc())
 
     grades = [grade.to_dict() for grade in query.all()]
@@ -118,6 +128,7 @@ def lisr_grades(team_id: int):
         "grades": grades,
         "total": len(grades)
     }), 200
+
 
 @grades_by_expert_bp.route('', methods=['GET'])
 @jwt_required()
@@ -141,6 +152,7 @@ def list_expert_grades(expert_id: int):
         "total": len(grades)
     }), 200
 
+
 @grades_bp.route('/<int:grade_id>', methods=['PUT'])
 @jwt_required()
 @role_required('expert')
@@ -156,27 +168,31 @@ def update_grade(grade_id: int):
     if not data:
         raise BadRequestError("Тело запроса должно быть в формате JSON")
 
-    valid, error = validate_grade_data(data)
-    if not valid:
-        raise ValidationError(error)
-    
     if 'value' in data:
         criterion = _get_criterion_or_404(grade.criterion_id)
+        valid, error = validate_grade_data({'value': data['value']}, criterion.max_score)
+        if not valid:
+            raise ValidationError(error)
         grade.value = data['value']
+
     if 'comment' in data:
-        grade.comment = data['comment'].strip() or None
+        comment = data['comment']
+        if comment and len(comment) > 3000:
+            raise ValidationError("Комментарий слишком длинный (максимум 3000 символов)")
+        grade.comment = comment.strip() or None
 
     try:
         db.session.commit()
     except Exception:
         db.session.rollback()
-        raise   
-    
+        raise
+
     return jsonify({
         "status": "success",
         "message": "Оценка успешно обновлена",
         "grade": grade.to_dict()
     }), 200
+
 
 @grades_bp.route('/<int:grade_id>', methods=['DELETE'])
 @jwt_required()
