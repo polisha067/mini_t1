@@ -1,0 +1,64 @@
+tags:
+  - Expert Assignments
+summary: Назначение эксперта на конкурс
+description: Назначает эксперта на конкурс (только организатор конкурса)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - expert_id
+      properties:
+        expert_id:
+          type: integer
+          description: ID пользователя с ролью expert
+          example: 5
+responses:
+  201:
+    description: Эксперт успешно назначен
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Эксперт 'expert1' назначен на конкурс 'Hackathon 2026'"
+        assignment:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            contest_id:
+              type: integer
+              example: 3
+            expert_id:
+              type: integer
+              example: 5
+            expert_name:
+              type: string
+              example: "expert1"
+            assigned_at:
+              type: string
+              format: date-time
+  400:
+    description: Ошибка валидации
+  401:
+    description: Требуется аутентификация
+  403:
+    description: Требуется роль organizer или нет прав
+  404:
+    description: Конкурс или пользователь не найден
+  409:
+    description: Эксперт уже назначен на этот конкурс

@@ -233,6 +233,14 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 | :--- | :--- | :--- | :--- |
 | GET | `/api/contests/<contest_id>/ranking` | Итоговый рейтинг команд конкурса | optional |
 
+### Expert Assignments (Назначение экспертов)
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/contests/<contest_id>/experts` | Назначить эксперта на конкурс | JWT + organizer |
+| GET | `/api/contests/<contest_id>/experts` | Список экспертов конкурса | JWT |
+| GET | `/api/experts/me/contests` | Мои конкурсы (для эксперта) | JWT + expert |
+| DELETE | `/api/contests/<contest_id>/experts/<expert_id>` | Снять эксперта с конкурса | JWT + organizer |
+
 ### Admin
 
 | Метод | Endpoint | Описание | Auth |

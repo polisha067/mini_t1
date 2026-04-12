@@ -9,6 +9,7 @@ from app.routes.teams import teams_bp, teams_detail_bp
 from app.routes.criteria import criteria_bp, criteria_detail_bp
 from app.routes.grade import grades_bp, grades_by_team_bp, grades_by_expert_bp
 from app.routes.ranking import ranking_bp
+from app.routes.expert_assignments import expert_bp
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -54,3 +55,4 @@ bp.register_blueprint(grades_bp)
 bp.register_blueprint(grades_by_team_bp)
 bp.register_blueprint(grades_by_expert_bp)
 bp.register_blueprint(ranking_bp)
+bp.register_blueprint(expert_bp)
