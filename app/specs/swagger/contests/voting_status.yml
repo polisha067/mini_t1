@@ -1,0 +1,43 @@
+tags:
+  - Contests
+summary: Статус голосования
+description: Возвращает статус голосования по конкурсу (not_started/in_progress/all_votes_cast)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+responses:
+  200:
+    description: Статус голосования
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        contest_id:
+          type: integer
+          example: 1
+        is_finished:
+          type: boolean
+          example: false
+        voting_status:
+          type: string
+          enum: [not_started, in_progress, all_votes_cast]
+          example: "in_progress"
+        expected_grades:
+          type: integer
+          example: 30
+        actual_grades:
+          type: integer
+          example: 18
+        missing_grades:
+          type: integer
+          example: 12
+        message:
+          type: string
+          example: "Голосование в процессе: 18/30 оценок, не хватает 12"

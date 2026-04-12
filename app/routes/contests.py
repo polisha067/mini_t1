@@ -7,6 +7,7 @@ from app.models.contest import Contest
 from app.models.team import Team
 from app.models.criterion import Criterion
 from app.models.grade import Grade
+from app.models.contest_expert import ContestExpert
 from app.utils.validators.contest import validate_contest_data
 from app.utils.decorators.rbac import role_required
 from app.utils.errors import (
@@ -14,6 +15,7 @@ from app.utils.errors import (
     NotFoundError,
     ForbiddenError,
     BadRequestError,
+    ConflictError,
 )
 
 contests_bp = Blueprint('contests', __name__, url_prefix='/contests')
@@ -190,4 +192,85 @@ def delete_contest(contest_id: int):
     return jsonify({
         "status": "success",
         "message": f"Конкурс '{contest.name}' успешно удалён"
+    }), 200
+
+
+@contests_bp.route('/<int:contest_id>/finalize', methods=['POST'])
+@jwt_required()
+@role_required('organizer')
+@swag_from('../specs/swagger/contests/finalize.yml')
+def finalize_contest(contest_id: int):
+    """Завершение голосования по конкурсу (только организатор)"""
+    contest = _get_contest_or_404(contest_id)
+    user_id = _get_current_user_id()
+    _check_organizer_ownership(contest, user_id)
+
+    if contest.is_finished:
+        raise ConflictError("Голосование уже завершено")
+
+    contest.is_finished = True
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+
+    return jsonify({
+        "status": "success",
+        "message": f"Голосование по конкурсу '{contest.name}' завершено",
+        "contest": contest.to_dict()
+    }), 200
+
+
+@contests_bp.route('/<int:contest_id>/voting-status', methods=['GET'])
+@jwt_required()
+@swag_from('../specs/swagger/contests/voting_status.yml')
+def get_voting_status(contest_id: int):
+    """Статус голосования по конкурсу"""
+    contest = _get_contest_or_404(contest_id)
+
+    if contest.is_finished:
+        return jsonify({
+            "status": "success",
+            "contest_id": contest_id,
+            "is_finished": True,
+            "message": "Голосование завершено"
+        }), 200
+
+    # Считаем ожидаемое количество оценок
+    teams_count = Team.query.filter_by(contest_id=contest_id).count()
+    criteria_count = Criterion.query.filter_by(contest_id=contest_id).count()
+    experts_count = ContestExpert.query.filter_by(contest_id=contest_id).count()
+
+    expected_grades = teams_count * criteria_count * experts_count
+    actual_grades = Grade.query.join(Team).filter(Team.contest_id == contest_id).count()
+
+    # Статус
+    if expected_grades == 0:
+        voting_status = "not_started"
+        message = "Нет данных для голосования"
+    elif actual_grades == 0:
+        voting_status = "not_started"
+        message = "Никто не выставил оценок"
+    elif actual_grades == expected_grades:
+        voting_status = "all_votes_cast"
+        message = f"Все эксперты выставили оценки ({actual_grades}/{expected_grades})"
+    else:
+        voting_status = "in_progress"
+        missing = expected_grades - actual_grades
+        message = f"Голосование в процессе: {actual_grades}/{expected_grades} оценок, не хватает {missing}"
+
+    return jsonify({
+        "status": "success",
+        "contest_id": contest_id,
+        "is_finished": False,
+        "voting_status": voting_status,
+        "expected_grades": expected_grades,
+        "actual_grades": actual_grades,
+        "missing_grades": max(0, expected_grades - actual_grades),
+        "teams_count": teams_count,
+        "criteria_count": criteria_count,
+        "experts_count": experts_count,
+        "message": message
     }), 200

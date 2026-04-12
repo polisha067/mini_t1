@@ -6,6 +6,7 @@ from app.extensions import db
 from app.models.grade import Grade
 from app.models.team import Team
 from app.models.criterion import Criterion
+from app.models.contest import Contest
 from app.utils.validators.grade import validate_grade_data
 from app.utils.decorators.rbac import role_required
 from app.utils.errors import (
@@ -79,6 +80,11 @@ def create_grade():
 
     if criterion.contest_id != team.contest_id:
         raise ValidationError("Критерий не принадлежит данной команде")
+
+    # Проверка: голосование завершено?
+    contest = db.session.get(Contest, team.contest_id)
+    if contest and contest.is_finished:
+        raise ForbiddenError("Голосование по этому конкурсу завершено")
 
     # Валидация через валидатор (max_score берём из модели критерия)
     valid, error = validate_grade_data(data, criterion.max_score)
@@ -163,6 +169,12 @@ def update_grade(grade_id: int):
 
     user_id = _get_current_user_id()
     _check_expert_ownership(grade, user_id)
+
+    # Проверка: голосование завершено?
+    team = _get_team_or_404(grade.team_id)
+    contest = db.session.get(Contest, team.contest_id)
+    if contest and contest.is_finished:
+        raise ForbiddenError("Голосование по этому конкурсу завершено")
 
     data = request.get_json(silent=True)
     if not data:
