@@ -182,6 +182,9 @@ def delete_contest(contest_id: int):
     user_id = _get_current_user_id()
     _check_organizer_ownership(contest, user_id)
 
+    if contest.is_finished:
+        raise ForbiddenError("Нельзя удалить завершённый конкурс")
+
     try:
         db.session.delete(contest)
         db.session.commit()

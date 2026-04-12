@@ -7,6 +7,7 @@ from app.models.grade import Grade
 from app.models.team import Team
 from app.models.criterion import Criterion
 from app.models.contest import Contest
+from app.models.contest_expert import ContestExpert
 from app.utils.validators.grade import validate_grade_data
 from app.utils.decorators.rbac import role_required
 from app.utils.errors import (
@@ -14,6 +15,7 @@ from app.utils.errors import (
     NotFoundError,
     ForbiddenError,
     BadRequestError,
+    ConflictError,
 )
 
 grades_by_expert_bp = Blueprint('grades_by_expert', __name__, url_prefix='/experts/<int:expert_id>/grades')
@@ -86,13 +88,28 @@ def create_grade():
     if contest and contest.is_finished:
         raise ForbiddenError("Голосование по этому конкурсу завершено")
 
+    # Проверка: эксперт назначен на этот конкурс?
+    expert_id = _get_current_user_id()
+    assignment = ContestExpert.query.filter_by(
+        contest_id=team.contest_id,
+        user_id=expert_id
+    ).first()
+    if not assignment:
+        raise ForbiddenError("Вы не назначены на этот конкурс")
+
+    # Проверка: оценка уже существует (unique constraint)
+    existing = Grade.query.filter_by(
+        expert_id=expert_id,
+        team_id=team_id,
+        criterion_id=criterion_id
+    ).first()
+    if existing:
+        raise ConflictError("Вы уже выставили оценку этой команде по данному критерию")
+
     # Валидация через валидатор (max_score берём из модели критерия)
     valid, error = validate_grade_data(data, criterion.max_score)
     if not valid:
         raise ValidationError(error)
-
-    # expert_id из JWT — эксперт не может подделать чужую оценку
-    expert_id = _get_current_user_id()
 
     grade = Grade(
         expert_id=expert_id,
@@ -216,6 +233,12 @@ def delete_grade(grade_id: int):
 
     current_user_id = _get_current_user_id()
     _check_expert_ownership(grade, current_user_id)
+
+    # Проверка: голосование завершено?
+    team = _get_team_or_404(grade.team_id)
+    contest = db.session.get(Contest, team.contest_id)
+    if contest and contest.is_finished:
+        raise ForbiddenError("Голосование по этому конкурсу завершено")
 
     try:
         db.session.delete(grade)

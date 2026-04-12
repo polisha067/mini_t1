@@ -5,6 +5,7 @@ from flasgger import swag_from
 from app.extensions import db
 from app.models.contest import Contest
 from app.models.criterion import Criterion
+from app.models.grade import Grade
 from app.utils.validators.criterion import validate_criterion_data
 from app.utils.decorators.rbac import role_required
 from app.utils.errors import (
@@ -126,6 +127,11 @@ def update_criterion(criterion_id: int):
     contest = _get_contest_or_404(criterion.contest_id)
     user_id = _get_current_user_id()
     _check_organizer_ownership(contest, user_id)
+
+    # Защита: нельзя менять критерий с существующими оценками
+    has_grades = Grade.query.filter_by(criterion_id=criterion_id).first()
+    if has_grades:
+        raise ForbiddenError("Нельзя изменить критерий - уже выставлены оценки")
 
     data = request.get_json(silent=True)
     if not data:
