@@ -1,0 +1,48 @@
+tags:
+  - Expert Assignments
+summary: Мои конкурсы (эксперт)
+description: Возвращает список конкурсов, на которые назначен текущий эксперт
+security:
+  - Bearer: []
+responses:
+  200:
+    description: Список конкурсов эксперта
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        expert_id:
+          type: integer
+          example: 5
+        contests:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 3
+              name:
+                type: string
+                example: "Hackathon 2026"
+              description:
+                type: string
+                example: "Хакатон по ML"
+              start_date:
+                type: string
+                format: date-time
+              end_date:
+                type: string
+                format: date-time
+              assigned_at:
+                type: string
+                format: date-time
+        total:
+          type: integer
+          example: 2
+  401:
+    description: Требуется аутентификация
+  403:
+    description: Требуется роль expert

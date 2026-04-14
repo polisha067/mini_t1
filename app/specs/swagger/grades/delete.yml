@@ -1,0 +1,75 @@
+tags:
+  - Grades
+summary: Удаление оценки
+description: Удаляет оценку (только эксперт, выставивший оценку)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: grade_id
+    type: integer
+    required: true
+    description: ID оценки
+responses:
+  200:
+    description: Оценка успешно удалена
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Оценка 8 успешно удалена"
+  401:
+    description: Требуется аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Токен не предоставлен"
+  403:
+    description: Эксперт может удалять только свои оценки
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "FORBIDDEN"
+            message:
+              type: string
+              example: "Эксперт может удалять только свои оценки"
+  404:
+    description: Оценка не найдена
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            message:
+              type: string
+              example: "Оценка с id=999 не найдена"

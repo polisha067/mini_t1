@@ -1,0 +1,37 @@
+tags:
+  - Contests
+summary: Завершение голосования по конкурсу
+description: Завершает голосование и замораживает оценки (только организатор)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+responses:
+  200:
+    description: Голосование завершено
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Голосование по конкурсу 'Hackathon 2026' завершено"
+        contest:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            is_finished:
+              type: boolean
+              example: true
+  409:
+    description: Голосование уже завершено
+  403:
+    description: Нет прав

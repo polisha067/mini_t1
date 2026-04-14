@@ -1,0 +1,149 @@
+tags:
+  - Grades
+summary: Выставление оценки
+description: Выставляет оценку эксперта за команду по конкретному критерию (только эксперт конкурса)
+security:
+  - Bearer: []
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - expert_id
+        - team_id
+        - criterion_id
+        - value
+      properties:
+        expert_id:
+          type: integer
+          description: ID эксперта, выставляющего оценку
+          example: 3
+        team_id:
+          type: integer
+          description: ID команды
+          example: 7
+        criterion_id:
+          type: integer
+          description: ID критерия оценивания
+          example: 2
+        value:
+          type: integer
+          minimum: 0
+          description: Оценка (от 0 до max_score критерия)
+          example: 8
+        comment:
+          type: string
+          maxLength: 3000
+          description: Комментарий эксперта
+          example: "Отличная работа над проектом"
+responses:
+  201:
+    description: Оценка успешно выставлена
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Оценка успешно выставлена"
+        grade:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            value:
+              type: integer
+              example: 8
+            comment:
+              type: string
+              example: "Отличная работа над проектом"
+            expert_id:
+              type: integer
+              example: 3
+            team_id:
+              type: integer
+              example: 7
+            criterion_id:
+              type: integer
+              example: 2
+            created_at:
+              type: string
+              format: date-time
+              example: "2026-04-09T12:00:00"
+            updated_at:
+              type: string
+              format: date-time
+              example: "2026-04-09T12:00:00"
+  400:
+    description: Ошибка валидации данных
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Оценка должна быть в диапазоне от 0 до max_score"
+  401:
+    description: Требуется аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Токен не предоставлен"
+  403:
+    description: Требуется роль expert
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "FORBIDDEN"
+            message:
+              type: string
+              example: "Требуется роль 'expert'"
+  404:
+    description: Команда или критерий не найдены
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            message:
+              type: string
+              example: "Команда с id=999 не найдена"

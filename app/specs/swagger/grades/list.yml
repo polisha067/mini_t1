@@ -1,0 +1,70 @@
+tags:
+  - Grades
+summary: Список оценок команды
+description: Возвращает все оценки для указанной команды. Доступно без авторизации.
+parameters:
+  - in: path
+    name: team_id
+    type: integer
+    required: true
+    description: ID команды
+responses:
+  200:
+    description: Список оценок команды
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        grades:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              value:
+                type: integer
+                example: 8
+              comment:
+                type: string
+                example: "Отличная работа"
+              expert_id:
+                type: integer
+                example: 3
+              team_id:
+                type: integer
+                example: 7
+              criterion_id:
+                type: integer
+                example: 2
+              created_at:
+                type: string
+                format: date-time
+                example: "2026-04-09T12:00:00"
+              updated_at:
+                type: string
+                format: date-time
+                example: "2026-04-09T12:00:00"
+        total:
+          type: integer
+          example: 5
+  404:
+    description: Команда не найдена
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            message:
+              type: string
+              example: "Команда с id=999 не найдена"

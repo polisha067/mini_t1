@@ -2,7 +2,7 @@ from typing import Tuple, Optional
 from datetime import datetime
 from app.utils.validators.common import validate_string, validate_integer
 
-def validete_team_name(name:str) -> Tuple[bool, Optional[str]]:
+def validate_team_name(name: str) -> Tuple[bool, Optional[str]]:
     """Проверка названия команды"""
     return validate_string(name, "Название команды", min_length=2, max_length=200)
 
@@ -18,13 +18,13 @@ def validate_team_description(description: str) -> Tuple[bool, Optional[str]]:
 
 
 def validate_team_data(data: dict) -> Tuple[bool, Optional[str]]:
-    """Комплексная проверка данных конкурса"""
+    """Комплексная проверка данных команды"""
     if not data or not isinstance(data, dict):
-        return False, "Данные конкурса обязательны"
+        return False, "Данные команды обязательны"
 
     # Название
     name = data.get('name', '')
-    valid, error = validete_team_name(name)
+    valid, error = validate_team_name(name)
     if not valid:
         return False, error
 

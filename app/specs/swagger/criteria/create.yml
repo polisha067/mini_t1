@@ -1,0 +1,91 @@
+tags:
+  - Criteria
+summary: Создание критерия оценивания
+description: Создаёт новый критерий для конкурса (только для организаторов конкурса)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 200
+          description: Название критерия
+          example: "Инновационность"
+        description:
+          type: string
+          maxLength: 5000
+          description: Описание критерия
+          example: "Оценка новизны и оригинальности решения"
+        max_score:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+          description: Максимальный балл
+          example: 10
+responses:
+  201:
+    description: Критерий успешно создан
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Критерий успешно создан"
+        criterion:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "Инновационность"
+            description:
+              type: string
+              example: "Оценка новизны и оригинальности решения"
+            max_score:
+              type: integer
+              example: 10
+            contest_id:
+              type: integer
+              example: 5
+  400:
+    description: Ошибка валидации данных
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Название критерия должно быть не менее 2 символов"
+  401:
+    description: Требуется аутентификация
+  403:
+    description: Требуется роль organizer или нет прав на конкурс
+  404:
+    description: Конкурс не найден

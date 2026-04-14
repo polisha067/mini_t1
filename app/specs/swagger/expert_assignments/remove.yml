@@ -1,0 +1,35 @@
+tags:
+  - Expert Assignments
+summary: Удаление эксперта из конкурса
+description: Снимает эксперта с конкурса (только организатор конкурса)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+  - in: path
+    name: expert_id
+    type: integer
+    required: true
+    description: ID эксперта
+responses:
+  200:
+    description: Эксперт успешно удалён
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Эксперт с id=5 удалён из конкурса"
+  401:
+    description: Требуется аутентификация
+  403:
+    description: Нет прав
+  404:
+    description: Конкурс или назначение не найдено

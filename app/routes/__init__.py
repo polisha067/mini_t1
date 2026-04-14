@@ -6,6 +6,10 @@ from app.models.user import User
 from app.routes.auth import auth_bp
 from app.routes.contests import contests_bp
 from app.routes.teams import teams_bp, teams_detail_bp
+from app.routes.criteria import criteria_bp, criteria_detail_bp
+from app.routes.grade import grades_bp, grades_by_team_bp, grades_by_expert_bp
+from app.routes.ranking import ranking_bp
+from app.routes.expert_assignments import expert_bp
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -45,3 +49,10 @@ bp.register_blueprint(auth_bp)
 bp.register_blueprint(contests_bp)
 bp.register_blueprint(teams_bp)
 bp.register_blueprint(teams_detail_bp)
+bp.register_blueprint(criteria_bp)
+bp.register_blueprint(criteria_detail_bp)
+bp.register_blueprint(grades_bp)
+bp.register_blueprint(grades_by_team_bp)
+bp.register_blueprint(grades_by_expert_bp)
+bp.register_blueprint(ranking_bp)
+bp.register_blueprint(expert_bp)

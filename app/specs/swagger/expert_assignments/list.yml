@@ -1,0 +1,48 @@
+tags:
+  - Expert Assignments
+summary: Список экспертов конкурса
+description: Возвращает всех экспертов, назначенных на указанный конкурс
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+responses:
+  200:
+    description: Список экспертов конкурса
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        contest_id:
+          type: integer
+          example: 3
+        experts:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 5
+              username:
+                type: string
+                example: "expert1"
+              email:
+                type: string
+                example: "expert@example.com"
+              assigned_at:
+                type: string
+                format: date-time
+        total:
+          type: integer
+          example: 2
+  401:
+    description: Требуется аутентификация
+  404:
+    description: Конкурс не найден

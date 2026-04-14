@@ -1,0 +1,30 @@
+tags:
+  - Criteria
+summary: Удаление критерия
+description: Удаляет критерий и все связанные оценки (cascade)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: criterion_id
+    type: integer
+    required: true
+    description: ID критерия
+responses:
+  200:
+    description: Критерий успешно удалён
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Критерий 'Инновационность' успешно удалён"
+  401:
+    description: Требуется аутентификация
+  403:
+    description: Нет прав на удаление
+  404:
+    description: Критерий или конкурс не найден

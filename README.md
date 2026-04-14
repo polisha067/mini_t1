@@ -28,7 +28,6 @@ docker-compose up --build
 **Сервисы будут доступны:**
 - Frontend (Angular): `http://localhost:4200`
 - Backend (Flask API): `http://localhost:5000`
-- База данных: `localhost:5432`
 
 ### 3. Примени миграции
 
@@ -188,7 +187,6 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 | POST | `/api/auth/register` | Регистрация пользователя |
 | POST | `/api/auth/login` | Вход (получение JWT токена) |
 | POST | `/api/auth/logout` | Выход (инвалидация токена) |
-| GET | `/admin/*` | Админ-панель (требуется Session Cookie) |
 | GET | `/api/auth/me` | Получить текущего пользователя | JWT |
 
 ### Contests (Конкурсы)
@@ -196,10 +194,54 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 | Метод | Endpoint | Описание | Auth |
 | :--- | :--- | :--- | :--- |
 | POST | `/api/contests` | Создать конкурс | JWT + organizer |
-| GET | `/api/contests` | Список конкурсов (пагинация) | JWT |
-| GET | `/api/contests/<id>` | Детали конкурса | JWT |
+| GET | `/api/contests` | Список конкурсов (пагинация) | optional |
+| GET | `/api/contests/<id>` | Детали конкурса | optional |
 | PUT | `/api/contests/<id>` | Обновить конкурс | JWT + organizer (owner) |
 | DELETE | `/api/contests/<id>` | Удалить конкурс (cascade) | JWT + organizer (owner) |
+| POST | `/api/contests/<id>/finalize` | Завершить голосование | JWT + organizer (owner) |
+| GET | `/api/contests/<id>/voting-status` | Статус голосования | JWT |
+
+### Teams (Команды)
+
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/contests/<contest_id>/teams` | Создать команду | JWT + organizer |
+| GET | `/api/contests/<contest_id>/teams` | Список команд конкурса (пагинация) | optional |
+| GET | `/api/teams/<id>` | Детали команды | optional |
+| PUT | `/api/teams/<id>` | Обновить команду | JWT + organizer (owner) |
+| DELETE | `/api/teams/<id>` | Удалить команду (cascade: grades) | JWT + organizer (owner) |
+
+### Criteria (Критерии оценивания)
+
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/contests/<contest_id>/criteria` | Создать критерий | JWT + organizer |
+| GET | `/api/contests/<contest_id>/criteria` | Список критериев конкурса | optional |
+| GET | `/api/criteria/<id>` | Детали критерия | optional |
+| PUT | `/api/criteria/<id>` | Обновить критерий | JWT + organizer (owner) |
+| DELETE | `/api/criteria/<id>` | Удалить критерий (cascade: grades) | JWT + organizer (owner) |
+
+### Grade (Оценки)
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/grades` | 	Выставить оценку |JWT + expert |
+| GET | `/api/teams/<team_id>/grades` | Список оценок команды | optional |
+| GET | `/api/experts/<expert_id>/grades` |Список оценок эксперта |JWT + expert (owner) |
+| PUT | `/api/grades/<id>` | Обновить оценку |JWT + expert (owner) |
+| DELETE | `/api/grades/<id>` | Удалить оценку | 	JWT + expert (owner) |
+
+### Ranking (Рейтинг)
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| GET | `/api/contests/<contest_id>/ranking` | Итоговый рейтинг команд конкурса | optional |
+
+### Expert Assignments (Назначение экспертов)
+| Метод | Endpoint | Описание | Auth |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/contests/<contest_id>/experts` | Назначить эксперта на конкурс | JWT + organizer |
+| GET | `/api/contests/<contest_id>/experts` | Список экспертов конкурса | JWT |
+| GET | `/api/experts/me/contests` | Мои конкурсы (для эксперта) | JWT + expert |
+| DELETE | `/api/contests/<contest_id>/experts/<expert_id>` | Снять эксперта с конкурса | JWT + organizer |
 
 ### Admin
 

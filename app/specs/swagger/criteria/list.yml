@@ -1,0 +1,44 @@
+tags:
+  - Criteria
+summary: Список критериев конкурса
+description: Возвращает все критерии оценивания для указанного конкурса. Доступно без авторизации.
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+responses:
+  200:
+    description: Список критериев
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        criteria:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: "Инновационность"
+              description:
+                type: string
+                example: "Оценка новизны решения"
+              max_score:
+                type: integer
+                example: 10
+              contest_id:
+                type: integer
+                example: 5
+        total:
+          type: integer
+          example: 3
+  404:
+    description: Конкурс не найден

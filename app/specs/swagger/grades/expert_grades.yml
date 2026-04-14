@@ -1,0 +1,89 @@
+tags:
+  - Grades
+summary: Список оценок, выставленных экспертом
+description: Возвращает все оценки, выставленные текущим экспертом. Доступно только владельцу оценок
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: expert_id
+    type: integer
+    required: true
+    description: ID эксперта
+responses:
+  200:
+    description: Список оценок эксперта
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        grades:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              value:
+                type: integer
+                example: 8
+              comment:
+                type: string
+                example: "Отличная работа"
+              expert_id:
+                type: integer
+                example: 3
+              team_id:
+                type: integer
+                example: 7
+              criterion_id:
+                type: integer
+                example: 2
+              created_at:
+                type: string
+                format: date-time
+                example: "2026-04-09T12:00:00"
+              updated_at:
+                type: string
+                format: date-time
+                example: "2026-04-09T12:00:00"
+        total:
+          type: integer
+          example: 10
+  401:
+    description: Требуется аутентификация
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            message:
+              type: string
+              example: "Токен не предоставлен"
+  403:
+    description: Вы можете просматривать только свои оценки
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "FORBIDDEN"
+            message:
+              type: string
+              example: "Вы можете просматривать только свои оценки"
