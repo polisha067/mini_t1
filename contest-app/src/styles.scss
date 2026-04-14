@@ -11,3 +11,21 @@
   font-weight: normal;
   font-style: normal;
 }
+
+html,
+body {
+  height: 100%;
+  background-color: #f2f0e6;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'GeneralFont', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}

@@ -1,11 +1,11 @@
 <div class="participants-page">
   <header class="top-bar">
-    <button class="back-button" type="button" aria-label="Назад">
+    <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
       <span class="arrow">←</span>
     </button>
 
     <button class="account-button" type="button">
-      АККАУНТ
+      УЧАСТНИКИ
     </button>
   </header>
 
@@ -15,16 +15,22 @@
     </h1>
 
     <section class="teams-section">
-      <div class="teams-grid">
-        <button class="team-card" type="button">Команда 1</button>
-        <button class="team-card" type="button">Команда 1</button>
-        <button class="team-card" type="button">Команда 1</button>
-        <button class="team-card" type="button">Команда 1</button>
-        <button class="team-card" type="button">Команда 1</button>
+      <div *ngIf="isLoading" class="loading-box">
+        <p>Загрузка...</p>
+      </div>
+
+      <div *ngIf="!isLoading" class="teams-grid">
+        <button class="team-card" type="button" *ngFor="let team of teams">
+          {{ team.name }}
+        </button>
+
+        <p *ngIf="teams.length === 0" class="no-data">
+          Команды ещё не добавлены
+        </p>
       </div>
     </section>
 
-    <button class="rating-button" type="button">
+    <button class="rating-button" type="button" (click)="goToRating()">
       перейти к рейтингу
     </button>
   </main>

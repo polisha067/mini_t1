@@ -1,11 +1,11 @@
 <div class="create-contest-page">
   <header class="top-bar">
-    <button class="back-button" type="button" aria-label="Назад">
+    <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
       <span class="arrow">←</span>
     </button>
 
-    <button class="account-button" type="button">
-      АККАУНТ
+    <button class="account-button" type="button" disabled>
+      {{ name || 'НОВЫЙ КОНКУРС' }}
     </button>
   </header>
 
@@ -27,23 +27,95 @@
         изображение<br />
         конкурса
       </div>
+      <input
+        type="text"
+        class="logo-url-input"
+        placeholder="URL изображения (или оставьте пустым)"
+        [(ngModel)]="logoPath"
+      />
     </section>
 
-    <section class="form-box">
+    <form class="form-box" (ngSubmit)="onSubmit()">
       <div class="form-content">
-        <div class="form-row">название конкурса</div>
-        <div class="form-row">описание конкурса</div>
-        <div class="form-row">дата начала</div>
-        <div class="form-row">дата окончания</div>
-        <div class="form-row">статус</div>
+        <input
+          type="text"
+          class="form-row input-field"
+          placeholder="название конкурса *"
+          [(ngModel)]="name"
+          name="name"
+          required
+        />
+
+        <textarea
+          class="form-row input-field"
+          placeholder="описание конкурса"
+          [(ngModel)]="description"
+          name="description"
+          rows="3"
+        ></textarea>
+
+        <input
+          type="datetime-local"
+          class="form-row input-field"
+          placeholder="дата начала"
+          [(ngModel)]="startDate"
+          name="startDate"
+        />
+
+        <input
+          type="datetime-local"
+          class="form-row input-field"
+          placeholder="дата окончания"
+          [(ngModel)]="endDate"
+          name="endDate"
+        />
 
         <div class="criteria-row">
           <span>критерии</span>
-          <button class="add-button" type="button">+</button>
+          <button class="add-button" type="button" (click)="addCriterion()">+</button>
         </div>
 
-        <div class="criterion-item">критерий 1</div>
+        <div class="criterion-item" *ngFor="let criterion of criteria; let i = index">
+          <div class="criterion-fields">
+            <input
+              type="text"
+              placeholder="название критерия *"
+              [(ngModel)]="criteria[i].name"
+              name="criterion_name_{{i}}"
+            />
+            <input
+              type="text"
+              placeholder="описание"
+              [(ngModel)]="criteria[i].description"
+              name="criterion_desc_{{i}}"
+            />
+            <input
+              type="number"
+              placeholder="макс. балл"
+              [(ngModel)]="criteria[i].max_score"
+              name="criterion_max_{{i}}"
+              min="1"
+              max="100"
+            />
+          </div>
+          <button
+            type="button"
+            class="remove-criterion-btn"
+            (click)="removeCriterion(i)"
+            *ngIf="criteria.length > 1"
+          >
+            ✕
+          </button>
+        </div>
       </div>
-    </section>
+
+      <div class="error-message" *ngIf="error">
+        {{ error }}
+      </div>
+
+      <button type="submit" class="submit-btn" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Создание...' : 'Создать конкурс' }}
+      </button>
+    </form>
   </main>
 </div>

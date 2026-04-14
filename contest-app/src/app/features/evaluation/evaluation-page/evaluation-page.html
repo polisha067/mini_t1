@@ -1,11 +1,11 @@
 <div class="evaluation-page">
   <header class="top-bar">
-    <button class="back-button" type="button" aria-label="Назад">
+    <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
       <span class="arrow">←</span>
     </button>
 
     <button class="account-button" type="button">
-      АККАУНТ
+      ОЦЕНИВАНИЕ
     </button>
   </header>
 
@@ -14,6 +14,95 @@
       ОЦЕНИВАНИЕ
     </h1>
 
-    <section class="evaluation-box"></section>
+    <div *ngIf="isLoading" class="loading-box">
+      <p>Загрузка...</p>
+    </div>
+
+    <div *ngIf="!isLoading">
+      <!-- Выбор команды -->
+      <section class="team-selection" *ngIf="!selectedTeam">
+        <h2 class="section-label">Выберите команду:</h2>
+        <div class="teams-grid">
+          <button
+            class="team-card"
+            type="button"
+            *ngFor="let team of teams"
+            (click)="selectTeam(team)"
+          >
+            {{ team.name }}
+          </button>
+        </div>
+        <p *ngIf="teams.length === 0" class="no-data">
+          Команды ещё не добавлены организатором
+        </p>
+      </section>
+
+      <!-- Форма оценивания -->
+      <section class="evaluation-box" *ngIf="selectedTeam">
+        <h2 class="team-title">{{ selectedTeam.name }}</h2>
+        <p class="team-description" *ngIf="selectedTeam.description">
+          {{ selectedTeam.description }}
+        </p>
+
+        <div class="grades-form">
+          <div class="grade-row" *ngFor="let criterion of criteria">
+            <div class="criterion-info">
+              <span class="criterion-name">{{ criterion.name }}</span>
+              <span class="criterion-desc" *ngIf="criterion.description">
+                {{ criterion.description }}
+              </span>
+              <span class="criterion-max">макс: {{ getMaxScore(criterion.id) }}</span>
+            </div>
+
+            <div class="grade-inputs">
+              <input
+                type="number"
+                class="grade-value"
+                [placeholder]="'0-' + getMaxScore(criterion.id)"
+                [(ngModel)]="grades[criterion.id].value"
+                [min]="0"
+                [max]="getMaxScore(criterion.id)"
+                name="grade_{{ criterion.id }}"
+              />
+
+              <input
+                type="text"
+                class="grade-comment"
+                placeholder="комментарий"
+                [(ngModel)]="grades[criterion.id].comment"
+                name="comment_{{ criterion.id }}"
+              />
+            </div>
+          </div>
+
+          <div class="actions-row">
+            <button
+              class="submit-btn"
+              type="button"
+              (click)="submitGrades()"
+              [disabled]="isSubmitting || !canSubmit()"
+            >
+              {{ isSubmitting ? 'Сохранение...' : 'Сохранить оценки' }}
+            </button>
+
+            <button
+              class="back-to-teams-btn"
+              type="button"
+              (click)="selectedTeam = null; initGrades()"
+            >
+              ← К списку команд
+            </button>
+          </div>
+        </div>
+
+        <div class="success-message" *ngIf="successMessage">
+          {{ successMessage }}
+        </div>
+
+        <div class="error-message" *ngIf="error">
+          {{ error }}
+        </div>
+      </section>
+    </div>
   </main>
 </div>

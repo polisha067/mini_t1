@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { AuthService, RegisterRequest } from '../../../shared/services/auth.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-register',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
@@ -56,9 +57,38 @@ export class Register {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.error?.message || err.error?.message || 'Ошибка регистрации. Попробуйте снова.';
+        this.errorMessage = this.getRegisterErrorMessage(err);
         console.error('Registration error:', err);
       }
     });
+  }
+
+  goHome(): void {
+    this.router.navigate(['/']);
+  }
+
+  private getRegisterErrorMessage(err: HttpErrorResponse): string {
+    if (err.status === 0) {
+      return 'Нет соединения с сервером. Проверьте, что backend запущен.';
+    }
+
+    if (err.status === 409) {
+      return 'Пользователь с таким email уже существует.';
+    }
+
+    if (err.status === 422) {
+      return 'Проверьте корректность заполненных данных.';
+    }
+
+    const backendMessage = err.error?.error?.message || err.error?.message;
+    if (backendMessage) {
+      return backendMessage;
+    }
+
+    if (err.status >= 500) {
+      return 'Ошибка сервера. Попробуйте снова через минуту.';
+    }
+
+    return 'Ошибка регистрации. Попробуйте снова.';
   }
 }

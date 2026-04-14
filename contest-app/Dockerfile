@@ -17,6 +17,6 @@ COPY . .
 EXPOSE 4200
 
 
-# Запускаем dev-сервер с proxy для API
-CMD ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--poll", "2000", "--proxy-config", "proxy.conf.json"]
+# Запускаем dev-сервер с proxy для API (web - имя сервиса в docker-compose)
+CMD ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--poll", "2000", "--proxy-config", "proxy.conf.docker.json"]
 

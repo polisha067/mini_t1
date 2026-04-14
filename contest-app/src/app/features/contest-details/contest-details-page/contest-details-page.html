@@ -1,11 +1,15 @@
 <div class="contest-details-page">
   <header class="top-bar">
-    <button class="back-button" type="button" aria-label="Назад">
+    <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
       <span class="arrow">←</span>
     </button>
 
-    <button class="account-button" type="button">
-      АККАУНТ
+    <button class="account-button" type="button" *ngIf="isOrganizer()" (click)="goToParticipants()">
+      УЧАСТНИКИ
+    </button>
+
+    <button class="account-button" type="button" *ngIf="isExpert()" (click)="goToEvaluation()">
+      ОЦЕНИВАНИЕ
     </button>
   </header>
 
@@ -14,62 +18,73 @@
       КОНКУРСКАЯ ТАБЛИЦА
     </h1>
 
-    <section class="contest-info-section">
+    <section class="contest-info-section" *ngIf="contest">
       <div class="image-card">
         <img
-          src="https://placehold.co/320x220/png"
-          alt="Изображение конкурса"
+          [src]="getLogoUrl(contest.logo_path)"
+          [alt]="contest.name"
         />
       </div>
 
       <div class="contest-text">
-        <h2 class="contest-name">Хакатон 1</h2>
+        <h2 class="contest-name">{{ contest.name }}</h2>
 
         <div class="contest-description">
-          <p>описание конкурса</p>
-          <p>описание конкурса</p>
-          <p>описание конкурса</p>
-          <p>описание конкурса</p>
-          <p>описание конкурса</p>
-          <p>описание конкурса</p>
+          <p *ngIf="contest.description">{{ contest.description }}</p>
+          <p *ngIf="!contest.description">Описание конкурса пока не добавлено</p>
+          <div class="contest-dates" *ngIf="contest.start_date || contest.end_date">
+            <p *ngIf="contest.start_date">Начало: {{ formatDate(contest.start_date) }}</p>
+            <p *ngIf="contest.end_date">Окончание: {{ formatDate(contest.end_date) }}</p>
+          </div>
+          <p class="contest-status" [class.finished]="contest.is_finished">
+            {{ contest.is_finished ? 'Завершён' : 'Активен' }}
+          </p>
         </div>
       </div>
     </section>
 
-    <section class="rating-box">
-      <div class="top-three">
-        <div class="place place-third">
-          <div class="team-name">команда 1</div>
+    <div *ngIf="isLoading" class="loading-box">
+      <p>Загрузка...</p>
+    </div>
+
+    <div *ngIf="!isLoading && error" class="error-box">
+      <p>{{ error }}</p>
+    </div>
+
+    <section class="rating-box" *ngIf="!isLoading && !error">
+      <!-- Топ-3 -->
+      <div class="top-three" *ngIf="ranking.length > 0">
+        <div class="place place-third" *ngIf="ranking.length >= 3">
+          <div class="team-name">{{ ranking[2].team_name }}</div>
           <div class="place-card light-card">3</div>
+          <div class="team-score">{{ ranking[2].total_score }}</div>
         </div>
 
-        <div class="place place-first">
-          <div class="team-name">команда 1</div>
+        <div class="place place-first" *ngIf="ranking.length >= 1">
+          <div class="team-name">{{ ranking[0].team_name }}</div>
           <div class="place-card gold-card">1</div>
+          <div class="team-score">{{ ranking[0].total_score }}</div>
         </div>
 
-        <div class="place place-second">
-          <div class="team-name">команда 1</div>
+        <div class="place place-second" *ngIf="ranking.length >= 2">
+          <div class="team-name">{{ ranking[1].team_name }}</div>
           <div class="place-card dark-card">2</div>
+          <div class="team-score">{{ ranking[1].total_score }}</div>
         </div>
       </div>
 
-      <div class="other-places">
-        <div class="other-place">
-          <div class="mini-card">4</div>
-          <div class="mini-team-name">команда 1</div>
-        </div>
-
-        <div class="other-place">
-          <div class="mini-card">5</div>
-          <div class="mini-team-name">команда 1</div>
-        </div>
-
-        <div class="other-place">
-          <div class="mini-card">6</div>
-          <div class="mini-team-name">команда 1</div>
+      <!-- Остальные места -->
+      <div class="other-places" *ngIf="ranking.length > 3">
+        <div class="other-place" *ngFor="let entry of ranking.slice(3)">
+          <div class="mini-card">{{ entry.rank }}</div>
+          <div class="mini-team-name">{{ entry.team_name }}</div>
+          <div class="mini-score">{{ entry.total_score }}</div>
         </div>
       </div>
+
+      <p *ngIf="ranking.length === 0 && teams.length === 0" class="no-data">
+        Рейтинг пока пуст. Оценки ещё не выставлены.
+      </p>
     </section>
   </main>
 </div>

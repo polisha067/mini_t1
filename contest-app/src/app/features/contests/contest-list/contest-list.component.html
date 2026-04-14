@@ -1,7 +1,11 @@
 <div class="container">
-  <div class="auth-buttons">
+  <div class="auth-buttons" *ngIf="!isAuthenticated()">
     <button class="btn-register" (click)="goToRegister()">регистрация</button>
     <button class="btn-login" (click)="goToLogin()">вход</button>
+  </div>
+  <div class="account-header" *ngIf="isAuthenticated()">
+    <button class="account-name" (click)="goToAccount()">{{ getAccountLabel() }}</button>
+    <button class="btn-logout" (click)="logout()">выйти</button>
   </div>
 
   <div class="hero">
@@ -16,19 +20,23 @@
 </div>
 
   <div class="search">
-    <input type="text" placeholder="найдите конкурс">
+    <input type="text" placeholder="найдите конкурс" [(ngModel)]="searchQuery" (input)="onSearch()">
   </div>
 
   <h2 class="section-title">актуальные<br>конкурсы</h2>
 
   <div class="scroll-container">
-    <div class="scroll-list">
-      <div class="contest-card" *ngFor="let contest of activeContests" (click)="goToContest(contest.id)">
-        <img [src]="contest.image" alt="{{ contest.title }}" class="contest-image">
-        <h3>{{ contest.title }}</h3>
-        <p class="year">{{ contest.year }}</p>
+    <div class="scroll-list" *ngIf="!isLoading">
+      <div class="contest-card" *ngFor="let contest of filteredContests" (click)="goToContest(contest.id)">
+        <img [src]="getLogoUrl(contest.logo_path)" alt="{{ contest.name }}" class="contest-image">
+        <h3>{{ contest.name }}</h3>
+        <p class="year">{{ getYear(contest.start_date) }}</p>
       </div>
+      <p *ngIf="filteredContests.length === 0" class="no-data">
+        {{ searchQuery ? 'Ничего не найдено' : 'Конкурсы пока не созданы' }}
+      </p>
     </div>
+    <p *ngIf="isLoading" class="loading-text">Загрузка...</p>
   </div>
 
   <div class="info-row">

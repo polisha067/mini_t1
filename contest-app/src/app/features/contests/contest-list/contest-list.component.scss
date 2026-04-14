@@ -15,6 +15,43 @@
   margin-bottom: 80px;
 }
 
+.account-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 80px;
+}
+
+.account-name {
+  background: transparent;
+  border: none;
+  color: #383A51;
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.btn-logout {
+  background: #383A51;
+  border: none;
+  color: #F2F0E6;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px 20px;
+  border-radius: 8px;
+  transition: opacity 0.3s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
 .btn-register {
   background: transparent;
   border: none;

@@ -1,4 +1,8 @@
 <div class="register-container">
+  <button class="back-btn" type="button" (click)="goHome()" aria-label="На главную">
+    <span class="back-arrow">←</span>
+  </button>
+
   <h1 class="logo">
     <span class="consonant">М</span>
     <span class="vowel">Е</span>
@@ -53,6 +57,6 @@
       {{ isLoading ? 'Загрузка...' : 'ЗАРЕГИСТРИРОВАТЬСЯ' }}
     </button>
 
-    <p *ngIf="errorMessage">{{ errorMessage }}</p>
+    <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
   </form>
 </div>

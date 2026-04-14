@@ -1,0 +1,31 @@
+<div class="account-page">
+  <div class="account-header">
+    <button class="back-btn" type="button" (click)="goHome()">На главную</button>
+    <button class="logout-btn" type="button" (click)="logout()">Выйти</button>
+  </div>
+
+  <h1>Аккаунт организатора</h1>
+
+  <div class="profile-card" *ngIf="user as u">
+    <div class="row">
+      <span class="label">Имя:</span>
+      <span class="value">{{ u.username }}</span>
+    </div>
+    <div class="row">
+      <span class="label">Email:</span>
+      <span class="value">{{ u.email }}</span>
+    </div>
+    <div class="row">
+      <span class="label">Роль:</span>
+      <span class="value">Организатор</span>
+    </div>
+    <div class="row">
+      <span class="label">ID:</span>
+      <span class="value">{{ u.id }}</span>
+    </div>
+    <div class="row">
+      <span class="label">Дата регистрации:</span>
+      <span class="value">{{ u.created_at ? (u.created_at | date: 'dd.MM.yyyy HH:mm') : '—' }}</span>
+    </div>
+  </div>
+</div>

@@ -2,45 +2,21 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap } from 'rxjs';
 import { Router } from '@angular/router';
+import {
+  User,
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+} from '../../shared/models/contest.model';
 
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  role: string;
-}
-
-export interface LoginResponse {
-  status: string;
-  access_token: string;
-  user: User;
-  redirect_url: string;
-}
-
-export interface RegisterResponse {
-  status: string;
-  message: string;
-  user: User;
-  redirect_url: string;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  username: string;
-  email: string;
-  password: string;
-  role: string;
-}
+// Re-export типов для использования в других модулях
+export type { LoginRequest, RegisterRequest } from '../../shared/models/contest.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = '/api/auth';
+  private readonly apiUrl = '/api/auth';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -58,36 +34,38 @@ export class AuthService {
       try {
         const user = JSON.parse(userStr);
         this.currentUserSubject.next(user);
-      } catch (e) {
+      } catch {
         this.clearAuth();
       }
     }
   }
 
-  login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
-      tap((response: LoginResponse) => {
-        localStorage.setItem('access_token', response.access_token);
-        localStorage.setItem('current_user', JSON.stringify(response.user));
-        this.currentUserSubject.next(response.user);
-      })
-    );
+  login(credentials: LoginRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/login`, credentials)
+      .pipe(
+        tap((response) => {
+          localStorage.setItem('access_token', response.access_token!);
+          localStorage.setItem('current_user', JSON.stringify(response.user));
+          this.currentUserSubject.next(response.user);
+        })
+      );
   }
 
-register(userData: RegisterRequest): Observable<RegisterResponse> {
-  return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, userData);
-}
+  register(userData: RegisterRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData);
+  }
 
   logout(): void {
     this.http.post(`${this.apiUrl}/logout`, {}).subscribe({
       next: () => {
-        this.clearAuth();
-        this.router.navigate(['/login']);
+        this.clearAuthState();
+        this.router.navigate(['/']);
       },
       error: () => {
-        this.clearAuth();
-        this.router.navigate(['/login']);
-      }
+        this.clearAuthState();
+        this.router.navigate(['/']);
+      },
     });
   }
 
@@ -103,9 +81,26 @@ register(userData: RegisterRequest): Observable<RegisterResponse> {
     return localStorage.getItem('access_token');
   }
 
-  private clearAuth(): void {
+  getRole(): string | null {
+    const user = this.getCurrentUser();
+    return user?.role ?? null;
+  }
+
+  isOrganizer(): boolean {
+    return this.getRole() === 'organizer';
+  }
+
+  isExpert(): boolean {
+    return this.getRole() === 'expert';
+  }
+
+  clearAuthState(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('current_user');
     this.currentUserSubject.next(null);
+  }
+
+  private clearAuth(): void {
+    this.clearAuthState();
   }
 }
