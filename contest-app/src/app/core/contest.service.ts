@@ -18,9 +18,6 @@ export class ContestService {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Получить список конкурсов с пагинацией
-   */
   getList(
     page: number = 1,
     perPage: number = 10,
@@ -37,23 +34,16 @@ export class ContestService {
     return this.http.get<PaginatedResponse<Contest>>(this.apiUrl, { params });
   }
 
-  /**
-   * Получить детали конкурса по ID
-   */
+
   getById(contestId: number): Observable<ApiResponse<Contest>> {
     return this.http.get<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`);
   }
 
-  /**
-   * Создать конкурс (только organizer)
-   */
   create(data: CreateContestData): Observable<ApiResponse<Contest>> {
     return this.http.post<ApiResponse<Contest>>(this.apiUrl, data);
   }
 
-  /**
-   * Обновить конкурс (только владелец-organizer)
-   */
+
   update(
     contestId: number,
     data: UpdateContestData
@@ -61,16 +51,12 @@ export class ContestService {
     return this.http.put<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`, data);
   }
 
-  /**
-   * Удалить конкурс (только владелец-organizer)
-   */
+
   delete(contestId: number): Observable<ApiResponse<Contest>> {
     return this.http.delete<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`);
   }
 
-  /**
-   * Завершить конкурс (финализировать)
-   */
+
   finalize(contestId: number): Observable<ApiResponse<Contest>> {
     return this.http.post<ApiResponse<Contest>>(
       `${this.apiUrl}/${contestId}/finalize`,
@@ -78,12 +64,14 @@ export class ContestService {
     );
   }
 
-  /**
-   * Получить статус голосования
-   */
+
   getVotingStatus(contestId: number): Observable<ApiResponse<VotingStatus>> {
     return this.http.get<ApiResponse<VotingStatus>>(
       `${this.apiUrl}/${contestId}/voting-status`
     );
+  }
+
+  getMyExpertContests(): Observable<ApiResponse<Contest[]>> {
+    return this.http.get<ApiResponse<Contest[]>>('/api/experts/me/contests');
   }
 }

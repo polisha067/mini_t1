@@ -28,4 +28,28 @@
       <span class="value">{{ u.created_at ? (u.created_at | date: 'dd.MM.yyyy HH:mm') : '—' }}</span>
     </div>
   </div>
+
+  <div class="contests-section">
+    <div class="section-header">
+      <h2>Конкурсы для оценивания</h2>
+    </div>
+
+    <p *ngIf="isLoadingContests" class="section-state">Загрузка...</p>
+    <p *ngIf="contestsError" class="section-error">{{ contestsError }}</p>
+    <p *ngIf="!isLoadingContests && !contestsError && expertContests.length === 0" class="section-state">
+      Пока нет назначенных конкурсов.
+    </p>
+
+    <div class="contest-list" *ngIf="!isLoadingContests && expertContests.length > 0">
+      <button
+        class="contest-item"
+        type="button"
+        *ngFor="let contest of expertContests"
+        (click)="goToContest(contest.id)"
+      >
+        <span class="contest-name">{{ contest.name }}</span>
+        <span class="contest-date">{{ contest.start_date ? (contest.start_date | date: 'dd.MM.yyyy') : 'Без даты' }}</span>
+      </button>
+    </div>
+  </div>
 </div>
