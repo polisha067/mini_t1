@@ -108,7 +108,7 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
-  role: 'organizer' | 'expert';
+  role: 'organizer' | 'expert' | '';
 }
 
 // Данные для создания конкурса

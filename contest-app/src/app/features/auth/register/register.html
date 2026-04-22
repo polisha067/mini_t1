@@ -28,30 +28,62 @@
       [(ngModel)]="userData.email"
     >
 
+  <div class="password-wrapper">
     <input
-      type="password"
+      [type]="showPassword ? 'text' : 'password'"
       name="password"
       placeholder="введите пароль"
-      class="input-field"
+      class="input-field password-input"
       [(ngModel)]="userData.password"
     >
 
+    <button type="button" class="eye-btn" (click)="showPassword = !showPassword">
+      {{ showPassword ? '🙈' : '👁' }}
+    </button>
+  </div>
+
+  <div class="password-wrapper">
     <input
-      type="password"
+      [type]="showConfirmPassword ? 'text' : 'password'"
       name="confirmPassword"
       placeholder="повторите пароль"
-      class="input-field"
+      class="input-field password-input"
       [(ngModel)]="confirmPassword"
     >
 
-    <select
-      name="role"
-      class="input-field"
-      [(ngModel)]="userData.role"
+    <button type="button" class="eye-btn" (click)="showConfirmPassword = !showConfirmPassword">
+      {{ showConfirmPassword ? '🙈' : '👁' }}
+    </button>
+  </div>
+
+<div class="custom-select">
+  <button
+    type="button"
+    class="input-field custom-select-trigger"
+    (click)="isRoleDropdownOpen = !isRoleDropdownOpen"
+  >
+    {{ userData.role === 'expert' ? 'Эксперт' : userData.role === 'organizer' ? 'Организатор' : 'Выбрать роль' }}
+    <span class="custom-arrow" [class.open]="isRoleDropdownOpen">⌄</span>
+  </button>
+
+  <div class="custom-select-menu" *ngIf="isRoleDropdownOpen">
+    <button
+      type="button"
+      class="custom-select-option"
+      (click)="selectRole('expert')"
     >
-      <option value="expert">Эксперт</option>
-      <option value="organizer">Организатор</option>
-    </select>
+      Эксперт
+    </button>
+
+    <button
+      type="button"
+      class="custom-select-option"
+      (click)="selectRole('organizer')"
+    >
+      Организатор
+    </button>
+  </div>
+</div>
 
     <button type="submit" class="register-btn" [disabled]="isLoading">
       {{ isLoading ? 'Загрузка...' : 'ЗАРЕГИСТРИРОВАТЬСЯ' }}

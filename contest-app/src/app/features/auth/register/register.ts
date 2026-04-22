@@ -16,11 +16,14 @@ export class Register {
     username: '',
     email: '',
     password: '',
-    role: 'expert'
+    role: ''
   };
   confirmPassword: string = '';
   errorMessage: string = '';
   isLoading: boolean = false;
+  showPassword: boolean = false;
+  showConfirmPassword: boolean = false;
+  isRoleDropdownOpen: boolean = false;
   roles = [
     { value: 'expert', label: 'Эксперт' },
     { value: 'organizer', label: 'Организатор' }
@@ -31,8 +34,13 @@ export class Register {
     private router: Router
   ) {}
 
+  selectRole(role: 'expert' | 'organizer'): void {
+  this.userData.role = role;
+  this.isRoleDropdownOpen = false;
+  }
+
   onSubmit(): void {
-    if (!this.userData.username || !this.userData.email || !this.userData.password) {
+    if (!this.userData.username || !this.userData.email || !this.userData.password || !this.userData.role) {
       this.errorMessage = 'Пожалуйста, заполните все обязательные поля';
       return;
     }
