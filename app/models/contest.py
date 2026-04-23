@@ -14,6 +14,7 @@ class Contest(db.Model):
     is_finished = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     organizer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    access_key = db.Column(db.String(64), unique=True, nullable=True, default=None)
 
     organizer = db.relationship("User", back_populates="contests")
     teams = db.relationship("Team", back_populates="contest", cascade="all, delete-orphan")

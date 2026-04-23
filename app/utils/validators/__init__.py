@@ -28,7 +28,7 @@ from app.utils.validators.criterion import (
 )
 
 from app.utils.validators.expert_assignment import (
-    validate_expert_assignment_data
+    validate_join_key_data
 )
 
 __all__ = [
@@ -54,5 +54,5 @@ __all__ = [
     'validate_max_score',
     'validate_criterion_data',
     # Expert Assignment
-    'validate_expert_assignment_data',
+    'validate_join_key_data',
 ]

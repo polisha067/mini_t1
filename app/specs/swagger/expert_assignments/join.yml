@@ -1,0 +1,56 @@
+tags:
+  - Expert Assignments
+summary: Присоединение эксперта по ключу
+description: Эксперт вводит ключ доступа и получает право оценивать команды в конкурсе
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - access_key
+      properties:
+        access_key:
+          type: string
+          description: Ключ доступа, полученный от организатора
+responses:
+  201:
+    description: Эксперт успешно присоединился
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Вы успешно присоединились к конкурсу"
+        assignment:
+          type: object
+          properties:
+            id:
+              type: integer
+            contest_id:
+              type: integer
+            expert_id:
+              type: integer
+  400:
+    description: Неверный формат запроса
+  401:
+    description: Требуется аутентификация
+  403:
+    description: Нет прав (требуется роль expert)
+  404:
+    description: Конкурс не найден
+  409:
+    description: Вы уже присоединены к этому конкурсу
+  422:
+    description: Неверный или пустой ключ доступа

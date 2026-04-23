@@ -1,0 +1,33 @@
+tags:
+  - Expert Assignments
+summary: Генерация ключа доступа
+description: Создаёт новый ключ доступа для конкурса (только организатор)
+security:
+  - Bearer: []
+parameters:
+  - in: path
+    name: contest_id
+    type: integer
+    required: true
+    description: ID конкурса
+responses:
+  200:
+    description: Ключ успешно сгенерирован
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Ключ доступа успешно создан"
+        access_key:
+          type: string
+          example: "aB3_dE5fG7hI9jK1lM3nO5pQ7rS9tU1v"
+  401:
+    description: Требуется аутентификация
+  403:
+    description: Нет прав (только организатор конкурса)
+  404:
+    description: Конкурс не найден
