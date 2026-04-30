@@ -23,6 +23,12 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
 
+    # Создаём папку uploads при старте, если её нет
+    upload_folder = app.config.get('UPLOAD_FOLDER')
+    if upload_folder:
+        Path(upload_folder).mkdir(parents=True, exist_ok=True)
+        Path(os.path.join(upload_folder, 'logos')).mkdir(parents=True, exist_ok=True)
+
     # CORS для Angular
     CORS(app, resources={
         r"/api/*": {
@@ -113,5 +119,6 @@ def create_app(config_name=None):
 
     app.logger.setLevel(app.config.get('LOG_LEVEL', 'INFO'))
     app.logger.info(f'Application startup with config: {config_name}')
+    app.logger.info(f'Upload folder: {upload_folder}')
 
     return app

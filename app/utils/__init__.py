@@ -6,7 +6,8 @@ from app.utils.validators import (
     validate_registration_data,
     validate_login_data,
     validate_contest_data,
-    validate_score
+    validate_score,
+    validate_join_key_data,
 )
 
 from app.utils.errors import (
@@ -34,6 +35,7 @@ __all__ = [
     'validate_login_data',
     'validate_contest_data',
     'validate_score',
+    'validate_join_key_data',
     'APIError',
     'BadRequestError',
     'UnauthorizedError',

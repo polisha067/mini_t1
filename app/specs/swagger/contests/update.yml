@@ -1,47 +1,54 @@
 tags:
   - Contests
 summary: Обновление конкурса
-description: Обновляет данные конкурса (только для организатора-владельца)
+description: Обновляет данные конкурса (только для организатора-владельца). Поддерживает загрузку нового логотипа.
 security:
   - Bearer: []
+consumes:
+  - multipart/form-data
+  - application/json
 parameters:
   - in: path
     name: contest_id
     type: integer
     required: true
     description: ID конкурса
-  - in: body
-    name: body
-    required: true
-    schema:
-      type: object
-      properties:
-        name:
-          type: string
-          minLength: 3
-          maxLength: 200
-          description: Название конкурса
-          example: "Hackathon 2026 Updated"
-        description:
-          type: string
-          maxLength: 5000
-          description: Описание конкурса
-          example: "Обновлённое описание"
-        start_date:
-          type: string
-          format: date-time
-          description: Дата начала
-          example: "2026-04-15T09:00:00"
-        end_date:
-          type: string
-          format: date-time
-          description: Дата окончания
-          example: "2026-04-17T18:00:00"
-        logo_path:
-          type: string
-          maxLength: 255
-          description: Путь к логотипу
-          example: "/uploads/logos/new_logo.png"
+  - in: formData
+    name: name
+    type: string
+    minLength: 3
+    maxLength: 200
+    description: Название конкурса
+    example: "Hackathon 2026 Updated"
+  - in: formData
+    name: description
+    type: string
+    maxLength: 5000
+    description: Описание конкурса
+    example: "Обновлённое описание"
+  - in: formData
+    name: start_date
+    type: string
+    format: date-time
+    description: Дата начала
+    example: "2026-04-15T09:00:00"
+  - in: formData
+    name: end_date
+    type: string
+    format: date-time
+    description: Дата окончания
+    example: "2026-04-17T18:00:00"
+  - in: formData
+    name: logo
+    type: file
+    description: Новый файл логотипа (заменит старый; png, jpg, jpeg, gif, webp; макс. 5MB)
+    required: false
+  - in: formData
+    name: logo_path
+    type: string
+    maxLength: 255
+    description: (Альтернатива файлу) Путь к логотипу, если передаётся строкой
+    example: "/uploads/logos/old_logo.png"
 responses:
   200:
     description: Конкурс успешно обновлён
@@ -72,6 +79,12 @@ responses:
             end_date:
               type: string
               format: date-time
+            logo_path:
+              type: string
+              example: "logos/new_abc123.png"
+            logo_url:
+              type: string
+              example: "/uploads/logos/new_abc123.png"
             organizer_id:
               type: integer
               example: 5
@@ -118,31 +131,3 @@ responses:
       type: object
       properties:
         status:
-          type: string
-          example: "error"
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: "FORBIDDEN"
-            message:
-              type: string
-              example: "Только организатор конкурса может выполнять это действие"
-  404:
-    description: Конкурс не найден
-    schema:
-      type: object
-      properties:
-        status:
-          type: string
-          example: "error"
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: "NOT_FOUND"
-            message:
-              type: string
-              example: "Конкурс с id=999 не найден"

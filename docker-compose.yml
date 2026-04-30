@@ -1,13 +1,12 @@
 
 services:
+  # Фронтенд (Angular)
   frontend:
     build:
       context: ./contest-app
       dockerfile: Dockerfile
     container_name: mini_t1_frontend
     restart: unless-stopped
-
-    # Монтируем код для горячей перезагрузки
     volumes:
       - ./contest-app/src:/app/src
       - ./contest-app/public:/app/public
@@ -20,32 +19,25 @@ services:
       - ./contest-app/proxy.conf.json:/app/proxy.conf.json
       - ./contest-app/.editorconfig:/app/.editorconfig
       - ./contest-app/.prettierrc:/app/.prettierrc
-
-    # Пробрасываем порт
+      - ./uploads:/app/uploads
     ports:
       - "4200:4200"
-
-    # Сеть
     networks:
       - mini_t1_network
 
+  # Бэкенд (Flask)
   web:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: mini_t1_app
     restart: unless-stopped
-
-    # Монтируем код для горячей перезагрузки в разработке
     volumes:
-      - .:/app
+      - .:/app              # Hot-reload для разработки
       - ./logs:/app/logs
-
-    # Пробрасываем порт
+      - ./uploads:/app/uploads
     ports:
       - "5000:5000"
-
-    # Переменные окружения
     env_file:
       - .env
     environment:
@@ -58,17 +50,16 @@ services:
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - CORS_ORIGINS=${CORS_ORIGINS:-*}
-
-    # Ждём, пока база данных будет готова
+      - UPLOAD_FOLDER=${UPLOAD_FOLDER:-/app/uploads}
+      - UPLOADS_URL=${UPLOADS_URL:-/uploads}
+      - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-16777216}
+      - MAX_LOGO_SIZE=${MAX_LOGO_SIZE:-5242880}
+      - ALLOWED_EXTENSIONS=${ALLOWED_EXTENSIONS:-png,jpg,jpeg,gif,webp}
     depends_on:
       db:
         condition: service_healthy
-
-    # Сеть
     networks:
       - mini_t1_network
-
-    # Health check для самого приложения
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/status"]
       interval: 30s
@@ -76,30 +67,21 @@ services:
       retries: 3
       start_period: 40s
 
+  # База данных
   db:
     image: postgres:15-alpine
     container_name: mini_t1_db
     restart: unless-stopped
-
-    # Переменные для PostgreSQL
     environment:
       POSTGRES_DB: ${DB_NAME:-hackathon_db}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
-
-    # Пробрасываем порт для доступа извне
     ports:
       - "5432:5432"
-
-    # Постоянное хранилище данных
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-    # Сеть
     networks:
       - mini_t1_network
-
-    # Health check для базы данных
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-hackathon_db}"]
       interval: 10s
@@ -107,12 +89,32 @@ services:
       retries: 5
       start_period: 10s
 
+  # Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: mini_t1_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"           # Основной порт для доступа к приложению
+      # - "443:443"        # Раскомментируйте для HTTPS
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./uploads:/app/uploads:ro
+      - ./logs/nginx:/var/log/nginx  # Логи Nginx
+    depends_on:
+      - web
+    networks:
+      - mini_t1_network
+    # Профиль: запускается только при явном указании (опционально)
+    profiles:
+      - production
 
-# === Сети ===
+# Сети
 networks:
   mini_t1_network:
     driver: bridge
     name: mini_t1_network
 
+# Тома
 volumes:
   postgres_data:

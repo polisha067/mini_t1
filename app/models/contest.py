@@ -1,5 +1,6 @@
 from datetime import datetime
 from app.extensions import db
+from flask import current_app
 
 class Contest(db.Model):
     """Конкурс (хакатон)"""
@@ -14,6 +15,7 @@ class Contest(db.Model):
     is_finished = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     organizer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    access_key = db.Column(db.String(64), unique=True, nullable=True, default=None)
 
     organizer = db.relationship("User", back_populates="contests")
     teams = db.relationship("Team", back_populates="contest", cascade="all, delete-orphan")
@@ -21,18 +23,24 @@ class Contest(db.Model):
     assigned_experts = db.relationship("ContestExpert", back_populates="contest", lazy="dynamic", cascade="all, delete-orphan")
 
     def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'start_date': self.start_date.isoformat() if self.start_date else None,
-            'end_date': self.end_date.isoformat() if self.end_date else None,
-            'logo_path': self.logo_path,
-            'is_finished': self.is_finished,
-            'organizer_id': self.organizer_id,
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }
+        logo_url = None
+        if self.logo_path:
+            # Формируем полный URL через Nginx
+            uploads_url = current_app.config.get('UPLOADS_URL', '/uploads')
+            logo_url = f"{uploads_url}/{self.logo_path}"
 
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "start_date": self.start_date.isoformat() if self.start_date else None,
+            "end_date": self.end_date.isoformat() if self.end_date else None,
+            "logo_path": self.logo_path,
+            "logo_url": logo_url,
+            "organizer_id": self.organizer_id,
+            "is_finished": self.is_finished,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
     def __repr__(self):
         return f'<Contest {self.name}>'
 
