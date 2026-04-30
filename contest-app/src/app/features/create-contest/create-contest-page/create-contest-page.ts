@@ -1,10 +1,21 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  AfterViewInit,
+  ElementRef,
+  ViewChild
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import flatpickr from 'flatpickr';
+import { Russian } from 'flatpickr/dist/l10n/ru';
+
 import { ContestService } from '../../../core/contest.service';
 import { CriterionService } from '../../../core/criterion.service';
-import { CreateContestData, CreateCriterionData } from '../../../shared/models/contest.model';
+import {
+  CreateContestData,
+  CreateCriterionData
+} from '../../../shared/models/contest.model';
 
 @Component({
   selector: 'app-create-contest-page',
@@ -13,7 +24,10 @@ import { CreateContestData, CreateCriterionData } from '../../../shared/models/c
   templateUrl: './create-contest-page.html',
   styleUrl: './create-contest-page.scss',
 })
-export class CreateContestPage {
+export class CreateContestPage implements AfterViewInit {
+  @ViewChild('startDateInput') startDateInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('endDateInput') endDateInput!: ElementRef<HTMLInputElement>;
+
   name = '';
   description = '';
   startDate = '';
@@ -32,6 +46,28 @@ export class CreateContestPage {
     private contestService: ContestService,
     private criterionService: CriterionService
   ) {}
+
+  ngAfterViewInit(): void {
+    flatpickr(this.startDateInput.nativeElement, {
+      enableTime: true,
+      dateFormat: 'd.m.Y, H:i',
+      time_24hr: true,
+      locale: Russian,
+      onChange: (_, dateStr) => {
+        this.startDate = dateStr;
+      },
+    });
+
+    flatpickr(this.endDateInput.nativeElement, {
+      enableTime: true,
+      dateFormat: 'd.m.Y, H:i',
+      time_24hr: true,
+      locale: Russian,
+      onChange: (_, dateStr) => {
+        this.endDate = dateStr;
+      },
+    });
+  }
 
   addCriterion(): void {
     this.criteria.push({ name: '', description: '', max_score: 10 });
@@ -68,8 +104,8 @@ export class CreateContestPage {
       next: (response) => {
         const contestId = response['contest'].id;
 
-        // Создаём критерии
         const criteriaToCreate = this.criteria.filter(c => c.name.trim());
+
         if (criteriaToCreate.length === 0) {
           this.isSubmitting = false;
           this.router.navigate(['/contest', contestId]);
@@ -77,6 +113,7 @@ export class CreateContestPage {
         }
 
         let completed = 0;
+
         criteriaToCreate.forEach((criterion) => {
           const data: CreateCriterionData = {
             name: criterion.name.trim(),
@@ -104,7 +141,8 @@ export class CreateContestPage {
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.error = err.error?.error?.message || 'Ошибка при создании конкурса';
+        this.error =
+          err.error?.error?.message || 'Ошибка при создании конкурса';
         console.error('Create contest error:', err);
       },
     });

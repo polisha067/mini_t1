@@ -1,117 +1,157 @@
 <div class="create-contest-page">
   <header class="top-bar">
     <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
-      <span class="arrow">←</span>
-    </button>
-
-    <button class="account-button" type="button" disabled>
-      {{ name || 'НОВЫЙ КОНКУРС' }}
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+        <path d="M360-240 120-480l240-240 56 56-144 144h568v80H272l144 144-56 56Z"/>
+      </svg>
     </button>
   </header>
 
   <main class="create-contest-content">
-    <h1 class="page-title">
-      СОЗДАЙТЕ КОНКУРС
-    </h1>
+    <section class="hero">
+      <h1 class="page-title">Создайте конкурс</h1>
+      <p class="subtitle">Заполните информацию о конкурсе и добавьте критерии оценки</p>
+    </section>
 
-    <section class="upload-section">
+    <section class="upload-card">
       <div class="image-card">
-        <img
-          src="https://placehold.co/260x200/png"
-          alt="Изображение конкурса"
+        <img [src]="logoPath || 'https://placehold.co/520x360/png?text=Preview'" alt="Изображение конкурса" />
+      </div>
+
+      <div class="upload-info">
+        <h2>Изображение конкурса</h2>
+        <p>Укажите ссылку на изображение. Оно будет отображаться в карточке конкурса.</p>
+
+        <input
+          type="text"
+          class="logo-url-input"
+          placeholder="URL изображения"
+          [(ngModel)]="logoPath"
         />
       </div>
-
-      <div class="upload-text">
-        загрузить<br />
-        изображение<br />
-        конкурса
-      </div>
-      <input
-        type="text"
-        class="logo-url-input"
-        placeholder="URL изображения (или оставьте пустым)"
-        [(ngModel)]="logoPath"
-      />
     </section>
 
     <form class="form-box" (ngSubmit)="onSubmit()">
-      <div class="form-content">
-        <input
-          type="text"
-          class="form-row input-field"
-          placeholder="название конкурса *"
-          [(ngModel)]="name"
-          name="name"
-          required
-        />
+      <section class="form-section">
+        <h2 class="section-title">Основная информация</h2>
 
-        <textarea
-          class="form-row input-field"
-          placeholder="описание конкурса"
-          [(ngModel)]="description"
-          name="description"
-          rows="3"
-        ></textarea>
+        <div class="form-grid">
+          <label class="field">
+            <span>Название конкурса *</span>
+            <input
+              type="text"
+              class="input-field"
+              placeholder="Введите название конкурса"
+              [(ngModel)]="name"
+              name="name"
+              required
+            />
+          </label>
 
-        <input
-          type="datetime-local"
-          class="form-row input-field"
-          placeholder="дата начала"
-          [(ngModel)]="startDate"
-          name="startDate"
-        />
+          <label class="field field-wide">
+            <span>Описание конкурса</span>
+            <textarea
+              class="input-field textarea-field"
+              placeholder="Расскажите о конкурсе, целях и условиях"
+              [(ngModel)]="description"
+              name="description"
+              rows="4"
+            ></textarea>
+          </label>
 
-        <input
-          type="datetime-local"
-          class="form-row input-field"
-          placeholder="дата окончания"
-          [(ngModel)]="endDate"
-          name="endDate"
-        />
+          <label class="field">
+            <span>Дата начала</span>
+            <div class="date-wrapper">
+              <input
+                type="text"
+                class="input-field date-input"
+                placeholder="дд.мм.гггг, --:--"
+                #startDateInput
+              />
+              <span class="date-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px" fill="#34345a">
+                  <path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Z"/>
+                </svg>
+              </span>
+            </div>
+          </label>
 
-        <div class="criteria-row">
-          <span>критерии</span>
-          <button class="add-button" type="button" (click)="addCriterion()">+</button>
+          <label class="field">
+            <span>Дата окончания</span>
+            <div class="date-wrapper">
+              <input
+                type="text"
+                class="input-field date-input"
+                placeholder="дд.мм.гггг, --:--"
+                #endDateInput
+              />
+              <span class="date-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px" fill="#34345a">
+                  <path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Z"/>
+                </svg>
+              </span>
+            </div>
+          </label>
         </div>
+      </section>
 
-        <div class="criterion-item" *ngFor="let criterion of criteria; let i = index">
-          <div class="criterion-fields">
-            <input
-              type="text"
-              placeholder="название критерия *"
-              [(ngModel)]="criteria[i].name"
-              name="criterion_name_{{i}}"
-            />
-            <input
-              type="text"
-              placeholder="описание"
-              [(ngModel)]="criteria[i].description"
-              name="criterion_desc_{{i}}"
-            />
-            <input
-              type="number"
-              placeholder="макс. балл"
-              [(ngModel)]="criteria[i].max_score"
-              name="criterion_max_{{i}}"
-              min="1"
-              max="100"
-            />
+      <section class="form-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Критерии оценки</h2>
+            <p class="section-subtitle">Добавьте параметры, по которым будет оцениваться конкурс</p>
           </div>
-          <button
-            type="button"
-            class="remove-criterion-btn"
-            (click)="removeCriterion(i)"
-            *ngIf="criteria.length > 1"
-          >
-            ✕
+
+          <button class="add-criterion-btn" type="button" (click)="addCriterion()">
+            + Добавить
           </button>
         </div>
-      </div>
 
-      <div class="error-message" *ngIf="error">
-        {{ error }}
-      </div>
+        <div class="criterion-list">
+          <div class="criterion-item" *ngFor="let criterion of criteria; let i = index">
+            <div class="criterion-number">{{ i + 1 }}</div>
+
+            <div class="criterion-fields">
+              <input
+                type="text"
+                class="input-field"
+                placeholder="Название критерия *"
+                [(ngModel)]="criteria[i].name"
+                name="criterion_name_{{i}}"
+              />
+
+              <input
+                type="text"
+                class="input-field"
+                placeholder="Описание"
+                [(ngModel)]="criteria[i].description"
+                name="criterion_desc_{{i}}"
+              />
+
+              <input
+                type="number"
+                class="input-field score-input"
+                placeholder="Балл"
+                [(ngModel)]="criteria[i].max_score"
+                name="criterion_max_{{i}}"
+                min="1"
+                max="100"
+              />
+            </div>
+
+            <button
+              type="button"
+              class="remove-criterion-btn"
+              (click)="removeCriterion(i)"
+              *ngIf="criteria.length > 1"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div class="error-message" *ngIf="error">{{ error }}</div>
 
       <button type="submit" class="submit-btn" [disabled]="isSubmitting">
         {{ isSubmitting ? 'Создание...' : 'Создать конкурс' }}
