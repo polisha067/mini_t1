@@ -2,7 +2,7 @@ import os
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flasgger import swag_from
-
+import logging
 from app.extensions import db
 from app.models.contest import Contest
 from app.models.team import Team
@@ -18,11 +18,35 @@ from app.utils.errors import (
     BadRequestError,
     ConflictError,
 )
-# Утилита для безопасной загрузки файлов (создайте её по инструкции ниже)
+# Утилита для безопасной загрузки файлов
 from app.utils.file_upload import save_uploaded_file
 
 contests_bp = Blueprint('contests', __name__, url_prefix='/contests')
 
+logger = logging.getLogger(__name__)
+
+def _delete_local_file(relative_path: str) -> bool:
+    """
+    Безопасно удаляет локальный файл по относительному пути
+    Возвращает True при успехе, False если файл не найден или ошибка
+    """
+    if not relative_path:
+        return False
+
+    upload_folder = current_app.config.get('UPLOAD_FOLDER', '/app/uploads')
+    file_path = os.path.join(upload_folder, relative_path)
+
+    try:
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            os.remove(file_path)
+            logger.info(f"Deleted old file: {file_path}")
+            return True
+        else:
+            logger.warning(f"File not found for deletion: {file_path}")
+            return False
+    except OSError as e:
+        logger.error(f"Failed to delete file {file_path}: {e}")
+        return False
 
 def _get_current_user_id() -> int:
     """Получить ID текущего пользователя из JWT токена"""
@@ -179,27 +203,40 @@ def update_contest(contest_id: int):
     if 'end_date' in data:
         contest.end_date = data['end_date']
 
-    # Обработка логотипа
+    # Обработка логотипа с безопасным удалением старого
     if logo_file and logo_file.filename:
-        # Удаляем старый физический файл, если он есть
-        if contest.logo_path:
-            upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
-            old_path = os.path.join(upload_folder, contest.logo_path)
-            if os.path.exists(old_path):
-                os.remove(old_path)
-        # Сохраняем новый
-        try:
-            contest.logo_path = save_uploaded_file(logo_file, folder='logos')
-        except ValueError as e:
-            raise ValidationError(str(e))
-    elif 'logo_path' in data:
-        contest.logo_path = data.get('logo_path')
+        old_logo_path = contest.logo_path  # Сохраняем путь к старому файлу
 
-    try:
-        db.session.commit()
-    except Exception:
-        db.session.rollback()
-        raise
+        try:
+            # 1. Сначала сохраняем НОВЫЙ файл
+            new_logo_path = save_uploaded_file(logo_file, folder='logos')
+
+            # 2. Если новый сохранился успешно - обновляем запись в БД
+            contest.logo_path = new_logo_path
+            db.session.commit()  # Фиксируем изменение в БД
+
+            # 3. Только после успешного коммита удаляем СТАРЫЙ файл
+            if old_logo_path:
+                _delete_local_file(old_logo_path)
+
+        except ValueError as e:
+            # Если ошибка валидации - откатываем транзакцию и не трогаем старый файл
+            db.session.rollback()
+            raise ValidationError(str(e))
+        except Exception as e:
+            # Если любая другая ошибка - откат и логирование, старый файл остаётся
+            db.session.rollback()
+            current_app.logger.error(f"Failed to update logo for contest {contest_id}: {e}")
+            raise ValidationError("Ошибка при обновлении логотипа")
+
+    elif 'logo_path' in data:
+        # Fallback: если передали путь строкой (для обратной совместимости)
+        contest.logo_path = data.get('logo_path')
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
 
     return jsonify({
         "status": "success",
@@ -220,6 +257,9 @@ def delete_contest(contest_id: int):
 
     if contest.is_finished:
         raise ForbiddenError("Нельзя удалить завершённый конкурс")
+
+    if contest.logo_path:
+        _delete_local_file(contest.logo_path)
 
     try:
         db.session.delete(contest)

@@ -47,8 +47,8 @@ parameters:
     name: logo_path
     type: string
     maxLength: 255
-    description: (Альтернатива файлу) Новый путь к логотипу, если передаётся строкой
-    example: "/uploads/logos/new_logo.png"
+    description: (Альтернатива файлу) Путь к логотипу, если передаётся строкой
+    example: "/uploads/logos/old_logo.png"
 responses:
   200:
     description: Конкурс успешно обновлён
@@ -131,31 +131,3 @@ responses:
       type: object
       properties:
         status:
-          type: string
-          example: "error"
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: "FORBIDDEN"
-            message:
-              type: string
-              example: "Только организатор конкурса может выполнять это действие"
-  404:
-    description: Конкурс не найден
-    schema:
-      type: object
-      properties:
-        status:
-          type: string
-          example: "error"
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: "NOT_FOUND"
-            message:
-              type: string
-              example: "Конкурс с id=999 не найден"

@@ -51,6 +51,11 @@ services:
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - CORS_ORIGINS=${CORS_ORIGINS:-*}
+      - UPLOAD_FOLDER=${UPLOAD_FOLDER:-/app/uploads}
+      - UPLOADS_URL=${UPLOADS_URL:-/uploads}
+      - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-16777216}
+      - MAX_LOGO_SIZE=${MAX_LOGO_SIZE:-5242880}
+      - ALLOWED_EXTENSIONS=${ALLOWED_EXTENSIONS:-png,jpg,jpeg,gif,webp}
     depends_on:
       db:
         condition: service_healthy
