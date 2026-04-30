@@ -16,8 +16,11 @@ export class Login {
     email: '',
     password: ''
   };
+
   errorMessage: string = '';
   isLoading: boolean = false;
+
+  showPassword: boolean = false;
 
   constructor(
     private authService: AuthService,

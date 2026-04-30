@@ -12,6 +12,7 @@
   </h1>
 
   <form class="form" (ngSubmit)="onSubmit()">
+
     <input
       type="email"
       name="email"
@@ -20,18 +21,31 @@
       [(ngModel)]="credentials.email"
     >
 
-    <input
-      type="password"
-      name="password"
-      placeholder="введите пароль"
-      class="input-field"
-      [(ngModel)]="credentials.password"
-    >
+    <div class="password-wrapper">
+      <input
+        [type]="showPassword ? 'text' : 'password'"
+        name="password"
+        placeholder="введите пароль"
+        class="input-field password-input"
+        [(ngModel)]="credentials.password"
+      >
+
+      <button
+        type="button"
+        class="eye-btn"
+        (click)="showPassword = !showPassword"
+      >
+        {{ showPassword ? '🙈' : '👁' }}
+      </button>
+    </div>
 
     <button type="submit" class="login-btn" [disabled]="isLoading">
       {{ isLoading ? 'Загрузка...' : 'ВОЙТИ' }}
     </button>
 
-    <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+    <p *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </p>
+
   </form>
 </div>

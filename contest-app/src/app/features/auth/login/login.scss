@@ -26,7 +26,6 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: opacity 0.2s;
 
   &:hover {
     opacity: 0.9;
@@ -35,7 +34,6 @@
 
 .back-arrow {
   font-size: 28px;
-  line-height: 1;
 }
 
 .logo {
@@ -85,7 +83,6 @@
   font-weight: bold;
   cursor: pointer;
   margin-top: 20px;
-  transition: opacity 0.3s;
 
   &:hover {
     opacity: 0.9;
@@ -101,4 +98,27 @@
   border: 1px solid #e7b4bb;
   font-size: 14px;
   text-align: left;
+}
+
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input {
+  width: 100%;
+  padding-right: 50px;
+  box-sizing: border-box;
+}
+
+.eye-btn {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
 }
