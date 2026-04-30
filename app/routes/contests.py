@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+import os
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flasgger import swag_from
 
@@ -17,6 +18,8 @@ from app.utils.errors import (
     BadRequestError,
     ConflictError,
 )
+# Утилита для безопасной загрузки файлов (создайте её по инструкции ниже)
+from app.utils.file_upload import save_uploaded_file
 
 contests_bp = Blueprint('contests', __name__, url_prefix='/contests')
 
@@ -40,28 +43,50 @@ def _check_organizer_ownership(contest: Contest, user_id: int) -> None:
         raise ForbiddenError("Только организатор конкурса может выполнять это действие")
 
 
+def _parse_request_data():
+    """
+    Универсальный парсер: поддерживает JSON и multipart/form-data.
+    Возвращает кортеж (data_dict, logo_file_or_None)
+    """
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        return request.form.to_dict(), request.files.get('logo')
+    else:
+        return request.get_json(silent=True), None
+
+
 @contests_bp.route('', methods=['POST'])
 @jwt_required()
 @role_required('organizer')
 @swag_from('../specs/swagger/contests/create.yml')
 def create_contest():
     """Создание нового конкурса (только для организаторов)"""
-    data = request.get_json(silent=True)
+    data, logo_file = _parse_request_data()
     if not data:
-        raise BadRequestError("Тело запроса должно быть в формате JSON")
+        raise BadRequestError("Тело запроса должно быть в формате JSON или multipart/form-data")
 
     valid, error = validate_contest_data(data)
     if not valid:
         raise ValidationError(error)
 
     user_id = _get_current_user_id()
+    logo_path = None
+
+    # 1. Обработка загруженного файла
+    if logo_file and logo_file.filename:
+        try:
+            logo_path = save_uploaded_file(logo_file, folder='logos')
+        except ValueError as e:
+            raise ValidationError(str(e))
+    # 2. Fallback для старых клиентов (передача строки URL/пути)
+    elif data.get('logo_path'):
+        logo_path = data.get('logo_path')
 
     contest = Contest(
         name=data['name'].strip(),
         description=data.get('description', '').strip() or None,
         start_date=data.get('start_date'),
         end_date=data.get('end_date'),
-        logo_path=data.get('logo_path'),
+        logo_path=logo_path,
         organizer_id=user_id,
     )
 
@@ -92,12 +117,10 @@ def list_contests():
     organizer_id = request.args.get('organizer_id', type=int)
 
     query = Contest.query
-
     if organizer_id:
         query = query.filter_by(organizer_id=organizer_id)
 
     query = query.order_by(Contest.created_at.desc())
-
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
     contests = [contest.to_dict() for contest in pagination.items]
@@ -122,7 +145,6 @@ def list_contests():
 def get_contest(contest_id: int):
     """Получение деталей конкурса по ID"""
     contest = _get_contest_or_404(contest_id)
-
     return jsonify({
         "status": "success",
         "contest": contest.to_dict()
@@ -139,15 +161,15 @@ def update_contest(contest_id: int):
     user_id = _get_current_user_id()
     _check_organizer_ownership(contest, user_id)
 
-    data = request.get_json(silent=True)
+    data, logo_file = _parse_request_data()
     if not data:
-        raise BadRequestError("Тело запроса должно быть в формате JSON")
+        raise BadRequestError("Тело запроса должно быть в формате JSON или multipart/form-data")
 
     valid, error = validate_contest_data(data)
     if not valid:
         raise ValidationError(error)
 
-    # Обновляем только переданные поля
+    # Обновляем текстовые/датные поля
     if 'name' in data:
         contest.name = data['name'].strip()
     if 'description' in data:
@@ -156,8 +178,22 @@ def update_contest(contest_id: int):
         contest.start_date = data['start_date']
     if 'end_date' in data:
         contest.end_date = data['end_date']
-    if 'logo_path' in data:
-        contest.logo_path = data['logo_path']
+
+    # Обработка логотипа
+    if logo_file and logo_file.filename:
+        # Удаляем старый физический файл, если он есть
+        if contest.logo_path:
+            upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
+            old_path = os.path.join(upload_folder, contest.logo_path)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+        # Сохраняем новый
+        try:
+            contest.logo_path = save_uploaded_file(logo_file, folder='logos')
+        except ValueError as e:
+            raise ValidationError(str(e))
+    elif 'logo_path' in data:
+        contest.logo_path = data.get('logo_path')
 
     try:
         db.session.commit()

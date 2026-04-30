@@ -18,7 +18,7 @@ class Config:
     JWT_HEADER_NAME = 'Authorization'
     JWT_HEADER_TYPE = 'Bearer'
     JWT_QUERY_STRING_NAME = 'token'
-    
+
     # Отключаем CSRF для API (используем только для Stateless API)
     JWT_COOKIE_CSRF_PROTECT = False
 
@@ -29,6 +29,21 @@ class Config:
 
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
 
+    # URL для доступа к загруженным файлам (через Nginx)
+    UPLOADS_URL = os.environ.get('UPLOADS_URL', '/uploads')
+
+    # Папка для загруженных файлов (относительно корня проекта)
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'uploads')
+
+    # Максимальный размер загружаемого файла (16 MB - лимит Flask)
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+
+    # Разрешённые расширения для логотипов
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+    # Максимальный размер файла для валидации в бизнес-логике (5 MB)
+    MAX_LOGO_SIZE = 5 * 1024 * 1024
+
 
 class DevelopmentConfig(Config):
     """
@@ -38,14 +53,11 @@ class DevelopmentConfig(Config):
     DEBUG = True
 
     # PostgreSQL для разработки (локальный или в Docker)
-    # Приоритет: переменная окружения > значение по умолчанию
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
                               os.environ.get('DEV_DATABASE_URL') or \
                               'postgresql://postgres:postgres123@localhost:5432/hackathon_dev'
 
     LOG_LEVEL = 'DEBUG'
-
-    # Показывать подробные ошибки в браузере
     PROPAGATE_EXCEPTIONS = True
 
 
@@ -63,7 +75,6 @@ class ProductionConfig(Config):
             raise RuntimeError("DATABASE_URL is required in production!")
         return uri
 
-    # Безопасные настройки для продакшена
     PROPAGATE_EXCEPTIONS = False
     LOG_LEVEL = 'WARNING'
 
@@ -76,15 +87,13 @@ class TestingConfig(Config):
     TESTING = True
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
-       'postgresql://postgres:postgres123@localhost:5432/hackathon_test'
+                              'postgresql://postgres:postgres123@localhost:5432/hackathon_test'
 
     WTF_CSRF_ENABLED = False
     JWT_ACCESS_TOKEN_EXPIRES = False
-
     LOG_LEVEL = 'ERROR'
 
 
-# Словарь для выбора конфигурации по имени
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,

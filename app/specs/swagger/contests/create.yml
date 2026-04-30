@@ -1,44 +1,50 @@
 tags:
   - Contests
 summary: Создание нового конкурса
-description: Создаёт новый конкурс (только для организаторов)
+description: Создаёт новый конкурс (только для организаторов). Поддерживает загрузку логотипа как файла.
 security:
   - Bearer: []
+consumes:
+  - multipart/form-data
+  - application/json
 parameters:
-  - in: body
-    name: body
+  - in: formData
+    name: name
+    type: string
     required: true
-    schema:
-      type: object
-      required:
-        - name
-      properties:
-        name:
-          type: string
-          minLength: 3
-          maxLength: 200
-          description: Название конкурса
-          example: "Hackathon 2026"
-        description:
-          type: string
-          maxLength: 5000
-          description: Описание конкурса
-          example: "Хакатон по машинному обучению"
-        start_date:
-          type: string
-          format: date-time
-          description: Дата начала конкурса
-          example: "2026-04-10T09:00:00"
-        end_date:
-          type: string
-          format: date-time
-          description: Дата окончания конкурса
-          example: "2026-04-12T18:00:00"
-        logo_path:
-          type: string
-          maxLength: 255
-          description: Путь к логотипу конкурса
-          example: "/uploads/logos/hackathon2026.png"
+    minLength: 3
+    maxLength: 200
+    description: Название конкурса
+    example: "Hackathon 2026"
+  - in: formData
+    name: description
+    type: string
+    maxLength: 5000
+    description: Описание конкурса
+    example: "Хакатон по машинному обучению"
+  - in: formData
+    name: start_date
+    type: string
+    format: date-time
+    description: Дата начала конкурса
+    example: "2026-04-10T09:00:00"
+  - in: formData
+    name: end_date
+    type: string
+    format: date-time
+    description: Дата окончания конкурса
+    example: "2026-04-12T18:00:00"
+  - in: formData
+    name: logo
+    type: file
+    description: Файл логотипа (png, jpg, jpeg, gif, webp; макс. 5MB)
+    required: false
+  - in: formData
+    name: logo_path
+    type: string
+    maxLength: 255
+    description: (Альтернатива файлу) Путь к логотипу, если передаётся строкой
+    example: "/uploads/logos/old_logo.png"
 responses:
   201:
     description: Конкурс успешно создан
@@ -71,6 +77,12 @@ responses:
               type: string
               format: date-time
               example: "2026-04-12T18:00:00"
+            logo_path:
+              type: string
+              example: "logos/a1b2c3d4.png"
+            logo_url:
+              type: string
+              example: "/uploads/logos/a1b2c3d4.png"
             organizer_id:
               type: integer
               example: 5
