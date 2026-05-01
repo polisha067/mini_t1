@@ -50,7 +50,7 @@ export class CreateContestPage implements AfterViewInit {
   ngAfterViewInit(): void {
     flatpickr(this.startDateInput.nativeElement, {
       enableTime: true,
-      dateFormat: 'd.m.Y, H:i',
+      dateFormat: 'Y-m-d\\TH:i:S',
       time_24hr: true,
       locale: Russian,
       onChange: (_, dateStr) => {
@@ -60,7 +60,7 @@ export class CreateContestPage implements AfterViewInit {
 
     flatpickr(this.endDateInput.nativeElement, {
       enableTime: true,
-      dateFormat: 'd.m.Y, H:i',
+      dateFormat: 'Y-m-d\\TH:i:S',
       time_24hr: true,
       locale: Russian,
       onChange: (_, dateStr) => {

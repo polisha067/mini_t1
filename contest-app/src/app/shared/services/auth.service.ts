@@ -57,14 +57,12 @@ export class AuthService {
   }
 
   logout(): void {
+    this.clearAuthState();
+    this.router.navigate(['/']);
+
     this.http.post(`${this.apiUrl}/logout`, {}).subscribe({
-      next: () => {
-        this.clearAuthState();
-        this.router.navigate(['/']);
-      },
-      error: () => {
-        this.clearAuthState();
-        this.router.navigate(['/']);
+      error: (err) => {
+        console.warn('Logout request failed:', err);
       },
     });
   }
