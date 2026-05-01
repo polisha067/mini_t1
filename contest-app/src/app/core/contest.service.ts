@@ -3,7 +3,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   Contest,
-  CreateContestData,
   UpdateContestData,
   PaginatedResponse,
   ApiResponse,
@@ -34,15 +33,13 @@ export class ContestService {
     return this.http.get<PaginatedResponse<Contest>>(this.apiUrl, { params });
   }
 
-
   getById(contestId: number): Observable<ApiResponse<Contest>> {
     return this.http.get<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`);
   }
 
-  create(data: CreateContestData): Observable<ApiResponse<Contest>> {
+  create(data: FormData): Observable<ApiResponse<Contest>> {
     return this.http.post<ApiResponse<Contest>>(this.apiUrl, data);
   }
-
 
   update(
     contestId: number,
@@ -51,11 +48,9 @@ export class ContestService {
     return this.http.put<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`, data);
   }
 
-
   delete(contestId: number): Observable<ApiResponse<Contest>> {
     return this.http.delete<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`);
   }
-
 
   finalize(contestId: number): Observable<ApiResponse<Contest>> {
     return this.http.post<ApiResponse<Contest>>(
@@ -63,7 +58,6 @@ export class ContestService {
       {}
     );
   }
-
 
   getVotingStatus(contestId: number): Observable<ApiResponse<VotingStatus>> {
     return this.http.get<ApiResponse<VotingStatus>>(

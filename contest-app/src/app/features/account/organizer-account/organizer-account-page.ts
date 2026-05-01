@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../shared/services/auth.service';
@@ -21,7 +21,8 @@ export class OrganizerAccountPage implements OnInit {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private contestService: ContestService
+    private contestService: ContestService,
+    private cdr: ChangeDetectorRef
   ) {
     this.user = this.authService.getCurrentUser();
   }
@@ -48,6 +49,7 @@ export class OrganizerAccountPage implements OnInit {
 
   private loadCreatedContests(): void {
     if (!this.user) {
+      this.contestsError = 'Пользователь не найден.';
       return;
     }
 
@@ -58,10 +60,13 @@ export class OrganizerAccountPage implements OnInit {
       next: (response) => {
         this.createdContests = (response['contests'] as Contest[]) || [];
         this.isLoadingContests = false;
+        this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Organizer contests error:', err);
         this.isLoadingContests = false;
         this.contestsError = 'Не удалось загрузить конкурсы организатора.';
+        this.cdr.detectChanges();
       }
     });
   }

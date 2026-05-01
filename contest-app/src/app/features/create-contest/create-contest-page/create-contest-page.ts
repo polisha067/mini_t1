@@ -13,7 +13,6 @@ import { Russian } from 'flatpickr/dist/l10n/ru';
 import { ContestService } from '../../../core/contest.service';
 import { CriterionService } from '../../../core/criterion.service';
 import {
-  CreateContestData,
   CreateCriterionData
 } from '../../../shared/models/contest.model';
 
@@ -33,6 +32,8 @@ export class CreateContestPage implements AfterViewInit {
   startDate = '';
   endDate = '';
   logoPath = '';
+
+  selectedFile: File | null = null;
 
   criteria: { name: string; description: string; max_score: number }[] = [
     { name: '', description: '', max_score: 10 },
@@ -69,6 +70,19 @@ export class CreateContestPage implements AfterViewInit {
     });
   }
 
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files || input.files.length === 0) {
+      this.selectedFile = null;
+      this.logoPath = '';
+      return;
+    }
+
+    this.selectedFile = input.files[0];
+    this.logoPath = URL.createObjectURL(this.selectedFile);
+  }
+
   addCriterion(): void {
     this.criteria.push({ name: '', description: '', max_score: 10 });
   }
@@ -92,15 +106,27 @@ export class CreateContestPage implements AfterViewInit {
     this.isSubmitting = true;
     this.error = null;
 
-    const contestData: CreateContestData = {
-      name: this.name.trim(),
-      description: this.description.trim() || undefined,
-      start_date: this.startDate || undefined,
-      end_date: this.endDate || undefined,
-      logo_path: this.logoPath.trim() || undefined,
-    };
+    const formData = new FormData();
 
-    this.contestService.create(contestData).subscribe({
+    formData.append('name', this.name.trim());
+
+    if (this.description.trim()) {
+      formData.append('description', this.description.trim());
+    }
+
+    if (this.startDate) {
+      formData.append('start_date', this.startDate);
+    }
+
+    if (this.endDate) {
+      formData.append('end_date', this.endDate);
+    }
+
+    if (this.selectedFile) {
+      formData.append('logo', this.selectedFile);
+    }
+
+    this.contestService.create(formData).subscribe({
       next: (response) => {
         const contestId = response['contest'].id;
 

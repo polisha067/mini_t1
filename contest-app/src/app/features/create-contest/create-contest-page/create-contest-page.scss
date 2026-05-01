@@ -371,3 +371,53 @@
     width: 100%;
   }
 }
+.file-upload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.upload-btn {
+  background: #4a4a6a;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.upload-btn:hover {
+  background: #5c5c85;
+}
+
+.file-name {
+  font-size: 13px;
+  color: #666;
+}
+
+/* превью */
+.image-card.clickable {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.image-card.clickable .overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  text-align: center;
+  font-size: 13px;
+  padding: 6px;
+  opacity: 0;
+  transition: 0.2s;
+}
+
+.image-card.clickable:hover .overlay {
+  opacity: 1;
+}

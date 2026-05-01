@@ -38,6 +38,7 @@ export class ContestListComponent implements OnInit {
     this.contestService.getList(1, 100).subscribe({
       next: (response) => {
         const contests = (response['contests'] || []) as Contest[];
+        console.log('КОНКУРСЫ:', contests);
 
         this.contests = [...contests];
         this.filteredContests = [...contests];
@@ -114,12 +115,14 @@ export class ContestListComponent implements OnInit {
   }
 
   getLogoUrl(logoPath: string | null): string {
-    if (!logoPath) return 'assets/images/photo.jpg';
+    if (!logoPath) {
+      return 'https://placehold.co/520x360/png?text=Preview';
+    }
 
     if (logoPath.startsWith('http')) {
       return logoPath;
     }
 
-    return `/${logoPath.replace(/^\/+/, '')}`;
+    return `http://localhost:5000/${logoPath}`;
   }
 }

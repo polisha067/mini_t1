@@ -14,20 +14,32 @@
     </section>
 
     <section class="upload-card">
-      <div class="image-card">
-        <img [src]="logoPath || 'https://placehold.co/520x360/png?text=Preview'" alt="Изображение конкурса" />
+      <div class="image-card clickable" (click)="fileInput.click()">
+        <img [src]="logoPath || 'https://placehold.co/520x360/png?text=Preview'" />
+        <div class="overlay">Нажмите, чтобы выбрать</div>
       </div>
 
       <div class="upload-info">
         <h2>Изображение конкурса</h2>
-        <p>Укажите ссылку на изображение. Оно будет отображаться в карточке конкурса.</p>
+        <p>Загрузите изображени. Оно будет отображаться в карточке конкурса.</p>
 
-        <input
-          type="text"
-          class="logo-url-input"
-          placeholder="URL изображения"
-          [(ngModel)]="logoPath"
-        />
+        <div class="file-upload">
+          <input
+            type="file"
+            accept="image/*"
+            (change)="onFileSelected($event)"
+            #fileInput
+            hidden
+          />
+
+          <button type="button" class="upload-btn" (click)="fileInput.click()">
+            📁 Выбрать изображение
+          </button>
+
+          <span class="file-name">
+            {{ selectedFile?.name || 'Файл не выбран' }}
+          </span>
+        </div>
       </div>
     </section>
 
