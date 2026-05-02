@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-register',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './register.html',
   styleUrl: './register.scss',
@@ -24,10 +25,6 @@ export class Register {
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
   isRoleDropdownOpen: boolean = false;
-  roles = [
-    { value: 'expert', label: 'Эксперт' },
-    { value: 'organizer', label: 'Организатор' }
-  ];
 
   constructor(
     private authService: AuthService,
@@ -35,8 +32,8 @@ export class Register {
   ) {}
 
   selectRole(role: 'expert' | 'organizer'): void {
-  this.userData.role = role;
-  this.isRoleDropdownOpen = false;
+    this.userData.role = role;
+    this.isRoleDropdownOpen = false;
   }
 
   onSubmit(): void {
@@ -58,10 +55,25 @@ export class Register {
     this.isLoading = true;
     this.errorMessage = '';
 
+    // 1. Регистрируем пользователя
     this.authService.register(this.userData).subscribe({
       next: () => {
         this.isLoading = false;
-        this.router.navigate(['/login']);
+        
+        // 2. Автоматически логиним после успешной регистрации
+        this.authService.login({ 
+          email: this.userData.email, 
+          password: this.userData.password 
+        }).subscribe({
+          next: () => {
+            // 3. Редирект на главную с авторизацией
+            this.router.navigate(['/']);
+          },
+          error: () => {
+            // Если автологин упал — кидаем на страницу входа как фолбэк
+            this.router.navigate(['/login']);
+          }
+        });
       },
       error: (err) => {
         this.isLoading = false;
@@ -81,7 +93,11 @@ export class Register {
     }
 
     if (err.status === 409) {
-      return 'Пользователь с таким email уже существует.';
+      const msg = err.error?.error?.message 
+               || err.error?.message 
+               || err.error?.detail
+               || 'Пользователь с таким email или именем уже существует.';
+      return msg;
     }
 
     if (err.status === 422) {

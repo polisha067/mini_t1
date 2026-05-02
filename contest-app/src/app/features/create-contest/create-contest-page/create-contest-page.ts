@@ -94,8 +94,8 @@ export class CreateContestPage implements AfterViewInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
-  }
+  this.router.navigate(['/']);
+}
 
   onSubmit(): void {
     if (!this.name.trim()) {
@@ -134,7 +134,7 @@ export class CreateContestPage implements AfterViewInit {
 
         if (criteriaToCreate.length === 0) {
           this.isSubmitting = false;
-          this.router.navigate(['/contest', contestId]);
+          this.router.navigate(['/']);
           return;
         }
 
@@ -152,14 +152,14 @@ export class CreateContestPage implements AfterViewInit {
               completed++;
               if (completed === criteriaToCreate.length) {
                 this.isSubmitting = false;
-                this.router.navigate(['/contest', contestId]);
+                this.router.navigate(['/']);
               }
             },
             error: () => {
               completed++;
               if (completed === criteriaToCreate.length) {
                 this.isSubmitting = false;
-                this.router.navigate(['/contest', contestId]);
+                this.router.navigate(['/']);
               }
             },
           });
