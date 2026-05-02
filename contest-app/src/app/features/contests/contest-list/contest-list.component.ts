@@ -123,6 +123,8 @@ export class ContestListComponent implements OnInit {
       return logoPath;
     }
 
-    return `http://localhost:5000/${logoPath}`;
+    const cleanPath = logoPath.startsWith('/') ? logoPath.substring(1) : logoPath;
+
+    return `/${cleanPath}`;
   }
 }
