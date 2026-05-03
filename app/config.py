@@ -92,6 +92,7 @@ class TestingConfig(Config):
     WTF_CSRF_ENABLED = False
     JWT_ACCESS_TOKEN_EXPIRES = False
     LOG_LEVEL = 'ERROR'
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'test-secret-key-must-be-at-least-32-bytes-long')
 
 
 config = {
