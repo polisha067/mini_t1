@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from app.extensions import db
 
 class Grade(db.Model):
@@ -8,8 +8,8 @@ class Grade(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     expert_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     team_id = db.Column(db.Integer, db.ForeignKey("teams.id"), nullable=False, index=True)

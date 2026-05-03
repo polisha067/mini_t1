@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from app.extensions import db
 from flask import current_app
 
@@ -13,7 +13,7 @@ class Contest(db.Model):
     end_date = db.Column(db.DateTime, nullable=True)
     logo_path = db.Column(db.String(255), nullable=True)
     is_finished = db.Column(db.Boolean, nullable=False, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     organizer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     access_key = db.Column(db.String(64), unique=True, nullable=True, default=None)
 

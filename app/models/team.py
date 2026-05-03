@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from app.extensions import db
 
 class Team(db.Model):
@@ -7,7 +7,7 @@ class Team(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     description = db.Column(db.Text, nullable=True)
     contest_id = db.Column(db.Integer, db.ForeignKey("contests.id"), nullable=False, index=True)
 

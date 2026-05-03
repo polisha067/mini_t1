@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from app.extensions import db
 
 class ContestExpert(db.Model):
@@ -8,7 +8,7 @@ class ContestExpert(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     contest_id = db.Column(db.Integer, db.ForeignKey('contests.id'), nullable=False, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    assigned_at = db.Column(db.DateTime, default=datetime.utcnow)
+    assigned_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
 
     contest = db.relationship('Contest', back_populates='assigned_experts')
     expert = db.relationship('User', back_populates='contest_assignments')
