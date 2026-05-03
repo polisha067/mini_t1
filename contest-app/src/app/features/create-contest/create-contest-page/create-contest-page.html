@@ -108,6 +108,25 @@
       </section>
 
       <section class="form-section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Команды</h2>
+        <p class="section-subtitle">Добавьте команды, которые будут участвовать в конкурсе</p>
+      </div>
+      <button class="add-criterion-btn" type="button" (click)="addTeam()">+ Добавить</button>
+    </div>
+    <div class="criterion-list">
+      <div class="criterion-item" *ngFor="let team of teams; let i = index">
+        <div class="criterion-number">{{ i + 1 }}</div>
+        <div class="criterion-fields">
+          <input type="text" class="input-field" placeholder="Название команды *" [(ngModel)]="teams[i].name" name="team_name_{{i}}" />
+        </div>
+        <button type="button" class="remove-criterion-btn" (click)="removeTeam(i)" *ngIf="teams.length > 1">✕</button>
+      </div>
+    </div>
+  </section>
+
+      <section class="form-section">
         <div class="section-header">
           <div>
             <h2 class="section-title">Критерии оценки</h2>
