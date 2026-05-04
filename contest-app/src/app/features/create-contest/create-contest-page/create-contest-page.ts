@@ -1,18 +1,10 @@
-import {
-  Component,
-  AfterViewInit,
-  ElementRef,
-  ViewChild
-} from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import flatpickr from 'flatpickr';
 import { Russian } from 'flatpickr/dist/l10n/ru';
-
 import { ContestService } from '../../../core/contest.service';
-import { CriterionService } from '../../../core/criterion.service';
-import { TeamService } from '../../../core/team.service';
 
 @Component({
   selector: 'app-create-contest-page',
@@ -40,15 +32,13 @@ export class CreateContestPage implements AfterViewInit {
     { name: '' },
   ];
 
+  generatedAccessKey: string | null = null;
   isSubmitting = false;
   error: string | null = null;
-  generatedAccessKey: string | null = null;
 
   constructor(
     private router: Router,
-    private contestService: ContestService,
-    private criterionService: CriterionService,
-    private teamService: TeamService
+    private contestService: ContestService
   ) {}
 
   ngAfterViewInit(): void {
@@ -59,6 +49,7 @@ export class CreateContestPage implements AfterViewInit {
       locale: Russian,
       onChange: (_, dateStr) => { this.startDate = dateStr; },
     });
+
     flatpickr(this.endDateInput.nativeElement, {
       enableTime: true,
       dateFormat: 'Y-m-d\\TH:i:S',
@@ -70,7 +61,7 @@ export class CreateContestPage implements AfterViewInit {
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (!input.files?.length) {
+    if (!input.files || input.files.length === 0) {
       this.selectedFile = null;
       this.logoPath = '';
       return;
@@ -79,99 +70,80 @@ export class CreateContestPage implements AfterViewInit {
     this.logoPath = URL.createObjectURL(this.selectedFile);
   }
 
-  addCriterion(): void { this.criteria.push({ name: '', description: '', max_score: 10 }); }
-  removeCriterion(i: number): void { if (this.criteria.length > 1) this.criteria.splice(i, 1); }
-  addTeam(): void { this.teams.push({ name: '' }); }
-  removeTeam(i: number): void { if (this.teams.length > 1) this.teams.splice(i, 1); }
+  addCriterion(): void {
+    this.criteria.push({ name: '', description: '', max_score: 10 });
+  }
+
+  removeCriterion(index: number): void {
+    if (this.criteria.length > 1) {
+      this.criteria.splice(index, 1);
+    }
+  }
+
+  addTeam(): void {
+    this.teams.push({ name: '' });
+  }
+
+  removeTeam(index: number): void {
+    if (this.teams.length > 1) {
+      this.teams.splice(index, 1);
+    }
+  }
+
+  generateAccessKey(): void {
+    const array = new Uint8Array(24);
+    window.crypto.getRandomValues(array);
+    this.generatedAccessKey = Array.from(array, byte => 
+      byte.toString(36).padStart(2, '0')
+    ).join('');
+  }
+
+  copyKey(): void {
+    if (this.generatedAccessKey) {
+      navigator.clipboard.writeText(this.generatedAccessKey);
+    }
+  }
+
   goBack(): void {
     this.router.navigate(['/account/organizer']);
   }
-  copyKey(): void { if (this.generatedAccessKey) navigator.clipboard.writeText(this.generatedAccessKey); }
 
   onSubmit(): void {
-    if (!this.name.trim()) {
-      this.error = 'Введите название конкурса';
-      return;
-    }
+  if (!this.name.trim()) {
+    this.error = 'Введите название конкурса';
+    return;
+  }
 
-    this.isSubmitting = true;
-    this.error = null;
-    this.generatedAccessKey = null;
+  this.isSubmitting = true;
+  this.error = null;
 
-    const formData = new FormData();
-    formData.append('name', this.name.trim());
-    if (this.description.trim()) formData.append('description', this.description.trim());
-    if (this.startDate) formData.append('start_date', this.startDate);
-    if (this.endDate) formData.append('end_date', this.endDate);
-    if (this.selectedFile) formData.append('logo', this.selectedFile);
+  const formData = new FormData();
+  formData.append('name', this.name.trim());
+  if (this.description.trim()) formData.append('description', this.description.trim());
+  if (this.startDate) formData.append('start_date', this.startDate);
+  if (this.endDate) formData.append('end_date', this.endDate);
+  if (this.selectedFile) formData.append('logo', this.selectedFile);
+  if (this.generatedAccessKey) {
+    formData.append('access_key', this.generatedAccessKey);
+  }
 
-    console.log('Начинаем создание конкурса...');
-
-    this.contestService.create(formData).subscribe({
-      next: (res: any) => {
-        const contestId = res['contest'].id;
-        console.log('Конкурс создан, ID:', contestId);
-
-        const criteriaToCreate = this.criteria.filter(c => c.name.trim());
-        const teamsToCreate = this.teams.filter(t => t.name.trim());
-        let completed = 0;
-        const total = criteriaToCreate.length + teamsToCreate.length;
-
-        const checkFinish = () => {
-          completed++;
-          if (completed === total) {
-            console.log('Все вложенные объекты созданы');
-            this.generateKeyAndFinish(contestId);
-          }
-        };
-
-        if (total === 0) {
-          checkFinish();
-          return;
+  this.contestService.create(formData).subscribe({
+    next: (response: any) => {
+      const contestId = response.contest?.id || response.id;
+      const key = response.access_key || this.generatedAccessKey;
+      
+      // Редирект на страницу успеха
+      this.router.navigate(['/contest-created'], {
+        queryParams: {
+          id: contestId,
+          key: key,
+          name: this.name.trim()
         }
-
-        // Критерии
-        criteriaToCreate.forEach(c => {
-          this.criterionService.create(contestId, {
-            name: c.name.trim(),
-            description: c.description.trim() || undefined,
-            max_score: c.max_score
-          }).subscribe({
-            next: checkFinish,
-            error: (err) => { console.error('Ошибка критерия:', err); this.unlockAndShowError(err); checkFinish(); }
-          });
-        });
-
-        // Команды
-        teamsToCreate.forEach(t => {
-          this.teamService.create(contestId, { name: t.name.trim() }).subscribe({
-            next: checkFinish,
-            error: (err) => { console.error('Ошибка команды:', err); this.unlockAndShowError(err); checkFinish(); }
-          });
-        });
-      },
-      error: (err) => this.unlockAndShowError(err)
-    });
-  }
-
-  private generateKeyAndFinish(contestId: number): void {
-    console.log('Генерируем ключ...');
-    this.contestService.generateAccessKey(contestId).subscribe({
-      next: (res: any) => {
-        this.generatedAccessKey = res.access_key;
-        this.isSubmitting = false;
-        console.log('Ключ сгенерирован:', res.access_key);
-      },
-      error: (err) => {
-        console.error('Ошибка генерации ключа:', err);
-        this.unlockAndShowError(err);
-      }
-    });
-  }
-
-  private unlockAndShowError(err: any): void {
-    this.isSubmitting = false;
-    this.error = err.error?.error?.message || err.error?.message || 'Ошибка сохранения данных';
-    console.error(' Финальная ошибка:', err);
-  }
+      });
+    },
+    error: (err: any) => {
+      this.isSubmitting = false;
+      this.error = err.error?.error?.message || 'Ошибка при создании конкурса';
+    }
+  });
 }

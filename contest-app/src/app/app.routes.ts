@@ -10,9 +10,11 @@ import { ContestDetailsPage } from './features/contest-details/contest-details-p
 import { ExpertAccountPage } from './features/account/expert-account/expert-account-page';
 import { OrganizerAccountPage } from './features/account/organizer-account/organizer-account-page';
 import { accountRedirectGuard, organizerGuard, expertGuard } from './core/guards/auth.guard';
+import { ContestCreatedPage } from './features/contest-created/contest-created-page/contest-created-page';
 
 export const routes: Routes = [
   { path: '', component: ContestListComponent },
+  { path: 'contest-created', component: ContestCreatedPage },
   { path: 'login', component: Login },
   { path: 'register', component: Register },
   { path: 'contests/:contestId/participants', component: ParticipantsPage },
