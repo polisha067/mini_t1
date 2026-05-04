@@ -21,8 +21,6 @@ export class ContestDetailsPage implements OnInit {
   ranking: RankingEntry[] = [];
   isLoading = true;
   error: string | null = null;
-  accessKey: string | null = null;
-  isGeneratingKey = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -45,14 +43,14 @@ export class ContestDetailsPage implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
+    this.error = null;
 
-    // Загружаем детали конкурса
     this.contestService.getById(this.contestId).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.contest = response['contest'] as Contest;
         this.loadTeamsAndRanking();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Failed to load contest:', err);
         this.error = 'Не удалось загрузить данные конкурса';
         this.isLoading = false;
@@ -61,17 +59,16 @@ export class ContestDetailsPage implements OnInit {
   }
 
   loadTeamsAndRanking(): void {
-    // Загружаем рейтинг (он уже содержит данные о командах)
     this.rankingService.getRanking(this.contestId, 1, 100).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.ranking = response['ranking'] as RankingEntry[];
         this.isLoading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Failed to load ranking:', err);
-        // Если рейтинг ещё пуст — загружаем просто команды
+        // Если рейтинг пуст — пробуем загрузить просто команды
         this.teamService.getList(this.contestId, 1, 100).subscribe({
-          next: (resp) => {
+          next: (resp: any) => {
             this.teams = resp['teams'] as Team[];
             this.isLoading = false;
           },
@@ -121,30 +118,5 @@ export class ContestDetailsPage implements OnInit {
 
   goToParticipants(): void {
     this.router.navigate(['/contests', this.contestId, 'participants']);
-  }
-
-  generateKey(): void {
-    if (!this.contestId) return;
-    this.isGeneratingKey = true;
-    
-    this.contestService.generateAccessKey(this.contestId).subscribe({
-      next: (res) => {
-        this.accessKey = res.access_key;
-        if (this.contest) {
-          this.contest.access_key = res.access_key;
-        }
-        this.isGeneratingKey = false;
-      },
-      error: (err) => {
-        console.error('Generate key error:', err);
-        this.isGeneratingKey = false;
-      }
-    });
-  }
-
-  copyKey(): void {
-    if (this.accessKey) {
-      navigator.clipboard.writeText(this.accessKey);
-    }
   }
 }
