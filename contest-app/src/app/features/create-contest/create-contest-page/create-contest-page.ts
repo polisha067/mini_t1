@@ -9,11 +9,10 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import flatpickr from 'flatpickr';
 import { Russian } from 'flatpickr/dist/l10n/ru';
-import { HttpErrorResponse } from '@angular/common/http'; 
 
 import { ContestService } from '../../../core/contest.service';
 import { CriterionService } from '../../../core/criterion.service';
-import { TeamService } from '../../../core/team.service'; 
+import { TeamService } from '../../../core/team.service';
 import { CreateCriterionData } from '../../../shared/models/contest.model';
 
 @Component({
@@ -35,24 +34,25 @@ export class CreateContestPage implements AfterViewInit {
 
   selectedFile: File | null = null;
 
- 
   criteria: { name: string; description: string; max_score: number }[] = [
     { name: '', description: '', max_score: 10 },
   ];
 
- 
   teams: { name: string }[] = [
     { name: '' },
   ];
 
   isSubmitting = false;
   error: string | null = null;
+  
+
+  generatedAccessKey: string | null = null;
 
   constructor(
     private router: Router,
     private contestService: ContestService,
-    private criterionService: CriterionService, 
-    private teamService: TeamService 
+    private criterionService: CriterionService,
+    private teamService: TeamService
   ) {}
 
   ngAfterViewInit(): void {
@@ -75,7 +75,7 @@ export class CreateContestPage implements AfterViewInit {
         this.endDate = dateStr;
       },
     });
-  } 
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -88,7 +88,6 @@ export class CreateContestPage implements AfterViewInit {
     this.logoPath = URL.createObjectURL(this.selectedFile);
   }
 
-  // --- Критерии ---
   addCriterion(): void {
     this.criteria.push({ name: '', description: '', max_score: 10 });
   }
@@ -99,7 +98,6 @@ export class CreateContestPage implements AfterViewInit {
     }
   }
 
-  // --- Команды ---
   addTeam(): void {
     this.teams.push({ name: '' });
   }
@@ -114,7 +112,12 @@ export class CreateContestPage implements AfterViewInit {
     this.router.navigate(['/']);
   }
 
-  // --- Отправка формы ---
+  copyKey(): void {
+    if (this.generatedAccessKey) {
+      navigator.clipboard.writeText(this.generatedAccessKey);
+    }
+  }
+
   onSubmit(): void {
     if (!this.name.trim()) {
       this.error = 'Введите название конкурса';
@@ -123,6 +126,7 @@ export class CreateContestPage implements AfterViewInit {
 
     this.isSubmitting = true;
     this.error = null;
+    this.generatedAccessKey = null;
 
     const formData = new FormData();
     formData.append('name', this.name.trim());
@@ -140,19 +144,16 @@ export class CreateContestPage implements AfterViewInit {
       formData.append('logo', this.selectedFile);
     }
 
-    // 1. Создаем конкурс
     this.contestService.create(formData).subscribe({
       next: (response: any) => {
         const contestId = response['contest'].id;
 
-        // Фильтруем заполненные данные
         const criteriaToCreate = this.criteria.filter(c => c.name.trim());
         const teamsToCreate = this.teams.filter(t => t.name.trim());
 
-        // Если ничего не нужно создавать — сразу редирект
         if (criteriaToCreate.length === 0 && teamsToCreate.length === 0) {
-          this.isSubmitting = false;
-          this.router.navigate(['/']);
+          // Если нет критериев и команд — генерируем ключ и завершаем
+          this.generateKeyAndFinish(contestId);
           return;
         }
 
@@ -162,12 +163,11 @@ export class CreateContestPage implements AfterViewInit {
 
         const checkAllDone = () => {
           if (criteriaCompleted + teamsCompleted === totalTasks) {
-            this.isSubmitting = false;
-            this.router.navigate(['/']);
+            this.generateKeyAndFinish(contestId);
           }
         };
 
-        // 2. Создаем критерии
+        // Создаем критерии
         criteriaToCreate.forEach((criterion) => {
           this.criterionService.create(contestId, {
             name: criterion.name.trim(),
@@ -178,7 +178,7 @@ export class CreateContestPage implements AfterViewInit {
               criteriaCompleted++;
               checkAllDone();
             },
-            error: (err) => {
+            error: (err: any) => {
               console.error('Criterion error:', err);
               criteriaCompleted++;
               checkAllDone();
@@ -186,7 +186,7 @@ export class CreateContestPage implements AfterViewInit {
           });
         });
 
-        // 3. Создаем команды
+        // Создаем команды
         teamsToCreate.forEach((team) => {
           this.teamService.create(contestId, {
             name: team.name.trim(),
@@ -195,7 +195,7 @@ export class CreateContestPage implements AfterViewInit {
               teamsCompleted++;
               checkAllDone();
             },
-            error: (err: any) => { 
+            error: (err: any) => {
               console.error('Team error:', err);
               teamsCompleted++;
               checkAllDone();
@@ -203,11 +203,26 @@ export class CreateContestPage implements AfterViewInit {
           });
         });
       },
-      error: (err: any) => { 
+      error: (err: any) => {
         this.isSubmitting = false;
         this.error = err.error?.error?.message || 'Ошибка при создании конкурса';
         console.error('Create contest error:', err);
       },
     });
-  } 
-} 
+  }
+
+
+  private generateKeyAndFinish(contestId: number): void {
+    this.contestService.generateAccessKey(contestId).subscribe({
+      next: (res: any) => {
+        this.generatedAccessKey = res.access_key;
+        this.isSubmitting = false;
+      },
+      error: (err: any) => {
+        console.error('Generate key error:', err);
+        this.isSubmitting = false;
+        this.router.navigate(['/']); 
+      }
+    });
+  }
+}

@@ -6,14 +6,14 @@
 
   <h1>Аккаунт эксперта</h1>
 
-  <div class="profile-card" *ngIf="user as u">
+  <div class="profile-card" *ngIf="user">
     <div class="row">
       <span class="label">Имя:</span>
-      <span class="value">{{ u.username }}</span>
+      <span class="value">{{ user.username }}</span>
     </div>
     <div class="row">
       <span class="label">Email:</span>
-      <span class="value">{{ u.email }}</span>
+      <span class="value">{{ user.email }}</span>
     </div>
     <div class="row">
       <span class="label">Роль:</span>
@@ -21,11 +21,43 @@
     </div>
     <div class="row">
       <span class="label">ID:</span>
-      <span class="value">{{ u.id }}</span>
+      <span class="value">{{ user.id }}</span>
     </div>
     <div class="row">
       <span class="label">Дата регистрации:</span>
-      <span class="value">{{ u.created_at ? (u.created_at | date: 'dd.MM.yyyy HH:mm') : '—' }}</span>
+      <span class="value">{{ user.created_at ? (user.created_at | date: 'dd.MM.yyyy HH:mm') : '—' }}</span>
+    </div>
+  </div>
+
+
+  <div class="join-section">
+    <h2>Присоединиться к конкурсу</h2>
+    <p class="join-hint">Введите ID конкурса и ключ доступа, который передал организатор</p>
+    
+    <div class="join-form">
+      <input 
+        type="number" 
+        class="join-input" 
+        placeholder="ID конкурса (например: 1)"
+        [(ngModel)]="joinContestId"
+      />
+      <input 
+        type="text" 
+        class="join-input" 
+        placeholder="Ключ доступа"
+        [(ngModel)]="joinAccessKey"
+      />
+      <button 
+        type="button" 
+        class="join-btn"
+        (click)="joinContest()"
+        [disabled]="!joinContestId || !joinAccessKey || isJoining"
+      >
+        {{ isJoining ? 'Подключение...' : 'Присоединиться' }}
+      </button>
+      
+      <div *ngIf="joinError" class="join-error">{{ joinError }}</div>
+      <div *ngIf="joinSuccess" class="join-success">{{ joinSuccess }}</div>
     </div>
   </div>
 
@@ -37,7 +69,7 @@
     <p *ngIf="isLoadingContests" class="section-state">Загрузка...</p>
     <p *ngIf="contestsError" class="section-error">{{ contestsError }}</p>
     <p *ngIf="!isLoadingContests && !contestsError && expertContests.length === 0" class="section-state">
-      Пока нет назначенных конкурсов.
+      Пока нет назначенных конкурсов. Введите ключ доступа выше, чтобы присоединиться.
     </p>
 
     <div class="contest-list" *ngIf="!isLoadingContests && expertContests.length > 0">

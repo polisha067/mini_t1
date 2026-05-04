@@ -33,6 +33,10 @@ export class ContestService {
     return this.http.get<PaginatedResponse<Contest>>(this.apiUrl, { params });
   }
 
+  generateAccessKey(contestId: number): Observable<any> {
+    return this.http.post(`/api/contests/${contestId}/access-key/generate`, {});
+  }
+
   getById(contestId: number): Observable<ApiResponse<Contest>> {
     return this.http.get<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`);
   }
@@ -52,6 +56,12 @@ export class ContestService {
     return this.http.delete<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`);
   }
 
+  joinContestByAccessKey(contestId: number, accessKey: string): Observable<any> {
+    return this.http.post(`/api/contests/${contestId}/join`, {
+      access_key: accessKey.trim()
+    });
+  }
+
   finalize(contestId: number): Observable<ApiResponse<Contest>> {
     return this.http.post<ApiResponse<Contest>>(
       `${this.apiUrl}/${contestId}/finalize`,
@@ -68,4 +78,9 @@ export class ContestService {
   getMyExpertContests(): Observable<ApiResponse<Contest[]>> {
     return this.http.get<ApiResponse<Contest[]>>('/api/experts/me/contests');
   }
+
+  getExpertContests(): Observable<any> {
+    return this.http.get('/api/experts/me/contests');
+  }
 }
+

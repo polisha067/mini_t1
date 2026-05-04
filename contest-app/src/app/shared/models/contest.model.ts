@@ -19,6 +19,7 @@ export interface Contest {
   created_at: string;
   organizer_id: number;
   organizer?: User;
+  access_key?: string | null;
 }
 
 // Команда участника

@@ -86,5 +86,25 @@
         Рейтинг пока пуст. Оценки ещё не выставлены.
       </p>
     </section>
+      <div *ngIf="isOrganizer()" class="access-key-section">
+    <h3>Ключ доступа для экспертов</h3>
+    
+    <div *ngIf="contest && contest.access_key" class="key-display">
+      <code class="key-value">{{ contest?.access_key }}</code>
+      <button type="button" class="copy-btn" (click)="copyKey()">Копировать</button>
+    </div>
+    
+    <button 
+      type="button" 
+      class="generate-btn" 
+      (click)="generateKey()"
+      [disabled]="isGeneratingKey"
+    >
+      {{ isGeneratingKey ? 'Генерация...' : ((contest && contest.access_key) ? 'Сгенерировать новый' : 'Сгенерировать ключ') }}
+    </button>
+    <p class="key-hint">
+      Передайте этот ключ экспертам вместе с ID конкурса ({{ contestId }}).
+    </p>
+  </div>
   </main>
 </div>

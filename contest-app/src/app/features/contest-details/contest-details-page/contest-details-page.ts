@@ -21,6 +21,8 @@ export class ContestDetailsPage implements OnInit {
   ranking: RankingEntry[] = [];
   isLoading = true;
   error: string | null = null;
+  accessKey: string | null = null;
+  isGeneratingKey = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -89,7 +91,6 @@ export class ContestDetailsPage implements OnInit {
   getLogoUrl(logoPath: string | null): string {
     if (!logoPath) return 'assets/images/photo.jpg';
     if (logoPath.startsWith('http')) return logoPath;
-    // Для локалки и Docker идем через фронт-прокси
     return `/${logoPath.replace(/^\/+/, '')}`;
   }
 
@@ -119,6 +120,31 @@ export class ContestDetailsPage implements OnInit {
   }
 
   goToParticipants(): void {
-    this.router.navigate(['/participants']);
+    this.router.navigate(['/contests', this.contestId, 'participants']);
+  }
+
+  generateKey(): void {
+    if (!this.contestId) return;
+    this.isGeneratingKey = true;
+    
+    this.contestService.generateAccessKey(this.contestId).subscribe({
+      next: (res) => {
+        this.accessKey = res.access_key;
+        if (this.contest) {
+          this.contest.access_key = res.access_key;
+        }
+        this.isGeneratingKey = false;
+      },
+      error: (err) => {
+        console.error('Generate key error:', err);
+        this.isGeneratingKey = false;
+      }
+    });
+  }
+
+  copyKey(): void {
+    if (this.accessKey) {
+      navigator.clipboard.writeText(this.accessKey);
+    }
   }
 }

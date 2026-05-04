@@ -15,6 +15,7 @@ export const routes: Routes = [
   { path: '', component: ContestListComponent },
   { path: 'login', component: Login },
   { path: 'register', component: Register },
+  { path: 'contests/:contestId/participants', component: ParticipantsPage },
   { path: 'contest/:id', component: ContestDetailsPage },
   { path: 'participants', component: ParticipantsPage },
   { path: 'evaluation', component: EvaluationPage, canActivate: [expertGuard] },
