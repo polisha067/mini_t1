@@ -146,4 +146,4 @@ export class CreateContestPage implements AfterViewInit {
       this.error = err.error?.error?.message || 'Ошибка при создании конкурса';
     }
   });
-}
+}}
