@@ -147,3 +147,86 @@ def logout():
         "status": "success",
         "message": "Выход выполнен успешно"
     }), 200
+
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+@swag_from('../specs/swagger/forgot_password.yml')
+def forgot_password():
+    """Запрос токена для сброса пароля"""
+    data = request.get_json(silent=True)
+    if not data:
+        raise BadRequestError("Тело запроса должно быть в формате JSON")
+
+    email = data.get('email', '').strip().lower()
+    if not email:
+        raise ValidationError("Поле email обязательно")
+
+    user = User.query.filter_by(email=email).first()
+
+    # Намеренно не раскрываем, существует ли email (защита от перебора)
+    if user:
+        raw_token = user.generate_reset_token()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
+
+        # В продакшене здесь был бы вызов email-сервиса (Flask-Mail / SendGrid)
+        # Для разработки возвращаем токен напрямую в ответе
+        return jsonify({
+            "status": "success",
+            "message": "Если email зарегистрирован, токен сброса пароля будет отправлен",
+            "reset_token": raw_token,
+            "expires_in_minutes": 60
+        }), 200
+
+    return jsonify({
+        "status": "success",
+        "message": "Если email зарегистрирован, токен сброса пароля будет отправлен"
+    }), 200
+
+
+@auth_bp.route('/reset-password', methods=['POST'])
+@swag_from('../specs/swagger/reset_password.yml')
+def reset_password():
+    """Сброс пароля по токену"""
+    import hashlib
+    from app.utils.validators import validate_password
+
+    data = request.get_json(silent=True)
+    if not data:
+        raise BadRequestError("Тело запроса должно быть в формате JSON")
+
+    token = data.get('token', '').strip()
+    new_password = data.get('new_password', '')
+
+    if not token:
+        raise ValidationError("Поле token обязательно")
+    if not new_password:
+        raise ValidationError("Поле new_password обязательно")
+
+    valid, error = validate_password(new_password)
+    if not valid:
+        raise ValidationError(error)
+
+    # Ищем пользователя по хешу токена (не раскрываем наличие токена по времени)
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    user = User.query.filter_by(reset_token_hash=token_hash).first()
+
+    if not user or not user.verify_reset_token(token):
+        raise UnauthorizedError("Токен недействителен или истёк")
+
+    user.set_password(new_password)
+    user.clear_reset_token()
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+
+    return jsonify({
+        "status": "success",
+        "message": "Пароль успешно изменён"
+    }), 200
