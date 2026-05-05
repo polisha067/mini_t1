@@ -1,5 +1,11 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
+    jwt_required,
+    get_jwt,
+)
 from flasgger import swag_from
 
 from app.extensions import db
@@ -83,10 +89,12 @@ def login():
 
     additional_claims = {'role': user.role}
     access_token = create_access_token(identity=str(user.id), additional_claims=additional_claims)
+    refresh_token = create_refresh_token(identity=str(user.id))
 
     return jsonify({
         "status": "success",
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "user": user.to_dict(),
         "redirect_url": get_redirect_url_for_role(user.role)
     }), 200
@@ -108,11 +116,33 @@ def me():
     }), 200
 
 
+@auth_bp.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+@swag_from('../specs/swagger/refresh.yml')
+def refresh():
+    """Обновление access токена с помощью refresh токена"""
+    identity = get_jwt_identity()
+    user = db.session.get(User, int(identity))
+
+    if not user:
+        raise UnauthorizedError("Пользователь не найден")
+
+    additional_claims = {'role': user.role}
+    new_access_token = create_access_token(
+        identity=identity,
+        additional_claims=additional_claims
+    )
+
+    return jsonify({
+        "status": "success",
+        "access_token": new_access_token
+    }), 200
+
+
 @auth_bp.route('/logout', methods=['POST'])
 @jwt_required()
-@swag_from('../specs/swagger/logout.yml')
 def logout():
-    """Выход из системы (на клиенте нужно удалить токен)"""
+    """Выход из системы (на клиенте нужно удалить оба токена)"""
     return jsonify({
         "status": "success",
         "message": "Выход выполнен успешно"

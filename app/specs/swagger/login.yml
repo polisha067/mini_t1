@@ -32,7 +32,11 @@ responses:
           example: "success"
         access_token:
           type: string
-          description: JWT токен доступа
+          description: JWT access токен (время жизни 1 час)
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refresh_token:
+          type: string
+          description: JWT refresh токен (время жизни 30 дней)
           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         user:
           type: object

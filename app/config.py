@@ -10,8 +10,11 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'fallback-secret-key-change-in-production'
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'fallback-jwt-key-change-too'
 
-    # Время жизни JWT токена в секундах (1 час)
+    # Время жизни access токена в секундах (1 час)
     JWT_ACCESS_TOKEN_EXPIRES = 3600
+
+    # Время жизни refresh токена (30 дней)
+    JWT_REFRESH_TOKEN_EXPIRES = 60 * 60 * 24 * 30
 
     # Настройки JWT - искать токен в заголовке Authorization и query параметре
     JWT_TOKEN_LOCATION = ['headers', 'query_string']
@@ -91,6 +94,7 @@ class TestingConfig(Config):
 
     WTF_CSRF_ENABLED = False
     JWT_ACCESS_TOKEN_EXPIRES = False
+    JWT_REFRESH_TOKEN_EXPIRES = False
     LOG_LEVEL = 'ERROR'
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'test-secret-key-must-be-at-least-32-bytes-long')
 

@@ -1,0 +1,38 @@
+tags:
+  - Authentication
+summary: Обновление access токена
+description: |
+  Выдаёт новый access токен по действующему refresh токену.
+  Передавать в заголовке: Authorization: Bearer <refresh_token>
+security:
+  - Bearer: []
+responses:
+  200:
+    description: Новый access токен успешно выдан
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        access_token:
+          type: string
+          description: Новый JWT access токен (время жизни 1 час)
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  401:
+    description: Refresh токен недействителен или истёк
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "TOKEN_EXPIRED"
+            message:
+              type: string
+              example: "Токен истёк"
