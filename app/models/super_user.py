@@ -33,7 +33,7 @@ class SuperUser(UserMixin, db.Model):
     def check_password(self, password: str) -> bool:
         """Проверяет пароль с защитой от brute-force"""
         # Проверка блокировки
-        if self.locked_until and datetime.utcnow() < self.locked_until:
+        if self.locked_until and datetime.now(UTC) < self.locked_until:
             return False
 
         # Проверка пароля
@@ -41,19 +41,19 @@ class SuperUser(UserMixin, db.Model):
             # Сброс попыток при успешном входе
             self.failed_attempts = 0
             self.locked_until = None
-            self.last_login = datetime.utcnow()
+            self.last_login = datetime.now(UTC)
             db.session.commit()
             return True
         else:
             # Увеличение счётчика неудачных попыток
             self.failed_attempts += 1
             if self.failed_attempts >= self.MAX_FAILED_ATTEMPTS:
-                self.locked_until = datetime.utcnow() + timedelta(minutes=self.LOCKOUT_DURATION_MINUTES)
+                self.locked_until = datetime.now(UTC) + timedelta(minutes=self.LOCKOUT_DURATION_MINUTES)
             db.session.commit()
             return False
 
     def is_authenticated(self):
-        return self.is_active and (not self.locked_until or datetime.utcnow() >= self.locked_until)
+        return self.is_active and (not self.locked_until or datetime.now(UTC) >= self.locked_until)
 
     def __repr__(self):
         return f'<SuperUser {self.username}>'

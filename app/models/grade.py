@@ -21,6 +21,7 @@ class Grade(db.Model):
 
     __table_args__ = (
         db.UniqueConstraint("expert_id", "team_id", "criterion_id", name="uix_grade_expert_team_criterion"),
+        db.CheckConstraint("value >= 0", name="ck_grade_value_non_negative"),
     )
 
     def to_dict(self):
