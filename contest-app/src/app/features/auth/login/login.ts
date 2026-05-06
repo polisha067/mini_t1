@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
   styleUrl: './login.scss',
@@ -37,9 +38,16 @@ export class Login {
     this.errorMessage = '';
 
     this.authService.login(this.credentials).subscribe({
-      next: () => {
+      next: (response) => {
         this.isLoading = false;
-        this.router.navigate(['/']);
+        const user = response.user;
+        if (user.role === 'organizer') {
+          this.router.navigate(['/account/organizer']);
+        } else if (user.role === 'expert') {
+          this.router.navigate(['/account/expert']);
+        } else {
+          this.router.navigate(['/']);
+        }
       },
       error: (err) => {
         this.isLoading = false;

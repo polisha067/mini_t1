@@ -113,10 +113,25 @@ export class ContestDetailsPage implements OnInit {
   }
 
   goToEvaluation(): void {
-    this.router.navigate(['/evaluation']);
+    this.router.navigate(['/evaluation'], { queryParams: { contestId: this.contestId } });
   }
 
   goToParticipants(): void {
     this.router.navigate(['/contests', this.contestId, 'participants']);
+  }
+
+  generateAccessKey(): void {
+    if (!this.contestId) return;
+    this.contestService.generateAccessKey(this.contestId).subscribe({
+      next: (response: any) => {
+        if (this.contest) {
+          this.contest.access_key = response.access_key;
+        }
+        alert('Ключ доступа успешно создан: ' + response.access_key);
+      },
+      error: (err: any) => {
+        alert('Ошибка при генерации ключа: ' + (err.error?.error?.message || err.message));
+      }
+    });
   }
 }

@@ -112,6 +112,7 @@ def create_contest():
         end_date=data.get('end_date'),
         logo_path=logo_path,
         organizer_id=user_id,
+        access_key=data.get('access_key')
     )
 
     try:

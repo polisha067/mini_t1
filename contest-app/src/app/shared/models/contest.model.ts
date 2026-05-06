@@ -95,6 +95,7 @@ export interface PaginatedResponse<T> extends ApiResponse<T> {
 export interface AuthResponse {
   status: string;
   access_token?: string;
+  refresh_token?: string;
   user: User;
   message?: string;
   redirect_url?: string;

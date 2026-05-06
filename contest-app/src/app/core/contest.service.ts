@@ -34,7 +34,7 @@ export class ContestService {
   }
 
   generateAccessKey(contestId: number): Observable<any> {
-    return this.http.post(`/api/contests/${contestId}/access-key/generate`, {});
+    return this.http.post(`/api/experts/contests/${contestId}/access-key/generate`, {});
   }
 
   getById(contestId: number): Observable<ApiResponse<Contest>> {
@@ -57,7 +57,7 @@ export class ContestService {
   }
 
   joinContestByAccessKey(contestId: number, accessKey: string): Observable<any> {
-    return this.http.post(`/api/contests/${contestId}/join`, {
+    return this.http.post(`/api/experts/contests/${contestId}/join`, {
       access_key: accessKey.trim()
     });
   }
@@ -77,10 +77,6 @@ export class ContestService {
 
   getMyExpertContests(): Observable<ApiResponse<Contest[]>> {
     return this.http.get<ApiResponse<Contest[]>>('/api/experts/me/contests');
-  }
-
-  getExpertContests(): Observable<any> {
-    return this.http.get('/api/experts/me/contests');
   }
 }
 

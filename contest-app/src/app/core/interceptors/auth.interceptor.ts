@@ -1,41 +1,42 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../../shared/services/auth.service';
+import { catchError, switchMap, throwError } from 'rxjs';
 
 /**
- * HTTP-интерцептор для автоматического добавления Bearer токена
- * и централизованной обработки ошибок
+ * Надежный интерцептор с поддержкой Refresh Token
  */
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn
 ) => {
   const authService = inject(AuthService);
-  const router = inject(Router);
-  const isAuthEndpoint =
-    req.url.includes('/api/auth/login') ||
-    req.url.includes('/api/auth/register');
-
   const token = authService.getToken();
 
-  // Добавляем Authorization header, если есть токен
   let authReq = req;
-  if (token) {
+  if (token && !req.url.includes('/api/auth/')) {
     authReq = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
+      setHeaders: { Authorization: `Bearer ${token}` },
     });
   }
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !isAuthEndpoint) {
-        // Токен истёк или невалиден — очищаем auth и редирект на логин
-        authService.clearAuthState();
-        router.navigate(['/login']);
+      // Если получили 401 и это не попытка входа/обновления
+      if (error.status === 401 && !req.url.includes('/api/auth/')) {
+        return authService.refreshToken().pipe(
+          switchMap((response) => {
+            const newToken = response.access_token;
+            const retryReq = req.clone({
+              setHeaders: { Authorization: `Bearer ${newToken}` },
+            });
+            return next(retryReq);
+          }),
+          catchError((refreshError) => {
+            authService.logout();
+            return throwError(() => refreshError);
+          })
+        );
       }
       return throwError(() => error);
     })

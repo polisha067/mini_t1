@@ -65,13 +65,20 @@ export class Register {
           email: this.userData.email, 
           password: this.userData.password 
         }).subscribe({
-          next: () => {
-            // 3. Редирект на главную с авторизацией
-            this.router.navigate(['/']);
+          next: (response) => {
+            // 3. Редирект в зависимости от роли
+            const user = response.user;
+            if (user.role === 'organizer') {
+              this.router.navigate(['/account/organizer']);
+            } else if (user.role === 'expert') {
+              this.router.navigate(['/account/expert']);
+            } else {
+              this.router.navigate(['/']);
+            }
           },
           error: () => {
             // Если автологин упал — кидаем на страницу входа как фолбэк
-            this.router.navigate(['/login']);
+            this.router.navigate(['/login'], { queryParams: { registered: 'true' } });
           }
         });
       },
@@ -92,16 +99,16 @@ export class Register {
       return 'Нет соединения с сервером. Проверьте, что backend запущен.';
     }
 
+    if (err.status === 422) {
+      return err.error?.error?.message || 'Проверьте корректность заполненных данных (имя от 3 символов, пароль от 6).';
+    }
+
     if (err.status === 409) {
       const msg = err.error?.error?.message 
                || err.error?.message 
                || err.error?.detail
                || 'Пользователь с таким email или именем уже существует.';
       return msg;
-    }
-
-    if (err.status === 422) {
-      return 'Проверьте корректность заполненных данных.';
     }
 
     const backendMessage = err.error?.error?.message || err.error?.message;

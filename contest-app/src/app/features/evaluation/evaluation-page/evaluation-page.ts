@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TeamService } from '../../../core/team.service';
 import { CriterionService } from '../../../core/criterion.service';
 import { GradeService } from '../../../core/grade.service';
@@ -34,6 +34,7 @@ export class EvaluationPage implements OnInit {
   successMessage: string | null = null;
 
   constructor(
+    private route: ActivatedRoute,
     private router: Router,
     private teamService: TeamService,
     private criterionService: CriterionService,
@@ -47,7 +48,8 @@ export class EvaluationPage implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
-    const contestId = 1; // TODO: из route params
+    const idParam = this.route.snapshot.queryParamMap.get('contestId');
+    const contestId = idParam ? +idParam : 1; 
 
     // Загружаем команды и критерии параллельно
     this.teamService.getList(contestId, 1, 100).subscribe({

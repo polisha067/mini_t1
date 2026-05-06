@@ -10,7 +10,8 @@ import {
 } from '../../shared/models/contest.model';
 
 // Re-export типов для использования в других модулях
-export type { LoginRequest, RegisterRequest } from '../../shared/models/contest.model';
+export type { LoginRequest, RegisterRequest, AuthResponse } from '../../shared/models/contest.model';
+
 
 @Injectable({
   providedIn: 'root',
@@ -45,11 +46,37 @@ export class AuthService {
       .post<AuthResponse>(`${this.apiUrl}/login`, credentials)
       .pipe(
         tap((response) => {
-          localStorage.setItem('access_token', response.access_token!);
-          localStorage.setItem('current_user', JSON.stringify(response.user));
-          this.currentUserSubject.next(response.user);
+          this.saveAuthData(response);
         })
       );
+  }
+
+  refreshToken(): Observable<AuthResponse> {
+    const refreshToken = localStorage.getItem('refresh_token');
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/refresh`, {}, {
+        headers: { Authorization: `Bearer ${refreshToken}` }
+      })
+      .pipe(
+        tap((response) => {
+          if (response.access_token) {
+            localStorage.setItem('access_token', response.access_token);
+          }
+        })
+      );
+  }
+
+  private saveAuthData(response: AuthResponse): void {
+    if (response.access_token) {
+      localStorage.setItem('access_token', response.access_token);
+    }
+    if (response.refresh_token) {
+      localStorage.setItem('refresh_token', response.refresh_token);
+    }
+    if (response.user) {
+      localStorage.setItem('current_user', JSON.stringify(response.user));
+      this.currentUserSubject.next(response.user);
+    }
   }
 
   register(userData: RegisterRequest): Observable<AuthResponse> {
@@ -94,6 +121,7 @@ export class AuthService {
 
   clearAuthState(): void {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('current_user');
     this.currentUserSubject.next(null);
   }

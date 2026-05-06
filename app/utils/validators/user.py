@@ -16,8 +16,8 @@ def validate_username(username: str) -> Tuple[bool, Optional[str]]:
     if len(username) > 64:
         return False, "Имя пользователя слишком длинное"
 
-    # Только буквы, цифры, подчёркивания
-    pattern = r'^[a-zA-Z0-9_]+$'
+    # Только буквы (включая кириллицу), цифры, подчёркивания
+    pattern = r'^[a-zA-Zа-яА-Я0-9_]+$'
     if not re.match(pattern, username):
         return False, "Имя пользователя может содержать только буквы, цифры и подчёркивания"
 

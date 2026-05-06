@@ -27,6 +27,13 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 20,
+        'pool_recycle': 1800,
+        'pool_pre_ping': True,
+        'pool_timeout': 30,
+        'max_overflow': 10
+    }
 
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
 
