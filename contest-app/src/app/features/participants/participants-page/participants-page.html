@@ -3,10 +3,6 @@
     <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
       <span class="arrow">←</span>
     </button>
-
-    <button class="account-button" type="button">
-      УЧАСТНИКИ
-    </button>
   </header>
 
   <main class="participants-content">
@@ -15,14 +11,28 @@
     </h1>
 
     <section class="teams-section">
+      <!-- Загрузка -->
       <div *ngIf="isLoading" class="loading-box">
         <p>Загрузка...</p>
       </div>
 
-      <div *ngIf="!isLoading" class="teams-grid">
-        <button class="team-card" type="button" *ngFor="let team of teams">
-          {{ team.name }}
+
+      <div *ngIf="!isLoading && error" class="error-box">
+        <p class="error-message">{{ error }}</p>
+        <button class="retry-btn" type="button" (click)="loadTeams()">
+          Попробовать снова
         </button>
+      </div>
+
+
+      <div *ngIf="!isLoading && !error" class="teams-grid">
+        <button 
+          class="team-card" 
+          type="button" 
+          *ngFor="let team of teams"
+        >
+        {{ team.name }}
+      </button>
 
         <p *ngIf="teams.length === 0" class="no-data">
           Команды ещё не добавлены

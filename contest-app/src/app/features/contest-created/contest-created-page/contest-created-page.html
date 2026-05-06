@@ -1,0 +1,49 @@
+<div class="contest-created-page">
+  <main class="success-content">
+    <div class="success-icon"></div>
+    
+    <h1 class="page-title">Конкурс успешно создан!</h1>
+    
+    <p class="contest-name" *ngIf="contestName">{{ contestName }}</p>
+
+    <div class="info-cards">
+      <div class="info-card">
+        <div class="card-header">
+          <span class="card-icon"></span>
+          <h3>ID конкурса</h3>
+        </div>
+        <div class="card-content">
+          <code class="code-value">{{ contestId }}</code>
+          <button type="button" class="copy-button" (click)="copyId()">
+             Копировать
+          </button>
+        </div>
+      </div>
+
+      <div class="info-card highlight">
+        <div class="card-header">
+          <span class="card-icon"></span>
+          <h3>Ключ доступа для экспертов</h3>
+        </div>
+        <div class="card-content">
+          <code class="code-value key-value">{{ accessKey }}</code>
+          <button type="button" class="copy-button primary" (click)="copyKey()">
+             Копировать ключ
+          </button>
+        </div>
+        <p class="card-hint">
+          Передайте этот ключ экспертам вместе с ID конкурса, чтобы они могли присоединиться
+        </p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-secondary" (click)="goToContest()">
+         Перейти к конкурсу
+      </button>
+      <button type="button" class="btn btn-primary" (click)="goToAccount()">
+         В аккаунт организатора
+      </button>
+    </div>
+  </main>
+</div>

@@ -3,7 +3,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   Contest,
-  CreateContestData,
   UpdateContestData,
   PaginatedResponse,
   ApiResponse,
@@ -34,15 +33,17 @@ export class ContestService {
     return this.http.get<PaginatedResponse<Contest>>(this.apiUrl, { params });
   }
 
+  generateAccessKey(contestId: number): Observable<any> {
+    return this.http.post(`/api/contests/${contestId}/access-key/generate`, {});
+  }
 
   getById(contestId: number): Observable<ApiResponse<Contest>> {
     return this.http.get<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`);
   }
 
-  create(data: CreateContestData): Observable<ApiResponse<Contest>> {
+  create(data: FormData): Observable<ApiResponse<Contest>> {
     return this.http.post<ApiResponse<Contest>>(this.apiUrl, data);
   }
-
 
   update(
     contestId: number,
@@ -51,11 +52,15 @@ export class ContestService {
     return this.http.put<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`, data);
   }
 
-
   delete(contestId: number): Observable<ApiResponse<Contest>> {
     return this.http.delete<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`);
   }
 
+  joinContestByAccessKey(contestId: number, accessKey: string): Observable<any> {
+    return this.http.post(`/api/contests/${contestId}/join`, {
+      access_key: accessKey.trim()
+    });
+  }
 
   finalize(contestId: number): Observable<ApiResponse<Contest>> {
     return this.http.post<ApiResponse<Contest>>(
@@ -63,7 +68,6 @@ export class ContestService {
       {}
     );
   }
-
 
   getVotingStatus(contestId: number): Observable<ApiResponse<VotingStatus>> {
     return this.http.get<ApiResponse<VotingStatus>>(
@@ -74,4 +78,9 @@ export class ContestService {
   getMyExpertContests(): Observable<ApiResponse<Contest[]>> {
     return this.http.get<ApiResponse<Contest[]>>('/api/experts/me/contests');
   }
+
+  getExpertContests(): Observable<any> {
+    return this.http.get('/api/experts/me/contests');
+  }
 }
+
