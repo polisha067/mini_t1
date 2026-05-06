@@ -62,6 +62,10 @@ export class AuthService {
           if (response.access_token) {
             localStorage.setItem('access_token', response.access_token);
           }
+          // Сохраняем новый refresh_token если сервер его ротирует
+          if (response.refresh_token) {
+            localStorage.setItem('refresh_token', response.refresh_token);
+          }
         })
       );
   }
@@ -84,14 +88,12 @@ export class AuthService {
   }
 
   logout(): void {
+    // Сначала шлем запрос, пока токен ещё в localStorage (интерцептор его подставит)
+    this.http.post(`${this.apiUrl}/logout`, {}).subscribe({
+      error: (err) => console.warn('Logout request failed:', err)
+    });
     this.clearAuthState();
     this.router.navigate(['/']);
-
-    this.http.post(`${this.apiUrl}/logout`, {}).subscribe({
-      error: (err) => {
-        console.warn('Logout request failed:', err);
-      },
-    });
   }
 
   getCurrentUser(): User | null {
