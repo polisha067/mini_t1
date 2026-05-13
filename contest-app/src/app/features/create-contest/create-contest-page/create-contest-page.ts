@@ -131,18 +131,16 @@ export class CreateContestPage implements AfterViewInit {
   goBack(): void {
     this.router.navigate(['/account/organizer']);
   }
-
-  onSubmit(event?: Event): void {
-    if (event) {
-      event.preventDefault();
-    }
-    if (!this.name.trim()) {
-      this.error = 'Введите название конкурса';
-      return;
-    }
+  onSubmit(): void {
+  if (!this.name.trim()) {
+    this.error = 'Введите название конкурса';
+    return;
+  }
 
   this.isSubmitting = true;
   this.error = null;
+
+  this.generateAccessKey();
 
   const formData = new FormData();
   formData.append('name', this.name.trim());
@@ -150,6 +148,7 @@ export class CreateContestPage implements AfterViewInit {
   if (this.startDate) formData.append('start_date', this.startDate);
   if (this.endDate) formData.append('end_date', this.endDate);
   if (this.selectedFile) formData.append('logo', this.selectedFile);
+
   if (this.generatedAccessKey) {
     formData.append('access_key', this.generatedAccessKey);
   }
@@ -157,9 +156,8 @@ export class CreateContestPage implements AfterViewInit {
   this.contestService.create(formData).subscribe({
     next: (response: any) => {
       const contestId = response.contest?.id || response.id;
-      const key = response.access_key || this.generatedAccessKey;
+      const key = this.generatedAccessKey;
       
-      // Редирект на страницу успеха
       this.router.navigate(['/contest-created'], {
         queryParams: {
           id: contestId,
