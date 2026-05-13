@@ -19,7 +19,6 @@ services:
       - ./contest-app/proxy.conf.json:/app/proxy.conf.json
       - ./contest-app/.editorconfig:/app/.editorconfig
       - ./contest-app/.prettierrc:/app/.prettierrc
-      - ./uploads:/app/uploads
     ports:
       - "4200:4200"
     networks:
