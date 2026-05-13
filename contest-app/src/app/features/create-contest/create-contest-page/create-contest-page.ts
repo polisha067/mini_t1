@@ -70,27 +70,47 @@ export class CreateContestPage implements AfterViewInit {
     this.logoPath = URL.createObjectURL(this.selectedFile);
   }
 
-  addCriterion(): void {
+  addCriterion(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     this.criteria.push({ name: '', description: '', max_score: 10 });
   }
 
-  removeCriterion(index: number): void {
+  removeCriterion(index: number, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     if (this.criteria.length > 1) {
       this.criteria.splice(index, 1);
     }
   }
 
-  addTeam(): void {
+  addTeam(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     this.teams.push({ name: '' });
   }
 
-  removeTeam(index: number): void {
+  removeTeam(index: number, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     if (this.teams.length > 1) {
       this.teams.splice(index, 1);
     }
   }
 
-  generateAccessKey(): void {
+  generateAccessKey(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     const array = new Uint8Array(24);
     window.crypto.getRandomValues(array);
     this.generatedAccessKey = Array.from(array, byte => 
@@ -98,7 +118,11 @@ export class CreateContestPage implements AfterViewInit {
     ).join('');
   }
 
-  copyKey(): void {
+  copyKey(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     if (this.generatedAccessKey) {
       navigator.clipboard.writeText(this.generatedAccessKey);
     }
@@ -108,11 +132,14 @@ export class CreateContestPage implements AfterViewInit {
     this.router.navigate(['/account/organizer']);
   }
 
-  onSubmit(): void {
-  if (!this.name.trim()) {
-    this.error = 'Введите название конкурса';
-    return;
-  }
+  onSubmit(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+    }
+    if (!this.name.trim()) {
+      this.error = 'Введите название конкурса';
+      return;
+    }
 
   this.isSubmitting = true;
   this.error = null;

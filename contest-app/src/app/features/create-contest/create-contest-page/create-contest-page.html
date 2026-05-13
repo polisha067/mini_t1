@@ -31,7 +31,7 @@
       </div>
     </section>
 
-    <form (ngSubmit)="onSubmit()">
+    <form (submit)="onSubmit($event)">
       <section class="form-section">
         <h2 class="section-title">Основная информация</h2>
         <div class="form-grid">
@@ -70,7 +70,7 @@
             <h2 class="section-title">Критерии оценки</h2>
             <p class="section-subtitle">Добавьте параметры, по которым будет оцениваться конкурс</p>
           </div>
-          <button class="add-criterion-btn" type="button" (click)="addCriterion()">+ Добавить</button>
+          <button class="add-criterion-btn" type="button" (click)="addCriterion($event)">+ Добавить</button>
         </div>
         <div class="criterion-list">
           <div class="criterion-item" *ngFor="let c of criteria; let i = index">
@@ -80,7 +80,7 @@
               <input type="text" class="input-field" placeholder="Описание" [(ngModel)]="criteria[i].description" name="c_desc_{{i}}" />
               <input type="number" class="input-field score-input" placeholder="Балл" [(ngModel)]="criteria[i].max_score" name="c_max_{{i}}" min="1" max="100" />
             </div>
-            <button type="button" class="remove-criterion-btn" (click)="removeCriterion(i)" *ngIf="criteria.length > 1">✕</button>
+            <button type="button" class="remove-criterion-btn" (click)="removeCriterion(i, $event)" *ngIf="criteria.length > 1">✕</button>
           </div>
         </div>
       </section>
@@ -91,7 +91,7 @@
             <h2 class="section-title">Команды</h2>
             <p class="section-subtitle">Добавьте команды, которые будут участвовать в конкурсе</p>
           </div>
-          <button class="add-criterion-btn" type="button" (click)="addTeam()">+ Добавить</button>
+          <button class="add-criterion-btn" type="button" (click)="addTeam($event)">+ Добавить</button>
         </div>
         <div class="criterion-list">
           <div class="criterion-item" *ngFor="let t of teams; let i = index">
@@ -99,7 +99,7 @@
             <div class="criterion-fields">
               <input type="text" class="input-field" placeholder="Название команды *" [(ngModel)]="teams[i].name" name="t_name_{{i}}" />
             </div>
-            <button type="button" class="remove-criterion-btn" (click)="removeTeam(i)" *ngIf="teams.length > 1">✕</button>
+            <button type="button" class="remove-criterion-btn" (click)="removeTeam(i, $event)" *ngIf="teams.length > 1">✕</button>
           </div>
         </div>
       </section>
@@ -110,12 +110,12 @@
             <h2 class="section-title"> Ключ доступа для экспертов</h2>
             <p class="section-subtitle">Сгенерируйте ключ, чтобы эксперты могли присоединиться к конкурсу</p>
           </div>
-          <button class="add-criterion-btn" type="button" (click)="generateAccessKey()"> Сгенерировать</button>
+          <button class="add-criterion-btn" type="button" (click)="generateAccessKey($event)"> Сгенерировать</button>
         </div>
 
         <div class="key-display" *ngIf="generatedAccessKey">
           <code class="key-value">{{ generatedAccessKey }}</code>
-          <button type="button" class="copy-btn" (click)="copyKey()"> Копировать</button>
+          <button type="button" class="copy-btn" (click)="copyKey($event)"> Копировать</button>
         </div>
 
         <div class="key-placeholder" *ngIf="!generatedAccessKey">
