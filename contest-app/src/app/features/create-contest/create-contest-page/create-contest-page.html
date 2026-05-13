@@ -31,7 +31,7 @@
       </div>
     </section>
 
-    <form (submit)="onSubmit($event)">
+    <div class="contest-form">
       <section class="form-section">
         <h2 class="section-title">Основная информация</h2>
         <div class="form-grid">
@@ -73,7 +73,7 @@
           <button class="add-criterion-btn" type="button" (click)="addCriterion($event)">+ Добавить</button>
         </div>
         <div class="criterion-list">
-          <div class="criterion-item" *ngFor="let c of criteria; let i = index">
+          <div class="criterion-item" *ngFor="let c of criteria; let i = index; trackBy: trackByIndex">
             <div class="criterion-number">{{ i + 1 }}</div>
             <div class="criterion-fields">
               <input type="text" class="input-field" placeholder="Название критерия *" [(ngModel)]="criteria[i].name" name="c_name_{{i}}" />
@@ -94,7 +94,7 @@
           <button class="add-criterion-btn" type="button" (click)="addTeam($event)">+ Добавить</button>
         </div>
         <div class="criterion-list">
-          <div class="criterion-item" *ngFor="let t of teams; let i = index">
+          <div class="criterion-item" *ngFor="let t of teams; let i = index; trackBy: trackByIndex">
             <div class="criterion-number">{{ i + 1 }}</div>
             <div class="criterion-fields">
               <input type="text" class="input-field" placeholder="Название команды *" [(ngModel)]="teams[i].name" name="t_name_{{i}}" />
@@ -108,10 +108,10 @@
 
       <div class="form-actions">
         <button type="button" class="back-btn" (click)="goBack()">Назад</button>
-        <button type="submit" class="submit-btn" [disabled]="isSubmitting">
+        <button type="button" class="submit-btn" [disabled]="isSubmitting" (click)="onSubmit()">
           {{ isSubmitting ? 'Создание...' : 'Создать конкурс' }}
         </button>
       </div>
-    </form>
+    </div>
   </main>
 </div>

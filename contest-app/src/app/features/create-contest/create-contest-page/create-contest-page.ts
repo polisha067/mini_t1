@@ -128,6 +128,10 @@ export class CreateContestPage implements AfterViewInit {
     }
   }
 
+  trackByIndex(index: number, item: any): number {
+    return index;
+  }
+
   goBack(): void {
     this.router.navigate(['/account/organizer']);
   }
