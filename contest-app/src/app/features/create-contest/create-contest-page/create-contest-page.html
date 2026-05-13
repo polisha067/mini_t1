@@ -104,25 +104,6 @@
         </div>
       </section>
 
-      <section class="form-section">
-        <div class="section-header">
-          <div>
-            <h2 class="section-title"> Ключ доступа для экспертов</h2>
-            <p class="section-subtitle">Сгенерируйте ключ, чтобы эксперты могли присоединиться к конкурсу</p>
-          </div>
-          <button class="add-criterion-btn" type="button" (click)="generateAccessKey()"> Сгенерировать</button>
-        </div>
-
-        <div class="key-display" *ngIf="generatedAccessKey">
-          <code class="key-value">{{ generatedAccessKey }}</code>
-          <button type="button" class="copy-btn" (click)="copyKey()"> Копировать</button>
-        </div>
-
-        <div class="key-placeholder" *ngIf="!generatedAccessKey">
-          <p>Нажмите "Сгенерировать", чтобы создать ключ доступа</p>
-        </div>
-      </section>
-
       <div *ngIf="error" class="error-message">{{ error }}</div>
 
       <div class="form-actions">
@@ -132,16 +113,5 @@
         </button>
       </div>
     </form>
-
-    <div *ngIf="generatedAccessKey && !isSubmitting" class="success-section">
-      <h2> Конкурс успешно создан!</h2>
-      <div class="key-box">
-        <h3> Ключ доступа для экспертов:</h3>
-        <code class="key-value">{{ generatedAccessKey }}</code>
-        <button type="button" class="copy-btn" (click)="copyKey()"> Копировать</button>
-      </div>
-      <p class="key-hint">Передайте этот ключ экспертам вместе с ID конкурса.</p>
-      <button type="button" class="done-btn" (click)="goBack()">Перейти в аккаунт организатора</button>
-    </div>
   </main>
 </div>
