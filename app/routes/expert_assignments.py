@@ -30,25 +30,29 @@ def generate_access_key(contest_id: int):
 
     new_key = secrets.token_urlsafe(24)
     contest.access_key = new_key
+
     try:
-        db.session.add(contest)
         db.session.commit()
-        db.session.expire_all()
-        return jsonify({"status": "success", "access_key": new_key}), 200
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        return jsonify({"status": "error", "message": str(e)}), 500
-    finally:
-        db.session.remove()
+        raise
+
+    return jsonify({"status": "success", "access_key": new_key}), 200
 
 @expert_bp.route('/contests/<int:contest_id>/join', methods=['POST'])
 @jwt_required()
 def join_contest_by_key(contest_id: int):
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not data:
+        raise BadRequestError("Тело запроса должно быть в формате JSON")
+
     access_key = data.get('access_key')
+    if not access_key:
+        raise ValidationError("Поле access_key обязательно")
+
     user_id = _get_current_user_id()
-    
     contest = _get_contest_or_404(contest_id)
+
     if contest.access_key != access_key:
         raise ValidationError("Неверный ключ доступа")
 
@@ -57,35 +61,30 @@ def join_contest_by_key(contest_id: int):
         return jsonify({"status": "success", "message": "Вы уже присоединились к этому конкурсу"}), 200
 
     assignment = ContestExpert(contest_id=contest_id, user_id=user_id)
+
     try:
         db.session.add(assignment)
         db.session.commit()
-        db.session.expire_all()
-        return jsonify({"status": "success", "message": "Вы успешно присоединились к конкурсу"}), 201
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        return jsonify({"status": "error", "message": str(e)}), 500
-    finally:
-        db.session.remove()
+        raise
+
+    return jsonify({"status": "success", "message": "Вы успешно присоединились к конкурсу"}), 201
 
 @expert_bp.route('/me/contests', methods=['GET'])
 @jwt_required()
 def get_expert_contests():
     expert_id = _get_current_user_id()
-    try:
-        assignments = ContestExpert.query.filter_by(user_id=expert_id).all()
-        contest_ids = [a.contest_id for a in assignments]
-        
-        if not contest_ids:
-            return jsonify({"status": "success", "contests": []}), 200
-            
-        contests = Contest.query.filter(Contest.id.in_(contest_ids)).all()
-        
-        return jsonify({
-            "status": "success",
-            "contests": [c.to_dict() for c in contests]
-        }), 200
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-    finally:
-        db.session.remove()
+
+    assignments = ContestExpert.query.filter_by(user_id=expert_id).all()
+    contest_ids = [a.contest_id for a in assignments]
+
+    if not contest_ids:
+        return jsonify({"status": "success", "contests": []}), 200
+
+    contests = Contest.query.filter(Contest.id.in_(contest_ids)).all()
+
+    return jsonify({
+        "status": "success",
+        "contests": [c.to_dict() for c in contests]
+    }), 200
