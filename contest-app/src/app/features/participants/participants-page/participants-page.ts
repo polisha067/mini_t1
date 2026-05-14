@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { TeamService } from '../../../core/team.service';
 import { Team } from '../../../shared/models/contest.model';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-participants-page',
@@ -15,39 +16,54 @@ export class ParticipantsPage implements OnInit {
   teams: Team[] = [];
   isLoading = true;
   error: string | null = null;
+  contestId: number | null = null;
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private teamService: TeamService
   ) {}
 
-  ngOnInit(): void {
+ngOnInit(): void {
+  this.contestId = Number(this.route.snapshot.paramMap.get('contestId'));
+
+  if (this.contestId) {
     this.loadTeams();
+  } else {
+    this.error = 'Конкурс не найден';
+    this.isLoading = false;
   }
+}
 
   loadTeams(): void {
-    // Загружаем команды первого конкурса (в реальном приложении contestId берётся из route params)
-    // Для participants страницы предполагаем, что пользователь пришёл с детали конкурса
-    // и contestId сохранён. Пока берём из queryParams или используем 1.
-    const contestId = 1; // TODO: получать из route state / queryParams
-    this.teamService.getList(contestId, 1, 100).subscribe({
-      next: (response) => {
-        this.teams = response['teams'] as Team[];
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Failed to load teams:', err);
-        this.teams = [];
-        this.isLoading = false;
-      },
-    });
+    if (!this.contestId) return;
+
+    this.isLoading = true;
+    this.teamService.getList(this.contestId, 1, 100)
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: (response: any) => {
+          const rawData = response?.teams || response?.data || response;
+          this.teams = Array.isArray(rawData) ? rawData : [];
+        },
+        error: (err) => {
+          console.error('Teams load error:', err);
+          this.error = 'Ошибка загрузки команд';
+        },
+      });
   }
 
-  goBack(): void {
+goBack(): void {
+  if (this.contestId) {
+    this.router.navigate(['/contest', this.contestId]);
+  } else {
     this.router.navigate(['/']);
   }
+}
 
   goToRating(): void {
-    this.router.navigate(['/contest', 1]); // TODO: использовать правильный contestId
+    if (this.contestId) {
+      this.router.navigate(['/contest', this.contestId]);
+    }
   }
 }

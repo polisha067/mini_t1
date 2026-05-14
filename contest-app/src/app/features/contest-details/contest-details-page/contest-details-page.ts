@@ -6,6 +6,7 @@ import { TeamService } from '../../../core/team.service';
 import { RankingService } from '../../../core/ranking.service';
 import { AuthService } from '../../../shared/services/auth.service';
 import { Contest, Team, RankingEntry } from '../../../shared/models/contest.model';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-contest-details-page',
@@ -42,43 +43,45 @@ export class ContestDetailsPage implements OnInit {
   }
 
   loadData(): void {
+    console.log('--- МЕТОД loadData ЗАПУЩЕН ---');
     this.isLoading = true;
     this.error = null;
 
-    this.contestService.getById(this.contestId).subscribe({
-      next: (response: any) => {
-        this.contest = response['contest'] as Contest;
-        this.loadTeamsAndRanking();
-      },
-      error: (err: any) => {
-        console.error('Failed to load contest:', err);
-        this.error = 'Не удалось загрузить данные конкурса';
-        this.isLoading = false;
-      },
-    });
+    this.contestService.getById(this.contestId)
+      .pipe(finalize(() => {
+        if (this.error) this.isLoading = false;
+      }))
+      .subscribe({
+        next: (response: any) => {
+          this.contest = response?.contest || response?.data || (response?.id ? response : null);
+          this.loadTeamsAndRanking();
+        },
+        error: (err: any) => {
+          console.error('API Error:', err);
+          this.error = 'Ошибка при получении данных конкурса';
+          this.isLoading = false;
+        },
+      });
   }
 
   loadTeamsAndRanking(): void {
-    this.rankingService.getRanking(this.contestId, 1, 100).subscribe({
-      next: (response: any) => {
-        this.ranking = response['ranking'] as RankingEntry[];
-        this.isLoading = false;
-      },
-      error: (err: any) => {
-        console.error('Failed to load ranking:', err);
-        // Если рейтинг пуст — пробуем загрузить просто команды
-        this.teamService.getList(this.contestId, 1, 100).subscribe({
-          next: (resp: any) => {
-            this.teams = resp['teams'] as Team[];
-            this.isLoading = false;
-          },
-          error: () => {
-            this.teams = [];
-            this.isLoading = false;
-          },
-        });
-      },
-    });
+    this.rankingService.getRanking(this.contestId, 1, 100)
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: (response: any) => {
+          const data = response?.ranking || response?.data || response;
+          this.ranking = Array.isArray(data) ? data : [];
+        },
+        error: (err: any) => {
+          console.warn('Ranking failed, loading teams instead');
+          this.teamService.getList(this.contestId, 1, 100).subscribe({
+            next: (resp: any) => {
+              const data = resp?.teams || resp?.data || resp;
+              this.teams = Array.isArray(data) ? data : [];
+            }
+          });
+        },
+      });
   }
 
   goBack(): void {
