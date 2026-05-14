@@ -34,6 +34,39 @@ def get_contest_ranking(contest_id: int):
 
     sort_order = request.args.get('sort', 'desc')
 
+    has_grades = db.session.query(Grade.id).join(
+        Team, Grade.team_id == Team.id
+    ).filter(Team.contest_id == contest_id).first() is not None
+
+    if not has_grades:
+        teams_query = Team.query.filter_by(contest_id=contest_id).order_by(Team.name.asc())
+        pagination = teams_query.paginate(page=page, per_page=per_page, error_out=False)
+
+        ranking = []
+        start_rank = (page - 1) * per_page + 1
+        for idx, team in enumerate(pagination.items, start=start_rank):
+            ranking.append({
+                "rank": idx,
+                "team_id": team.id,
+                "team_name": team.name,
+                "total_score": 0.0,
+                "grades_count": 0
+            })
+
+        return jsonify({
+            "status": "success",
+            "contest_id": contest_id,
+            "ranking": ranking,
+            "pagination": {
+                "page": pagination.page,
+                "per_page": pagination.per_page,
+                "total": pagination.total,
+                "pages": pagination.pages,
+                "has_next": pagination.has_next,
+                "has_prev": pagination.has_prev,
+            }
+        }), 200
+
     # Подзапрос: среднее по каждому (команда, критерий)
     # group_by по criterion_id гарантирует, что среднее считается отдельно по каждому критерию
     subquery = (
@@ -87,6 +120,7 @@ def get_contest_ranking(contest_id: int):
         })
 
     return jsonify({
+        "status": "success",
         "contest_id": contest_id,
         "ranking": ranking,
         "pagination": {
