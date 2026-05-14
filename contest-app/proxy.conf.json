@@ -1,18 +1,18 @@
 {
   "/api": {
-    "target": "http://nginx:80",
+    "target": "http://localhost:5000",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
   },
   "/uploads": {
-    "target": "http://nginx:80",
+    "target": "http://localhost:5000",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
   },
   "/logos": {
-    "target": "http://nginx:80",
+    "target": "http://localhost:5000",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"

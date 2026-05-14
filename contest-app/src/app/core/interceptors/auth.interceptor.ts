@@ -1,22 +1,35 @@
-import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse } from '@angular/common/http';
+import {
+  HttpInterceptorFn,
+  HttpRequest,
+  HttpHandlerFn,
+  HttpErrorResponse,
+  HttpEvent,
+} from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../../shared/services/auth.service';
-import { BehaviorSubject, catchError, filter, switchMap, take, throwError } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  finalize,
+  of,
+  share,
+  switchMap,
+  take,
+  throwError,
+} from 'rxjs';
 
 /**
  * Интерцептор с защитой от Race Condition при обновлении токена.
- * Если несколько запросов одновременно получают 401, только ОДИН запрос
- * на обновление токена уйдет на сервер. Остальные будут ждать его результата.
+ * Несколько параллельных 401 делят один запрос refresh через share(),
+ * чтобы не зависнуть в ожидании BehaviorSubject при ошибке refresh.
  */
 
-// Флаг и очередь вынесены за пределы функции, чтобы быть синглтонами
-let isRefreshing = false;
-const refreshDone$ = new BehaviorSubject<string | null>(null);
+let refreshInFlight$: Observable<string> | null = null;
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn
-) => {
+): Observable<HttpEvent<unknown>> => {
   const authService = inject(AuthService);
   const token = authService.getToken();
 
@@ -43,35 +56,30 @@ function handle401(
   req: HttpRequest<unknown>,
   next: HttpHandlerFn,
   authService: AuthService
-) {
-  if (!isRefreshing) {
-    // Первый запрос, который получил 401 — он инициирует обновление
-    isRefreshing = true;
-    refreshDone$.next(null);
-
-    return authService.refreshToken().pipe(
+): Observable<HttpEvent<unknown>> {
+  if (!refreshInFlight$) {
+    refreshInFlight$ = authService.refreshToken().pipe(
       switchMap((response) => {
-        isRefreshing = false;
         const newToken = response.access_token;
         if (!newToken) {
           authService.logout();
           return throwError(() => new Error('No access token in refresh response'));
         }
-        refreshDone$.next(newToken);
-        return next(addToken(req, newToken));
+        return of(newToken);
       }),
       catchError((err) => {
-        isRefreshing = false;
         authService.logout();
         return throwError(() => err);
-      })
-    );
-  } else {
-    // Остальные запросы ждут, пока первый получит новый токен
-    return refreshDone$.pipe(
-      filter(token => token !== null),
-      take(1),
-      switchMap(token => next(addToken(req, token!)))
+      }),
+      finalize(() => {
+        refreshInFlight$ = null;
+      }),
+      share()
     );
   }
+
+  return refreshInFlight$.pipe(
+    take(1),
+    switchMap((newToken) => next(addToken(req, newToken)))
+  );
 }

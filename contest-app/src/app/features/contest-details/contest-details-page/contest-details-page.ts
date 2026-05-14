@@ -6,7 +6,8 @@ import { TeamService } from '../../../core/team.service';
 import { RankingService } from '../../../core/ranking.service';
 import { AuthService } from '../../../shared/services/auth.service';
 import { Contest, Team, RankingEntry } from '../../../shared/models/contest.model';
-import { finalize } from 'rxjs/operators';
+import { catchError, finalize, timeout } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-contest-details-page',
@@ -43,43 +44,71 @@ export class ContestDetailsPage implements OnInit {
   }
 
   loadData(): void {
-    console.log('--- МЕТОД loadData ЗАПУЩЕН ---');
     this.isLoading = true;
     this.error = null;
 
-    this.contestService.getById(this.contestId)
-      .pipe(finalize(() => {
-        if (this.error) this.isLoading = false;
-      }))
+    this.contestService
+      .getById(this.contestId)
+      .pipe(timeout(30_000))
       .subscribe({
         next: (response: any) => {
           this.contest = response?.contest || response?.data || (response?.id ? response : null);
-          this.loadTeamsAndRanking();
+          if (this.contest) {
+            this.loadTeamsAndRanking();
+          } else {
+            this.error = 'Конкурс не найден';
+            this.isLoading = false;
+          }
         },
         error: (err: any) => {
           console.error('API Error:', err);
-          this.error = 'Ошибка при получении данных конкурса';
+          this.error =
+            err?.name === 'TimeoutError'
+              ? 'Сервер не ответил вовремя. Проверьте, что API запущен (например http://localhost:5000) и proxy в Angular указывает на него.'
+              : 'Ошибка при получении данных конкурса';
           this.isLoading = false;
         },
       });
   }
 
   loadTeamsAndRanking(): void {
-    this.rankingService.getRanking(this.contestId, 1, 100)
-      .pipe(finalize(() => this.isLoading = false))
+    this.rankingService
+      .getRanking(this.contestId, 1, 100)
+      .pipe(
+        timeout(30_000),
+        catchError((err) => {
+          console.warn('Ranking failed or timed out, loading teams instead', err);
+          return this.teamService.getList(this.contestId, 1, 100).pipe(
+            catchError((teamErr) => {
+              console.error('Teams also failed:', teamErr);
+              this.error = 'Не удалось загрузить таблицу и список команд';
+              return of(null);
+            })
+          );
+        }),
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
       .subscribe({
         next: (response: any) => {
-          const data = response?.ranking || response?.data || response;
-          this.ranking = Array.isArray(data) ? data : [];
-        },
-        error: (err: any) => {
-          console.warn('Ranking failed, loading teams instead');
-          this.teamService.getList(this.contestId, 1, 100).subscribe({
-            next: (resp: any) => {
-              const data = resp?.teams || resp?.data || resp;
-              this.teams = Array.isArray(data) ? data : [];
-            }
-          });
+          if (response === null) {
+            return;
+          }
+          if (response?.ranking !== undefined) {
+            const data = response?.ranking || response?.data || response;
+            this.ranking = Array.isArray(data) ? data : [];
+            return;
+          }
+          const teamData = response?.teams || response?.data || response;
+          this.teams = Array.isArray(teamData) ? teamData : [];
+          this.ranking = this.teams.map((t, i) => ({
+            rank: i + 1,
+            team_id: t.id,
+            team_name: t.name,
+            total_score: 0,
+            grades_count: 0,
+          }));
         },
       });
   }
