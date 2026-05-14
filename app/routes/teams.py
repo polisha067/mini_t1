@@ -13,6 +13,16 @@ def _get_current_user_id() -> int:
     return int(get_jwt_identity())
 
 
+def _optional_current_user_id():
+    ident = get_jwt_identity()
+    if ident is None:
+        return None
+    try:
+        return int(ident)
+    except (TypeError, ValueError):
+        return None
+
+
 @teams_bp.route('', methods=['POST'])
 @jwt_required()
 @role_required('organizer')
@@ -37,7 +47,10 @@ def list_teams(contest_id: int):
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
-    pagination = TeamService.get_list(contest_id, page, per_page)
+    viewer_id = _optional_current_user_id()
+    pagination = TeamService.get_list(
+        contest_id, page, per_page, viewer_user_id=viewer_id
+    )
     teams = [team.to_dict() for team in pagination.items]
 
     return jsonify({

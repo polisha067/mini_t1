@@ -6,6 +6,10 @@
 
   <h1>Аккаунт эксперта</h1>
 
+  <div *ngIf="evaluationBanner" class="evaluation-banner" role="status">
+    {{ evaluationBanner }}
+  </div>
+
   <div class="profile-card" *ngIf="user">
     <div class="row">
       <span class="label">Имя:</span>
@@ -63,6 +67,7 @@
 
   <div class="contests-section">
     <h2 class="section-title">Конкурсы для оценивания</h2>
+    <p class="section-hint">Нажмите на конкурс, чтобы открыть страницу оценивания по критериям организатора.</p>
 
     <p *ngIf="isLoadingContests" class="section-state">Загрузка...</p>
     <p *ngIf="contestsError" class="section-error">{{ contestsError }}</p>

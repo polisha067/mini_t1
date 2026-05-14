@@ -102,6 +102,8 @@ services:
     depends_on:
       web:
         condition: service_healthy
+      frontend:
+        condition: service_started
     networks:
       - mini_t1_network
 

@@ -98,7 +98,7 @@
       </div>
 
       <!-- Пустой рейтинг -->
-      <p *ngIf="ranking.length === 0 && (teams?.length === 0 || !teams)" class="no-data">
+      <p *ngIf="ranking.length === 0 && teams.length === 0" class="no-data">
         Рейтинг пока пуст. Оценки ещё не выставлены.
       </p>
     </section>

@@ -1,6 +1,7 @@
 from app.extensions import db
 from app.models.contest import Contest
 from app.models.criterion import Criterion
+from app.services.contest_access import ensure_can_read_contest_teams_and_criteria
 from app.models.grade import Grade
 from app.utils.validators.criterion import validate_criterion_data
 from app.utils.errors import (
@@ -63,9 +64,10 @@ class CriterionService:
         return criterion
 
     @staticmethod
-    def get_list(contest_id: int) -> list:
+    def get_list(contest_id: int, viewer_user_id=None) -> list:
         """Получение списка критериев конкурса"""
         CriterionService._get_contest_or_404(contest_id)
+        ensure_can_read_contest_teams_and_criteria(contest_id, viewer_user_id)
 
         query = Criterion.query.filter_by(contest_id=contest_id)
         query = query.order_by(Criterion.id.asc())

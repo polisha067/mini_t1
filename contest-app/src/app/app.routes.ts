@@ -9,7 +9,12 @@ import { CreateContestPage } from './features/create-contest/create-contest-page
 import { ContestDetailsPage } from './features/contest-details/contest-details-page/contest-details-page';
 import { ExpertAccountPage } from './features/account/expert-account/expert-account-page';
 import { OrganizerAccountPage } from './features/account/organizer-account/organizer-account-page';
-import { accountRedirectGuard, organizerGuard, expertGuard } from './core/guards/auth.guard';
+import {
+  accountRedirectGuard,
+  organizerGuard,
+  expertGuard,
+  expertEvaluationGuard,
+} from './core/guards/auth.guard';
 import { ContestCreatedPage } from './features/contest-created/contest-created-page/contest-created-page';
 
 export const routes: Routes = [
@@ -18,9 +23,14 @@ export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'register', component: Register },
   { path: 'contests/:contestId/participants', component: ParticipantsPage },
+  { path: 'contests/:id', component: ContestDetailsPage },
   { path: 'contest/:id', component: ContestDetailsPage },
   { path: 'participants', component: ParticipantsPage },
-  { path: 'evaluation', component: EvaluationPage, canActivate: [expertGuard] },
+  {
+    path: 'evaluation',
+    component: EvaluationPage,
+    canActivate: [expertGuard, expertEvaluationGuard],
+  },
   { path: 'create-contest', component: CreateContestPage, canActivate: [organizerGuard] },
   { path: 'account', canActivate: [accountRedirectGuard], component: ContestListComponent },
   { path: 'account/expert', component: ExpertAccountPage, canActivate: [expertGuard] },

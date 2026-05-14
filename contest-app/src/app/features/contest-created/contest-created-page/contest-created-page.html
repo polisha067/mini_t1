@@ -1,4 +1,13 @@
 <div class="contest-created-page">
+  <div
+    class="copy-toast"
+    *ngIf="copyToastMessage"
+    role="status"
+    aria-live="polite"
+  >
+    {{ copyToastMessage }}
+  </div>
+
   <main class="success-content">
     <div class="success-icon"></div>
     

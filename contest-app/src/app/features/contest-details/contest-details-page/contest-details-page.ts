@@ -6,8 +6,8 @@ import { TeamService } from '../../../core/team.service';
 import { RankingService } from '../../../core/ranking.service';
 import { AuthService } from '../../../shared/services/auth.service';
 import { Contest, Team, RankingEntry } from '../../../shared/models/contest.model';
-import { catchError, finalize, timeout } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { catchError, finalize, switchMap, timeout } from 'rxjs/operators';
+import { of, TimeoutError } from 'rxjs';
 
 @Component({
   selector: 'app-contest-details-page',
@@ -49,40 +49,25 @@ export class ContestDetailsPage implements OnInit {
 
     this.contestService
       .getById(this.contestId)
-      .pipe(timeout(30_000))
-      .subscribe({
-        next: (response: any) => {
-          this.contest = response?.contest || response?.data || (response?.id ? response : null);
-          if (this.contest) {
-            this.loadTeamsAndRanking();
-          } else {
-            this.error = 'Конкурс не найден';
-            this.isLoading = false;
-          }
-        },
-        error: (err: any) => {
-          console.error('API Error:', err);
-          this.error =
-            err?.name === 'TimeoutError'
-              ? 'Сервер не ответил вовремя. Проверьте, что API запущен (например http://localhost:5000) и proxy в Angular указывает на него.'
-              : 'Ошибка при получении данных конкурса';
-          this.isLoading = false;
-        },
-      });
-  }
-
-  loadTeamsAndRanking(): void {
-    this.rankingService
-      .getRanking(this.contestId, 1, 100)
       .pipe(
-        timeout(30_000),
-        catchError((err) => {
-          console.warn('Ranking failed or timed out, loading teams instead', err);
-          return this.teamService.getList(this.contestId, 1, 100).pipe(
-            catchError((teamErr) => {
-              console.error('Teams also failed:', teamErr);
-              this.error = 'Не удалось загрузить таблицу и список команд';
-              return of(null);
+        timeout(20_000),
+        switchMap((response: any) => {
+          this.contest =
+            response?.contest || response?.data || (response?.id ? response : null);
+          if (!this.contest) {
+            this.error = 'Конкурс не найден';
+            return of(null);
+          }
+          return this.rankingService.getRanking(this.contestId, 1, 100).pipe(
+            timeout(20_000),
+            catchError(() => {
+              return this.teamService.getList(this.contestId, 1, 100).pipe(
+                timeout(20_000),
+                catchError(() => {
+                  this.error = 'Не удалось загрузить таблицу и список команд';
+                  return of(null);
+                })
+              );
             })
           );
         }),
@@ -109,6 +94,20 @@ export class ContestDetailsPage implements OnInit {
             total_score: 0,
             grades_count: 0,
           }));
+        },
+        error: (err: unknown) => {
+          console.error('API Error:', err);
+          const isTimeout =
+            err instanceof TimeoutError ||
+            (typeof err === 'object' &&
+              err !== null &&
+              (err as { name?: string }).name === 'TimeoutError');
+          if (isTimeout) {
+            this.error =
+              'Сервер не ответил вовремя. Убедитесь, что API запущен (часто http://localhost:5000) и что вы открываете приложение с того же хоста, куда настроен proxy в ng serve.';
+          } else if (!this.error) {
+            this.error = 'Ошибка при получении данных конкурса';
+          }
         },
       });
   }
@@ -163,7 +162,7 @@ export class ContestDetailsPage implements OnInit {
       },
       error: (err: any) => {
         alert('Ошибка при генерации ключа: ' + (err.error?.error?.message || err.message));
-      }
+      },
     });
   }
 }

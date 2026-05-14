@@ -16,6 +16,7 @@ import {
   switchMap,
   take,
   throwError,
+  timeout,
 } from 'rxjs';
 
 /**
@@ -59,6 +60,7 @@ function handle401(
 ): Observable<HttpEvent<unknown>> {
   if (!refreshInFlight$) {
     refreshInFlight$ = authService.refreshToken().pipe(
+      timeout(15_000),
       switchMap((response) => {
         const newToken = response.access_token;
         if (!newToken) {

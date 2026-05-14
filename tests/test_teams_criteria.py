@@ -44,6 +44,26 @@ def test_team_detail_404(client):
     assert response.status_code == 404
 
 
+def test_expert_without_join_cannot_list_teams_or_criteria(client):
+    _, headers, contest_id = _organizer_token_and_contest(client)
+    register_success(
+        client,
+        username="exp_no_join",
+        email="exp_no_join@example.com",
+        password="secret12",
+        role="expert",
+    )
+    exp_headers = bearer(login_token(client, "exp_no_join@example.com", "secret12"))
+    teams_resp = client.get(
+        f"/api/contests/{contest_id}/teams", headers=exp_headers
+    )
+    assert teams_resp.status_code == 403
+    crit_resp = client.get(
+        f"/api/contests/{contest_id}/criteria", headers=exp_headers
+    )
+    assert crit_resp.status_code == 403
+
+
 def test_criterion_create_and_list(client):
     _, headers, contest_id = _organizer_token_and_contest(client)
 

@@ -1,6 +1,7 @@
 from app.extensions import db
 from app.models.contest import Contest
 from app.models.team import Team
+from app.services.contest_access import ensure_can_read_contest_teams_and_criteria
 from app.utils.validators.team import validate_team_data
 from app.utils.errors import (
     ValidationError,
@@ -60,9 +61,10 @@ class TeamService:
         return team
 
     @staticmethod
-    def get_list(contest_id: int, page: int, per_page: int):
+    def get_list(contest_id: int, page: int, per_page: int, viewer_user_id=None):
         """Получение списка команд с пагинацией"""
         TeamService._get_contest_or_404(contest_id)
+        ensure_can_read_contest_teams_and_criteria(contest_id, viewer_user_id)
 
         per_page = min(per_page, 100)
         query = Team.query.filter_by(contest_id=contest_id)
