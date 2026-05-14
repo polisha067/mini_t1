@@ -6,7 +6,9 @@ import { TeamService } from '../../../core/team.service';
 import { RankingService } from '../../../core/ranking.service';
 import { AuthService } from '../../../shared/services/auth.service';
 import { Contest, Team, RankingEntry } from '../../../shared/models/contest.model';
-import { finalize } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-contest-details-page',
@@ -29,21 +31,26 @@ export class ContestDetailsPage implements OnInit {
     private contestService: ContestService,
     private teamService: TeamService,
     private rankingService: RankingService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    const idParam = this.route.snapshot.paramMap.get('id');
-    if (!idParam) {
-      this.router.navigate(['/']);
-      return;
-    }
-    this.contestId = +idParam;
-    this.loadData();
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      
+      if (id) {
+        this.contestId = +id;
+        console.log('ID конкурса успешно получен после перезагрузки:', this.contestId);
+        this.loadData();
+      } else {
+        console.warn('ID конкурса не найден в URL');
+        this.router.navigate(['/']);
+      }
+    });
   }
 
   loadData(): void {
-    console.log('--- МЕТОД loadData ЗАПУЩЕН ---');
     this.isLoading = true;
     this.error = null;
 
@@ -65,23 +72,29 @@ export class ContestDetailsPage implements OnInit {
   }
 
   loadTeamsAndRanking(): void {
-    this.rankingService.getRanking(this.contestId, 1, 100)
-      .pipe(finalize(() => this.isLoading = false))
-      .subscribe({
-        next: (response: any) => {
-          const data = response?.ranking || response?.data || response;
-          this.ranking = Array.isArray(data) ? data : [];
-        },
-        error: (err: any) => {
-          console.warn('Ranking failed, loading teams instead');
-          this.teamService.getList(this.contestId, 1, 100).subscribe({
-            next: (resp: any) => {
-              const data = resp?.teams || resp?.data || resp;
-              this.teams = Array.isArray(data) ? data : [];
-            }
-          });
-        },
-      });
+    this.isLoading = true;
+
+    forkJoin({
+      rankingData: this.rankingService.getRanking(this.contestId, 1, 100).pipe(
+        catchError(() => of({ ranking: [] }))
+      ),
+      teamsData: this.teamService.getList(this.contestId, 1, 100).pipe(
+        catchError(() => of({ teams: [] }))
+      )
+    })
+    .pipe(finalize(() => {
+      this.isLoading = false;
+      this.cdr.detectChanges(); 
+    }))
+    .subscribe({
+      next: (result) => {
+        this.ranking = result.rankingData?.ranking || [];
+        this.teams = result.teamsData?.teams || [];
+        
+        this.cdr.detectChanges(); 
+        console.log('Данные отрисованы на странице');
+      }
+    });
   }
 
   goBack(): void {

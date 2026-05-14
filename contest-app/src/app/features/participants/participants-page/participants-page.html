@@ -34,7 +34,7 @@
         {{ team.name }}
       </button>
 
-        <p *ngIf="teams.length === 0" class="no-data">
+        <p *ngIf="teams && teams.length === 0" class="no-data">
           Команды ещё не добавлены
         </p>
       </div>

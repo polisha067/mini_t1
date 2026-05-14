@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { TeamService } from '../../../core/team.service';
@@ -21,37 +21,46 @@ export class ParticipantsPage implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private teamService: TeamService
+    private teamService: TeamService,
+    private cdr: ChangeDetectorRef
   ) {}
 
-ngOnInit(): void {
-  this.contestId = Number(this.route.snapshot.paramMap.get('contestId'));
-
-  if (this.contestId) {
-    this.loadTeams();
-  } else {
-    this.error = 'Конкурс не найден';
-    this.isLoading = false;
+  ngOnInit(): void {
+    // Подписываемся на ID, чтобы он не терялся при обновлении страницы
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('contestId') || params.get('id'); 
+      if (id) {
+        this.contestId = +id;
+        this.loadTeams();
+      }
+    });
   }
-}
 
   loadTeams(): void {
-    if (!this.contestId) return;
+      if (!this.contestId) return; // Проверка на null
 
-    this.isLoading = true;
-    this.teamService.getList(this.contestId, 1, 100)
-      .pipe(finalize(() => this.isLoading = false))
-      .subscribe({
-        next: (response: any) => {
-          const rawData = response?.teams || response?.data || response;
-          this.teams = Array.isArray(rawData) ? rawData : [];
-        },
-        error: (err) => {
-          console.error('Teams load error:', err);
-          this.error = 'Ошибка загрузки команд';
-        },
-      });
-  }
+      this.isLoading = true;
+      this.teamService.getList(this.contestId, 1, 100) // Теперь без ошибки типа
+        .pipe(
+          finalize(() => {
+            this.isLoading = false;
+            this.cdr.detectChanges(); // Принудительное обновление
+          })
+        )
+        .subscribe({
+          next: (response: any) => {
+            console.log('Полный ответ от бэкенда по командам:', response); // Посмотрим в консоль
+            
+            // Проверяем все возможные варианты, где могут лежать данные
+            this.teams = response?.teams || response?.data || (Array.isArray(response) ? response : []);
+            
+            this.cdr.detectChanges();
+          },
+          error: () => {
+            this.error = 'Ошибка загрузки команд';
+          }
+        });
+    }
 
 goBack(): void {
   if (this.contestId) {
