@@ -19,7 +19,7 @@ def _setup_contest_with_key(client):
     contest_id = contest["contest"]["id"]
 
     key_resp = client.post(
-        f"/api/contests/{contest_id}/access-key/generate",
+        f"/api/experts/contests/{contest_id}/access-key/generate",
         headers=org_headers,
     )
     assert key_resp.status_code == 200
@@ -42,14 +42,14 @@ def test_expert_join_with_key_lists_expert(client):
     eh = bearer(expert_token)
 
     join = client.post(
-        f"/api/contests/{contest_id}/join",
+        f"/api/experts/contests/{contest_id}/join",
         json={"access_key": access_key},
         headers=eh,
     )
     assert join.status_code == 201
 
     experts_resp = client.get(
-        f"/api/contests/{contest_id}/experts",
+        f"/api/experts/contests/{contest_id}/experts",
         headers=eh,
     )
     assert experts_resp.status_code == 200
@@ -67,7 +67,7 @@ def test_expert_join_with_key_lists_expert(client):
 def test_expert_join_wrong_key_400(client):
     contest_id, _, _, expert_token = _setup_contest_with_key(client)
     join = client.post(
-        f"/api/contests/{contest_id}/join",
+        f"/api/experts/contests/{contest_id}/join",
         json={"access_key": "wrong-key-xxxx"},
         headers=bearer(expert_token),
     )
@@ -77,7 +77,7 @@ def test_expert_join_wrong_key_400(client):
 def test_organizer_cannot_join_as_expert_endpoint(client):
     contest_id, access_key, org_headers, _ = _setup_contest_with_key(client)
     resp = client.post(
-        f"/api/contests/{contest_id}/join",
+        f"/api/experts/contests/{contest_id}/join",
         json={"access_key": access_key},
         headers=org_headers,
     )

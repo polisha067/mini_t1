@@ -1,43 +1,17 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flasgger import swag_from
-from app.extensions import db
-from app.models.contest import Contest
-from app.models.team import Team
+
+from app.services.team_service import TeamService
 from app.utils.decorators.rbac import role_required
-from app.utils.validators.team import validate_team_data
-from app.utils.errors import (
-    ValidationError,
-    NotFoundError,
-    ForbiddenError,
-    BadRequestError,
-)
 
 teams_bp = Blueprint('teams', __name__, url_prefix='/contests/<int:contest_id>/teams')
 teams_detail_bp = Blueprint('teams_detail', __name__, url_prefix='/teams')
 
+
 def _get_current_user_id() -> int:
-    """Получить ID текущего пользователя из JWT токена"""
     return int(get_jwt_identity())
 
-def _get_contest_or_404(contest_id: int) -> Contest:
-    """Получить конкурс или выбросить NotFoundError"""
-    contest = db.session.get(Contest, contest_id)
-    if not contest:
-        raise NotFoundError(f"Конкурс с id={contest_id} не найден")
-    return contest
-
-def _get_team_or_404(team_id: int) -> Team:
-    """Получить команду или выбросить NotFoundError"""
-    team = db.session.get(Team, team_id)
-    if not team:
-        raise NotFoundError(f"Команда с id={team_id} не найдена")
-    return team
-
-def _check_organizer_ownership(contest: Contest, user_id: int) -> None:
-    """Проверить, что пользователь - владелец конкурса"""
-    if contest.organizer_id != user_id:
-        raise ForbiddenError("Только организатор конкурса может выполнять это действие")
 
 @teams_bp.route('', methods=['POST'])
 @jwt_required()
@@ -45,53 +19,25 @@ def _check_organizer_ownership(contest: Contest, user_id: int) -> None:
 @swag_from('../specs/swagger/teams/create.yml')
 def create_team(contest_id: int):
     """Создание новой команды (только организатор может)"""
-
-    _get_contest_or_404(contest_id)
-
     data = request.get_json(silent=True)
-    if not data:
-        raise BadRequestError("Тело запроса должно быть в формате JSON")
-
-    valid, error = validate_team_data(data)
-    if not valid:
-        raise ValidationError(error)
-
-    team = Team(
-        name=data['name'].strip(),
-        description=data.get('description', '').strip() or None,
-        contest_id=contest_id
-    )
-
-    try:
-        db.session.add(team)
-        db.session.commit()
-    except Exception:
-        db.session.rollback()
-        raise
+    team = TeamService.create(contest_id, data)
 
     return jsonify({
         "status": "success",
         "message": "Команда успешно создана",
-        "team": team.to_dict() 
+        "team": team.to_dict()
     }), 201
+
 
 @teams_bp.route('', methods=['GET'])
 @jwt_required(optional=True)
 @swag_from('../specs/swagger/teams/list.yml')
 def list_teams(contest_id: int):
     """Получение списка всех команд с пагинацией"""
-
-    _get_contest_or_404(contest_id)
-
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
-    per_page = min(per_page, 100)  # Максимум 100 на страницу
 
-    query = Team.query.filter_by(contest_id=contest_id)
-    query = query.order_by(Team.created_at.desc())
-
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-
+    pagination = TeamService.get_list(contest_id, page, per_page)
     teams = [team.to_dict() for team in pagination.items]
 
     return jsonify({
@@ -107,17 +53,19 @@ def list_teams(contest_id: int):
         }
     }), 200
 
+
 @teams_detail_bp.route('/<int:team_id>', methods=['GET'])
 @jwt_required(optional=True)
 @swag_from('../specs/swagger/teams/detail.yml')
 def get_team(team_id: int):
     """Получение деталей команды по ID"""
-    team = _get_team_or_404(team_id)
+    team = TeamService.get_by_id(team_id)
 
     return jsonify({
         "status": "success",
         "team": team.to_dict()
     }), 200
+
 
 @teams_detail_bp.route('/<int:team_id>', methods=['PUT'])
 @jwt_required()
@@ -125,30 +73,9 @@ def get_team(team_id: int):
 @swag_from('../specs/swagger/teams/update.yml')
 def update_team(team_id: int):
     """Обновление команды (только для организатора конкурса)"""
-
-    team = _get_team_or_404(team_id)
-    contest = _get_contest_or_404(team.contest_id)
-    user_id = _get_current_user_id()
-    _check_organizer_ownership(contest, user_id)
-
     data = request.get_json(silent=True)
-    if not data:
-        raise BadRequestError("Тело запроса должно быть в формате JSON")
-
-    valid, error = validate_team_data(data)
-    if not valid:
-        raise ValidationError(error)
-
-    if 'name' in data:
-        team.name = data['name'].strip()
-    if 'description' in data:
-        team.description = data['description'].strip() or None
-
-    try:
-        db.session.commit()
-    except Exception:
-        db.session.rollback()
-        raise
+    user_id = _get_current_user_id()
+    team = TeamService.update(team_id, data, user_id)
 
     return jsonify({
         "status": "success",
@@ -156,23 +83,15 @@ def update_team(team_id: int):
         "team": team.to_dict()
     }), 200
 
+
 @teams_detail_bp.route('/<int:team_id>', methods=['DELETE'])
 @jwt_required()
 @role_required('organizer')
 @swag_from('../specs/swagger/teams/delete.yml')
 def delete_team(team_id: int):
     """Удаление команды и всех связанных оценок"""
-    team = _get_team_or_404(team_id)
-    contest = _get_contest_or_404(team.contest_id)
     user_id = _get_current_user_id()
-    _check_organizer_ownership(contest, user_id)
-
-    try:
-        db.session.delete(team)
-        db.session.commit()
-    except Exception:
-        db.session.rollback()
-        raise
+    team = TeamService.delete(team_id, user_id)
 
     return jsonify({
         "status": "success",

@@ -32,7 +32,7 @@ def _full_setup(client):
     criterion_id = crit["criterion"]["id"]
 
     key = client.post(
-        f"/api/contests/{contest_id}/access-key/generate",
+        f"/api/experts/contests/{contest_id}/access-key/generate",
         headers=org_headers,
     ).get_json()["access_key"]
 
@@ -46,7 +46,7 @@ def _full_setup(client):
     expert_headers = bearer(login_token(client, "exp_gr@example.com", "secret12"))
 
     join = client.post(
-        f"/api/contests/{contest_id}/join",
+        f"/api/experts/contests/{contest_id}/join",
         json={"access_key": key},
         headers=expert_headers,
     )
