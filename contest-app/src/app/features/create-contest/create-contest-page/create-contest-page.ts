@@ -5,6 +5,9 @@ import { Router } from '@angular/router';
 import flatpickr from 'flatpickr';
 import { Russian } from 'flatpickr/dist/l10n/ru';
 import { ContestService } from '../../../core/contest.service';
+import { forkJoin } from 'rxjs';
+import { TeamService } from '../../../core/team.service';
+import { CriterionService } from '../../../core/criterion.service';
 
 @Component({
   selector: 'app-create-contest-page',
@@ -38,7 +41,9 @@ export class CreateContestPage implements AfterViewInit {
 
   constructor(
     private router: Router,
-    private contestService: ContestService
+    private contestService: ContestService,
+    private teamService: TeamService,
+    private criterionService: CriterionService
   ) {}
 
   ngAfterViewInit(): void {
@@ -136,32 +141,76 @@ export class CreateContestPage implements AfterViewInit {
     this.router.navigate(['/account/organizer']);
   }
   onSubmit(): void {
-  if (!this.name.trim()) {
-    this.error = 'Введите название конкурса';
-    return;
-  }
+      if (!this.name.trim()) {
+        this.error = 'Введите название конкурса';
+        return;
+      }
 
-  this.isSubmitting = true;
-  this.error = null;
+      this.isSubmitting = true;
+      this.error = null;
 
-  this.generateAccessKey();
+      this.generateAccessKey();
 
-  const formData = new FormData();
-  formData.append('name', this.name.trim());
-  if (this.description.trim()) formData.append('description', this.description.trim());
-  if (this.startDate) formData.append('start_date', this.startDate);
-  if (this.endDate) formData.append('end_date', this.endDate);
-  if (this.selectedFile) formData.append('logo', this.selectedFile);
+      const formData = new FormData();
+      formData.append('name', this.name.trim());
+      if (this.description.trim()) formData.append('description', this.description.trim());
+      if (this.startDate) formData.append('start_date', this.startDate);
+      if (this.endDate) formData.append('end_date', this.endDate);
+      if (this.selectedFile) formData.append('logo', this.selectedFile);
 
-  if (this.generatedAccessKey) {
-    formData.append('access_key', this.generatedAccessKey);
-  }
+      if (this.generatedAccessKey) {
+        formData.append('access_key', this.generatedAccessKey);
+      }
 
-  this.contestService.create(formData).subscribe({
-    next: (response: any) => {
-      const contestId = response.contest?.id || response.id;
-      const key = this.generatedAccessKey;
-      
+      // 1. Создаем конкурс
+      this.contestService.create(formData).subscribe({
+        next: (response: any) => {
+          const contestId = response.contest?.id || response.id;
+          const key = this.generatedAccessKey;
+
+          // Отфильтруем пустые строки, которые пользователь мог не заполнить
+          const validTeams = this.teams.filter(t => t.name.trim() !== '');
+          const validCriteria = this.criteria.filter(c => c.name.trim() !== '');
+
+          const requests: any[] = [];
+
+          // 2. Собираем запросы на создание команд
+          validTeams.forEach(team => {
+            requests.push(this.teamService.create(contestId, { name: team.name }));
+          });
+
+          // 3. Собираем запросы на создание критериев
+          validCriteria.forEach(crit => {
+            requests.push(this.criterionService.create(contestId, { 
+              name: crit.name, 
+              description: crit.description, 
+              max_score: crit.max_score 
+            }));
+          });
+
+          // 4. Если есть что сохранять - сохраняем всё разом
+          if (requests.length > 0) {
+            forkJoin(requests).subscribe({
+              next: () => this.finishCreation(contestId, key),
+              error: (err) => {
+                this.isSubmitting = false;
+                this.error = 'Конкурс создан, но произошла ошибка при сохранении команд или критериев.';
+              }
+            });
+          } else {
+            // Если пользователь не добавил ни команд, ни критериев — просто переходим дальше
+            this.finishCreation(contestId, key);
+          }
+        },
+        error: (err: any) => {
+          this.isSubmitting = false;
+          this.error = err.error?.error?.message || 'Ошибка при создании конкурса';
+        }
+      });
+    }
+
+    // Вспомогательный метод для редиректа
+    private finishCreation(contestId: number, key: string | null): void {
       this.router.navigate(['/contest-created'], {
         queryParams: {
           id: contestId,
@@ -169,10 +218,4 @@ export class CreateContestPage implements AfterViewInit {
           name: this.name.trim()
         }
       });
-    },
-    error: (err: any) => {
-      this.isSubmitting = false;
-      this.error = err.error?.error?.message || 'Ошибка при создании конкурса';
-    }
-  });
-}}
+    }}
