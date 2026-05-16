@@ -1,12 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 import { TeamService } from '../../../core/team.service';
 import { CriterionService } from '../../../core/criterion.service';
 import { GradeService } from '../../../core/grade.service';
+import { ContestService } from '../../../core/contest.service';
 import { AuthService } from '../../../shared/services/auth.service';
 import { Team, Criterion, Grade } from '../../../shared/models/contest.model';
+
+function flaskErrorMessage(err: unknown): string | null {
+  const e = err as { error?: { error?: { message?: string }; message?: string } };
+  return e?.error?.error?.message || e?.error?.message || null;
+}
 
 @Component({
   selector: 'app-evaluation-page',
@@ -16,18 +24,17 @@ import { Team, Criterion, Grade } from '../../../shared/models/contest.model';
   styleUrl: './evaluation-page.scss',
 })
 export class EvaluationPage implements OnInit {
+  contestId: number | null = null;
+  contestTitle: string | null = null;
   teams: Team[] = [];
   criteria: Criterion[] = [];
   isLoading = true;
   error: string | null = null;
 
-  // Выбранная команда
   selectedTeam: Team | null = null;
 
-  // Оценки: criterionId -> { value, comment }
   grades: Record<number, { value: number | null; comment: string }> = {};
 
-  // Уже выставленные оценки (для редактирования)
   existingGrades: Record<number, Grade> = {};
 
   isSubmitting = false;
@@ -39,43 +46,84 @@ export class EvaluationPage implements OnInit {
     private teamService: TeamService,
     private criterionService: CriterionService,
     private gradeService: GradeService,
-    private authService: AuthService
+    private contestService: ContestService,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    const idParam = this.route.snapshot.queryParamMap.get('contestId');
+    this.contestId = idParam ? +idParam : null;
+    if (!this.contestId || !Number.isFinite(this.contestId)) {
+      this.isLoading = false;
+      this.error =
+        'Не указан конкурс. Откройте оценивание из личного кабинета эксперта (список конкурсов).';
+      return;
+    }
     this.loadData();
   }
 
   loadData(): void {
+    if (!this.contestId) {
+      return;
+    }
     this.isLoading = true;
-    const idParam = this.route.snapshot.queryParamMap.get('contestId');
-    const contestId = idParam ? +idParam : 1; 
+    this.error = null;
 
-    // Загружаем команды и критерии параллельно
-    this.teamService.getList(contestId, 1, 100).subscribe({
-      next: (response) => {
-        this.teams = response['teams'] as Team[];
-        this.loadCriteria(contestId);
-      },
-      error: () => {
-        this.teams = [];
-        this.loadCriteria(contestId);
-      },
-    });
-  }
+    forkJoin({
+      meta: this.contestService.getById(this.contestId).pipe(catchError(() => of(null))),
+      teams: this.teamService.getList(this.contestId, 1, 100).pipe(
+        catchError((err) => {
+          if (!this.error) {
+            this.error = flaskErrorMessage(err);
+          }
+          return of({ teams: [] as Team[] });
+        })
+      ),
+      criteria: this.criterionService.getList(this.contestId, 1, 100).pipe(
+        catchError((err) => {
+          if (!this.error) {
+            this.error = flaskErrorMessage(err);
+          }
+          return of({ criteria: [] as Criterion[] });
+        })
+      ),
+    })
+      .pipe(
+          finalize(() => {
+            this.isLoading = false;
+            this.cdr.detectChanges(); // <-- Принудительно убираем загрузку на UI
+          })
+        )
+        .subscribe({
+          next: (bundle) => {
+            const meta = bundle.meta as {
+              contest?: { name?: string };
+              data?: { name?: string };
+            } | null;
+            const c = meta?.contest || meta?.data;
+            this.contestTitle = c?.name ?? null;
 
-  loadCriteria(contestId: number): void {
-    this.criterionService.getList(contestId, 1, 100).subscribe({
-      next: (response) => {
-        this.criteria = response['criteria'] as Criterion[];
-        this.initGrades();
-        this.isLoading = false;
-      },
-      error: () => {
-        this.criteria = [];
-        this.isLoading = false;
-      },
-    });
+            const tr = bundle.teams as { teams?: Team[] };
+            const cr = bundle.criteria as { criteria?: Criterion[] };
+            this.teams = Array.isArray(tr?.teams) ? tr.teams : [];
+            this.criteria = Array.isArray(cr?.criteria) ? cr.criteria : [];
+
+            this.initGrades();
+
+            if (!this.error && this.teams.length === 0 && this.criteria.length === 0) {
+              this.error =
+                'Нет команд или критериев для оценивания. Если вы только что присоединились — обновите страницу.';
+            }
+            this.cdr.detectChanges(); // <-- Обновляем данные на UI
+          },
+          error: (err) => {
+            if (!this.error) {
+              this.error = flaskErrorMessage(err);
+            }
+            this.cdr.detectChanges(); // <-- Показываем ошибку на UI
+          },
+        });
   }
 
   initGrades(): void {
@@ -91,10 +139,9 @@ export class EvaluationPage implements OnInit {
     this.error = null;
     this.initGrades();
 
-    // Загружаем уже выставленные оценки для этой команды
     this.gradeService.getTeamGrades(team.id, 1, 100).subscribe({
       next: (response) => {
-        const grades = response['grades'] as Grade[];
+        const grades = (response as { grades?: Grade[] }).grades ?? [];
         this.existingGrades = {};
         grades.forEach((g) => {
           this.existingGrades[g.criterion_id] = g;
@@ -116,8 +163,7 @@ export class EvaluationPage implements OnInit {
       return;
     }
 
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) {
+    if (!this.authService.getCurrentUser()) {
       this.error = 'Необходимо авторизоваться';
       return;
     }
@@ -126,7 +172,6 @@ export class EvaluationPage implements OnInit {
     this.error = null;
     this.successMessage = null;
 
-    // Собираем критерии, у которых есть оценка
     const entries = Object.entries(this.grades).filter(
       ([_, g]) => g.value !== null && g.value !== undefined
     );
@@ -140,60 +185,48 @@ export class EvaluationPage implements OnInit {
     let completed = 0;
     let hasError = false;
 
+    const saveDone = () => {
+      completed++;
+      if (completed === entries.length && !hasError) {
+        this.isSubmitting = false;
+        this.successMessage = 'Оценки успешно сохранены';
+        this.initGrades();
+      }
+    };
+
+    const saveErr = (err: unknown) => {
+      hasError = true;
+      completed++;
+      this.error = flaskErrorMessage(err) || 'Ошибка при сохранении';
+      this.isSubmitting = false;
+    };
+
     entries.forEach(([criterionIdStr, gradeData]) => {
       const criterionId = +criterionIdStr;
       const existingGrade = this.existingGrades[criterionId];
 
       if (existingGrade) {
-        // Обновляем существующую оценку
-        this.gradeService.update(existingGrade.id, {
-          value: gradeData.value!,
-          comment: gradeData.comment || undefined,
-        }).subscribe({
-          next: () => {
-            completed++;
-            if (completed === entries.length && !hasError) {
-              this.isSubmitting = false;
-              this.successMessage = 'Оценки успешно сохранены';
-              this.initGrades();
-            }
-          },
-          error: (err) => {
-            hasError = true;
-            completed++;
-            this.error = err.error?.error?.message || 'Ошибка при сохранении';
-            this.isSubmitting = false;
-          },
-        });
+        this.gradeService
+          .update(existingGrade.id, {
+            value: gradeData.value!,
+            comment: gradeData.comment || undefined,
+          })
+          .subscribe({ next: saveDone, error: saveErr });
       } else {
-        // Создаём новую оценку
-        this.gradeService.create({
-          team_id: this.selectedTeam!.id,
-          criterion_id: criterionId,
-          value: gradeData.value!,
-          comment: gradeData.comment || undefined,
-        }).subscribe({
-          next: () => {
-            completed++;
-            if (completed === entries.length && !hasError) {
-              this.isSubmitting = false;
-              this.successMessage = 'Оценки успешно сохранены';
-              this.initGrades();
-            }
-          },
-          error: (err) => {
-            hasError = true;
-            completed++;
-            this.error = err.error?.error?.message || 'Ошибка при сохранении';
-            this.isSubmitting = false;
-          },
-        });
+        this.gradeService
+          .create({
+            team_id: this.selectedTeam!.id,
+            criterion_id: criterionId,
+            value: gradeData.value!,
+            comment: gradeData.comment || undefined,
+          })
+          .subscribe({ next: saveDone, error: saveErr });
       }
     });
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/account/expert']);
   }
 
   canSubmit(): boolean {

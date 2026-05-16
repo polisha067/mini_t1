@@ -50,6 +50,25 @@ h1 {
   letter-spacing: -0.02em;
 }
 
+.evaluation-banner {
+  margin: -16px 0 24px;
+  padding: 14px 18px;
+  background: #fff8e6;
+  border: 1px solid #e6d59a;
+  border-radius: 12px;
+  color: #5c4a00;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.section-hint {
+  margin: -8px 0 16px;
+  font-size: 14px;
+  color: #5a5a7a;
+  line-height: 1.4;
+}
+
 .profile-card {
   max-width: 640px;
   background: #ffffff;

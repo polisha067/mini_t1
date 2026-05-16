@@ -38,7 +38,6 @@ export class ContestListComponent implements OnInit {
     this.contestService.getList(1, 100).subscribe({
       next: (response) => {
         const contests = (response['contests'] || []) as Contest[];
-        console.log('КОНКУРСЫ:', contests);
 
         this.contests = [...contests];
         this.filteredContests = [...contests];
@@ -46,9 +45,7 @@ export class ContestListComponent implements OnInit {
 
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error('Failed to load contests:', err);
-
+      error: () => {
         this.contests = [];
         this.filteredContests = [];
         this.isLoading = false;

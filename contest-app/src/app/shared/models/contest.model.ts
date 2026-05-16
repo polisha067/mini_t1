@@ -92,6 +92,12 @@ export interface PaginatedResponse<T> extends ApiResponse<T> {
   [key: string]: any; // Позволяет динамические поля (teams, criteria, grades и т.д.)
 }
 
+/** GET /api/experts/me/contests */
+export interface ExpertContestsResponse {
+  status: string;
+  contests: Contest[];
+}
+
 export interface AuthResponse {
   status: string;
   access_token?: string;

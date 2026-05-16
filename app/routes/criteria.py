@@ -13,6 +13,16 @@ def _get_current_user_id() -> int:
     return int(get_jwt_identity())
 
 
+def _optional_current_user_id():
+    ident = get_jwt_identity()
+    if ident is None:
+        return None
+    try:
+        return int(ident)
+    except (TypeError, ValueError):
+        return None
+
+
 @criteria_bp.route('', methods=['POST'])
 @jwt_required()
 @role_required('organizer')
@@ -35,7 +45,8 @@ def create_criterion(contest_id: int):
 @swag_from('../specs/swagger/criteria/list.yml')
 def list_criteria(contest_id: int):
     """Получение списка всех критериев конкурса"""
-    criteria = CriterionService.get_list(contest_id)
+    viewer_id = _optional_current_user_id()
+    criteria = CriterionService.get_list(contest_id, viewer_user_id=viewer_id)
 
     return jsonify({
         "status": "success",

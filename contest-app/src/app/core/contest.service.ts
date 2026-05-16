@@ -7,6 +7,7 @@ import {
   PaginatedResponse,
   ApiResponse,
   VotingStatus,
+  ExpertContestsResponse,
 } from '../shared/models/contest.model';
 
 @Injectable({
@@ -75,8 +76,8 @@ export class ContestService {
     );
   }
 
-  getMyExpertContests(): Observable<ApiResponse<Contest[]>> {
-    return this.http.get<ApiResponse<Contest[]>>('/api/experts/me/contests');
+  getMyExpertContests(): Observable<ExpertContestsResponse> {
+    return this.http.get<ExpertContestsResponse>('/api/experts/me/contests');
   }
 }
 

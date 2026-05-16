@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -9,10 +9,13 @@ import { ActivatedRoute, Router } from '@angular/router';
   templateUrl: './contest-created-page.html',
   styleUrl: './contest-created-page.scss',
 })
-export class ContestCreatedPage implements OnInit {
+export class ContestCreatedPage implements OnInit, OnDestroy {
   contestId: number | null = null;
   accessKey: string | null = null;
   contestName: string | null = null;
+
+  copyToastMessage: string | null = null;
+  private copyToastTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -29,10 +32,20 @@ export class ContestCreatedPage implements OnInit {
     }
   }
 
-  copyKey(): void {
-    if (this.accessKey) {
-      navigator.clipboard.writeText(this.accessKey);
+  ngOnDestroy(): void {
+    if (this.copyToastTimer !== null) {
+      clearTimeout(this.copyToastTimer);
     }
+  }
+
+  copyKey(): void {
+    if (!this.accessKey) {
+      return;
+    }
+    navigator.clipboard.writeText(this.accessKey).then(
+      () => this.showCopyToast('Ключ доступа для эксперта скопирован'),
+      () => this.showCopyToast('Не удалось скопировать — выделите ключ вручную')
+    );
   }
 
   copyId(): void {
@@ -49,5 +62,16 @@ export class ContestCreatedPage implements OnInit {
     if (this.contestId) {
       this.router.navigate(['/contest', this.contestId]);
     }
+  }
+
+  private showCopyToast(message: string): void {
+    if (this.copyToastTimer !== null) {
+      clearTimeout(this.copyToastTimer);
+    }
+    this.copyToastMessage = message;
+    this.copyToastTimer = setTimeout(() => {
+      this.copyToastMessage = null;
+      this.copyToastTimer = null;
+    }, 2600);
   }
 }

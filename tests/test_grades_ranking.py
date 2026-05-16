@@ -72,11 +72,18 @@ def test_expert_create_grade_and_list_by_team(client):
     g = grade_post.get_json()["grade"]
     assert g["value"] == 8
 
-    listed = client.get(f"/api/teams/{team_id}/grades")
+    listed = client.get(f"/api/teams/{team_id}/grades", headers=eh)
     assert listed.status_code == 200
     grades = listed.get_json()["grades"]
     assert len(grades) == 1
     assert grades[0]["value"] == 8
+
+
+def test_list_team_grades_requires_auth(client):
+    """Без JWT список оценок команды недоступен."""
+    _, team_id, _, _ = _full_setup(client)
+    r = client.get(f"/api/teams/{team_id}/grades")
+    assert r.status_code == 401
 
 
 def test_ranking_includes_team_after_grade(client):

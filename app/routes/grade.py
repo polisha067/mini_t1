@@ -32,11 +32,12 @@ def create_grade():
 
 
 @grades_by_team_bp.route('', methods=['GET'])
-@jwt_required(optional=True)
+@jwt_required()
 @swag_from('../specs/swagger/grades/list.yml')
 def list_grades(team_id: int):
-    """Получение всех оценок команды"""
-    grades = GradeService.get_list_by_team(team_id)
+    """Оценки команды (эксперт — свои; организатор конкурса — все по команде)"""
+    viewer_id = _get_current_user_id()
+    grades = GradeService.get_list_by_team(team_id, viewer_user_id=viewer_id)
 
     return jsonify({
         "status": "success",

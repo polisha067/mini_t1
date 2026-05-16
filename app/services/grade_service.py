@@ -4,6 +4,7 @@ from app.models.team import Team
 from app.models.criterion import Criterion
 from app.models.contest import Contest
 from app.models.contest_expert import ContestExpert
+from app.models.user import User
 from app.utils.validators.grade import validate_grade_data
 from app.utils.errors import (
     ValidationError,
@@ -102,11 +103,32 @@ class GradeService:
         return grade
 
     @staticmethod
-    def get_list_by_team(team_id: int) -> list:
-        """Получение всех оценок команды"""
-        GradeService._get_team_or_404(team_id)
+    def get_list_by_team(team_id: int, viewer_user_id: int) -> list:
+        """Оценки команды: эксперт видит только свои; организатор конкурса — все."""
+        team = GradeService._get_team_or_404(team_id)
+        contest = db.session.get(Contest, team.contest_id)
+        if not contest:
+            raise NotFoundError(f"Конкурс для команды {team_id} не найден")
 
-        query = Grade.query.filter_by(team_id=team_id)
+        user = db.session.get(User, viewer_user_id)
+        if not user:
+            raise ForbiddenError("Пользователь не найден")
+
+        if user.role == "expert":
+            if not ContestExpert.query.filter_by(
+                contest_id=team.contest_id, user_id=viewer_user_id
+            ).first():
+                raise ForbiddenError(
+                    "Сначала присоединитесь к конкурсу по ключу в личном кабинете эксперта."
+                )
+            query = Grade.query.filter_by(team_id=team_id, expert_id=viewer_user_id)
+        elif user.role == "organizer":
+            if contest.organizer_id != viewer_user_id:
+                raise ForbiddenError("Вы не организатор этого конкурса")
+            query = Grade.query.filter_by(team_id=team_id)
+        else:
+            raise ForbiddenError("Недостаточно прав")
+
         query = query.order_by(Grade.id.asc())
         return query.all()
 

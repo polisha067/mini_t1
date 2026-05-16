@@ -5,6 +5,37 @@
   align-items: center;
   justify-content: center;
   padding: 32px;
+  position: relative;
+}
+
+.copy-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 14px 22px;
+  background: #34345a;
+  color: #fff;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.35;
+  box-shadow: 0 10px 32px rgba(52, 52, 90, 0.38);
+  animation: copy-toast-in 0.28s ease;
+}
+
+@keyframes copy-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .success-content {

@@ -6,8 +6,8 @@ import { TeamService } from '../../../core/team.service';
 import { RankingService } from '../../../core/ranking.service';
 import { AuthService } from '../../../shared/services/auth.service';
 import { Contest, Team, RankingEntry } from '../../../shared/models/contest.model';
-import { forkJoin, of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
+import { catchError, finalize, switchMap, timeout } from 'rxjs/operators';
+import { of, TimeoutError } from 'rxjs';
 import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
@@ -54,47 +54,74 @@ export class ContestDetailsPage implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.contestService.getById(this.contestId)
-      .pipe(finalize(() => {
-        if (this.error) this.isLoading = false;
-      }))
+    this.contestService
+      .getById(this.contestId)
+      .pipe(
+        timeout(20_000),
+        switchMap((response: any) => {
+          this.contest =
+            response?.contest || response?.data || (response?.id ? response : null);
+          if (!this.contest) {
+            this.error = 'Конкурс не найден';
+            return of(null);
+          }
+          return this.rankingService.getRanking(this.contestId, 1, 100).pipe(
+            timeout(20_000),
+            catchError(() => {
+              return this.teamService.getList(this.contestId, 1, 100).pipe(
+                timeout(20_000),
+                catchError(() => {
+                  this.error = 'Не удалось загрузить таблицу и список команд';
+                  return of(null);
+                })
+              );
+            })
+          );
+        }),
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges(); // Твой ручной запуск проверки изменений, чтобы верстка точно обновилась
+        })
+      )
       .subscribe({
         next: (response: any) => {
-          this.contest = response?.contest || response?.data || (response?.id ? response : null);
-          this.loadTeamsAndRanking();
+          if (response === null) {
+            this.cdr.detectChanges();
+            return;
+          }
+          if (response?.ranking !== undefined) {
+            const data = response?.ranking || response?.data || response;
+            this.ranking = Array.isArray(data) ? data : [];
+            this.cdr.detectChanges();
+            return;
+          }
+          const teamData = response?.teams || response?.data || response;
+          this.teams = Array.isArray(teamData) ? teamData : [];
+          this.ranking = this.teams.map((t, i) => ({
+            rank: i + 1,
+            team_id: t.id,
+            team_name: t.name,
+            total_score: 0,
+            grades_count: 0,
+          }));
+          this.cdr.detectChanges();
         },
-        error: (err: any) => {
+        error: (err: unknown) => {
           console.error('API Error:', err);
-          this.error = 'Ошибка при получении данных конкурса';
-          this.isLoading = false;
+          const isTimeout =
+            err instanceof TimeoutError ||
+            (typeof err === 'object' &&
+              err !== null &&
+              (err as { name?: string }).name === 'TimeoutError');
+          if (isTimeout) {
+            this.error =
+              'Сервер не ответил вовремя. Убедитесь, что API запущен (часто http://localhost:5000) и что вы открываете приложение с того же хоста, куда настроен proxy в ng serve.';
+          } else if (!this.error) {
+            this.error = 'Ошибка при получении данных конкурса';
+          }
+          this.cdr.detectChanges();
         },
       });
-  }
-
-  loadTeamsAndRanking(): void {
-    this.isLoading = true;
-
-    forkJoin({
-      rankingData: this.rankingService.getRanking(this.contestId, 1, 100).pipe(
-        catchError(() => of({ ranking: [] }))
-      ),
-      teamsData: this.teamService.getList(this.contestId, 1, 100).pipe(
-        catchError(() => of({ teams: [] }))
-      )
-    })
-    .pipe(finalize(() => {
-      this.isLoading = false;
-      this.cdr.detectChanges(); 
-    }))
-    .subscribe({
-      next: (result) => {
-        this.ranking = result.rankingData?.ranking || [];
-        this.teams = result.teamsData?.teams || [];
-        
-        this.cdr.detectChanges(); 
-        console.log('Данные отрисованы на странице');
-      }
-    });
   }
 
   goBack(): void {
@@ -147,7 +174,7 @@ export class ContestDetailsPage implements OnInit {
       },
       error: (err: any) => {
         alert('Ошибка при генерации ключа: ' + (err.error?.error?.message || err.message));
-      }
+      },
     });
   }
 }
