@@ -90,12 +90,17 @@
 }
 
 .contest-subtitle {
-  margin: -20px 0 28px;
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: #5a5a7a;
+  margin: -16px auto 32px;
+  padding: 8px 24px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #34345a;
+  background: #ffffff;
+  border-radius: 100px; 
+  box-shadow: 0 4px 12px rgba(52, 52, 90, 0.08); 
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   text-align: center;
-  max-width: 640px;
 }
 
 .page-error-box {
@@ -117,4 +122,226 @@
   flex: 1; // ← ключевая строка (растягивает вниз)
   background: #d8d3c2;
   border-radius: 24px;
+}
+/* =========================================
+   ВЫБОР КОМАНДЫ (Сетка карточек)
+   ========================================= */
+.team-selection {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.section-label {
+  font-size: 24px;
+  font-weight: 700;
+  color: #34345a;
+  margin-bottom: 24px;
+}
+
+.teams-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+.team-card {
+  background-color: #ffffff;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 16px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  font-size: 16px;
+  font-weight: 600;
+  color: #34345a;
+  font-family: inherit;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: #34345a;
+    box-shadow: 0 8px 15px rgba(52, 52, 90, 0.15);
+  }
+}
+
+.no-data {
+  color: #5a5a7a;
+  font-style: italic;
+  margin-top: 20px;
+}
+
+.evaluation-box {
+  width: 100%;
+  max-width: 1000px;
+  flex: 1;
+  background: #d8d3c2;
+  border-radius: 24px;
+  padding: 32px 40px;
+  box-sizing: border-box;
+  overflow-y: auto; 
+  margin-bottom: 20px;
+}
+
+.team-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #34345a;
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+.team-description {
+  text-align: center;
+  color: #5a5a7a;
+  margin-bottom: 32px;
+  font-size: 16px;
+}
+
+.grades-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.grade-row {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.criterion-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.criterion-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #34345a;
+}
+
+.criterion-desc {
+  font-size: 14px;
+  color: #5a5a7a;
+}
+
+.criterion-max {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8c8caa;
+  text-transform: uppercase;
+}
+
+.grade-inputs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.grade-value {
+  width: 70px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #34345a;
+  text-align: center;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: #34345a;
+  }
+}
+
+.grade-comment {
+  width: 250px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: #34345a;
+  }
+}
+
+.actions-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.submit-btn {
+  background: #34345a;
+  color: #ffffff;
+  border: none;
+  padding: 16px 40px;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+  font-family: inherit;
+
+  &:hover:not([disabled]) {
+    transform: translateY(-2px);
+    opacity: 0.95;
+  }
+
+  &:disabled {
+    background: #a0a0b5;
+    cursor: not-allowed;
+  }
+}
+
+.back-to-teams-btn {
+  background: transparent;
+  border: none;
+  color: #5a5a7a;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #34345a;
+    text-decoration: underline;
+  }
+}
+
+.success-message {
+  margin-top: 20px;
+  padding: 12px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.error-message {
+  margin-top: 20px;
+  padding: 12px;
+  background: #fdeaea;
+  color: #7a2a2a;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 600;
 }
