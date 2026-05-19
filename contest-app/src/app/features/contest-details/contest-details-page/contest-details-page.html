@@ -3,20 +3,16 @@
     <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
       <span class="arrow">←</span>
     </button>
-
     <button class="account-button" type="button" *ngIf="isOrganizer()" (click)="goToParticipants()">
       УЧАСТНИКИ
     </button>
-
     <button class="account-button" type="button" *ngIf="isExpert()" (click)="goToEvaluation()">
       ОЦЕНИВАНИЕ
     </button>
   </header>
 
   <main class="contest-details-content">
-    <h1 class="page-title">
-      КОНКУРСНАЯ ТАБЛИЦА
-    </h1>
+    <h1 class="page-title">КОНКУРСНАЯ ТАБЛИЦА</h1>
 
     <div *ngIf="isLoading" class="loading-box">
       <p>Загрузка...</p>
@@ -49,31 +45,32 @@
       </section>
 
       <section class="rating-box">
-        <div class="top-three" *ngIf="ranking && ranking.length > 0">
-          <div class="place place-third" *ngIf="ranking.length >= 3">
-            <div class="team-name">{{ ranking[2].team_name }}</div>
-            <div class="place-card light-card">3</div>
-            <div class="team-score">{{ ranking[2].total_score }}</div>
-          </div>
-
-          <div class="place place-first" *ngIf="ranking.length >= 1">
-            <div class="team-name">{{ ranking[0].team_name }}</div>
-            <div class="place-card gold-card">1</div>
-            <div class="team-score">{{ ranking[0].total_score }}</div>
-          </div>
-
-          <div class="place place-second" *ngIf="ranking.length >= 2">
+        <div class="podium" *ngIf="ranking && ranking.length > 0">
+          
+          <div class="podium-card second" *ngIf="ranking.length >= 2">
+            <div class="rank-badge">2</div>
             <div class="team-name">{{ ranking[1].team_name }}</div>
-            <div class="place-card dark-card">2</div>
-            <div class="team-score">{{ ranking[1].total_score }}</div>
+            <div class="score-pill">{{ ranking[1].total_score }}</div>
+          </div>
+
+          <div class="podium-card first" *ngIf="ranking.length >= 1">
+            <div class="rank-badge">1</div>
+            <div class="team-name">{{ ranking[0].team_name }}</div>
+            <div class="score-pill">{{ ranking[0].total_score }}</div>
+          </div>
+
+          <div class="podium-card third" *ngIf="ranking.length >= 3">
+            <div class="rank-badge">3</div>
+            <div class="team-name">{{ ranking[2].team_name }}</div>
+            <div class="score-pill">{{ ranking[2].total_score }}</div>
           </div>
         </div>
 
-        <div class="other-places" *ngIf="ranking && ranking.length > 3">
-          <div class="other-place" *ngFor="let entry of ranking.slice(3)">
-            <div class="mini-card">{{ entry.rank }}</div>
-            <div class="mini-team-name">{{ entry.team_name }}</div>
-            <div class="mini-score">{{ entry.total_score }}</div>
+        <div class="ranking-list" *ngIf="ranking && ranking.length > 3">
+          <div class="ranking-row" *ngFor="let entry of ranking.slice(3)">
+            <div class="row-rank">{{ entry.rank }}</div>
+            <div class="row-team">{{ entry.team_name }}</div>
+            <div class="row-score">{{ entry.total_score }}</div>
           </div>
         </div>
 
