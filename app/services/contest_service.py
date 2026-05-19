@@ -30,7 +30,48 @@ class ContestService:
         contest = db.session.get(Contest, contest_id)
         if not contest:
             raise NotFoundError(f"Конкурс с id={contest_id} не найден")
+            
+        ContestService._check_and_update_status(contest)
         return contest
+
+    @staticmethod
+    def _check_and_update_status(contest: Contest) -> bool:
+        """Проверяет, нужно ли завершить конкурс (по дате или если все эксперты проголосовали), и обновляет статус"""
+        if contest.is_finished:
+            return True
+
+        should_finish = False
+        
+        # 1. Проверка по дате окончания
+        if contest.end_date:
+            from datetime import datetime, UTC
+            now = datetime.now(UTC)
+            end_date = contest.end_date
+            if end_date.tzinfo is None:
+                now = now.replace(tzinfo=None)
+            if end_date < now:
+                should_finish = True
+
+        # 2. Проверка, все ли эксперты проголосовали
+        if not should_finish:
+            teams_count = Team.query.filter_by(contest_id=contest.id).count()
+            criteria_count = Criterion.query.filter_by(contest_id=contest.id).count()
+            experts_count = ContestExpert.query.filter_by(contest_id=contest.id).count()
+
+            expected_grades = teams_count * criteria_count * experts_count
+            if expected_grades > 0:
+                actual_grades = Grade.query.join(Team).filter(Team.contest_id == contest.id).count()
+                if actual_grades >= expected_grades:
+                    should_finish = True
+
+        if should_finish:
+            contest.is_finished = True
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                
+        return contest.is_finished
 
     @staticmethod
     def _check_ownership(contest: Contest, user_id: int) -> None:
@@ -104,7 +145,27 @@ class ContestService:
             query = query.filter_by(organizer_id=organizer_id)
 
         query = query.order_by(Contest.created_at.desc())
-        return query.paginate(page=page, per_page=per_page, error_out=False)
+        paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+        
+        # Проверяем только дату для автоматического завершения (без N+1 запросов)
+        from datetime import datetime, UTC
+        now = datetime.now(UTC)
+        changed = False
+        for c in paginated.items:
+            if not c.is_finished and c.end_date:
+                end = c.end_date
+                current_now = now.replace(tzinfo=None) if end.tzinfo is None else now
+                if end < current_now:
+                    c.is_finished = True
+                    changed = True
+        
+        if changed:
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                
+        return paginated
 
     @staticmethod
     def get_by_id(contest_id: int) -> Contest:
