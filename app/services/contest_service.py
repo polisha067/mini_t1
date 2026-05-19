@@ -265,19 +265,26 @@ class ContestService:
         """Статус голосования"""
         contest = ContestService._get_or_404(contest_id)
 
-        if contest.is_finished:
-            return {
-                "contest_id": contest_id,
-                "is_finished": True,
-                "message": "Голосование завершено"
-            }
-
         teams_count = Team.query.filter_by(contest_id=contest_id).count()
         criteria_count = Criterion.query.filter_by(contest_id=contest_id).count()
         experts_count = ContestExpert.query.filter_by(contest_id=contest_id).count()
 
         expected_grades = teams_count * criteria_count * experts_count
         actual_grades = Grade.query.join(Team).filter(Team.contest_id == contest_id).count()
+
+        if contest.is_finished:
+            return {
+                "contest_id": contest_id,
+                "is_finished": True,
+                "voting_status": "finished",
+                "expected_grades": expected_grades,
+                "actual_grades": actual_grades,
+                "missing_grades": max(0, expected_grades - actual_grades),
+                "teams_count": teams_count,
+                "criteria_count": criteria_count,
+                "experts_count": experts_count,
+                "message": "Голосование завершено"
+            }
 
         if expected_grades == 0:
             voting_status = "not_started"
