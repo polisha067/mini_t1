@@ -63,8 +63,11 @@ class GradeService:
             raise ValidationError("Критерий не принадлежит данной команде")
 
         contest = db.session.get(Contest, team.contest_id)
-        if contest and contest.is_finished:
-            raise ForbiddenError("Голосование по этому конкурсу завершено")
+        if contest:
+            from app.services.contest_service import ContestService
+            ContestService._check_and_update_status(contest)
+            if contest.is_finished:
+                raise ForbiddenError("Голосование по этому конкурсу завершено")
 
         assignment = ContestExpert.query.filter_by(
             contest_id=team.contest_id,
@@ -99,6 +102,10 @@ class GradeService:
         except Exception:
             db.session.rollback()
             raise
+
+        if contest:
+            from app.services.contest_service import ContestService
+            ContestService._check_and_update_status(contest)
 
         return grade
 
@@ -150,8 +157,11 @@ class GradeService:
 
         team = GradeService._get_team_or_404(grade.team_id)
         contest = db.session.get(Contest, team.contest_id)
-        if contest and contest.is_finished:
-            raise ForbiddenError("Голосование по этому конкурсу завершено")
+        if contest:
+            from app.services.contest_service import ContestService
+            ContestService._check_and_update_status(contest)
+            if contest.is_finished:
+                raise ForbiddenError("Голосование по этому конкурсу завершено")
 
         if not data:
             raise BadRequestError("Тело запроса должно быть в формате JSON")
@@ -185,8 +195,11 @@ class GradeService:
 
         team = GradeService._get_team_or_404(grade.team_id)
         contest = db.session.get(Contest, team.contest_id)
-        if contest and contest.is_finished:
-            raise ForbiddenError("Голосование по этому конкурсу завершено")
+        if contest:
+            from app.services.contest_service import ContestService
+            ContestService._check_and_update_status(contest)
+            if contest.is_finished:
+                raise ForbiddenError("Голосование по этому конкурсу завершено")
 
         try:
             db.session.delete(grade)
