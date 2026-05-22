@@ -40,6 +40,9 @@ class ContestService:
         if contest.is_finished:
             return True
 
+        if contest.is_reopened:
+            return False
+
         should_finish = False
 
         # 1. Проверка по дате окончания
@@ -256,6 +259,30 @@ class ContestService:
             raise ConflictError("Голосование уже завершено")
 
         contest.is_finished = True
+        contest.is_reopened = False  # сбрасываем флаг переоткрытия
+
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
+
+        return contest
+
+    def reopen(self, contest_id: int, user_id: int) -> Contest:
+        """Переоткрытие завершённого конкурса для пересмотра оценок"""
+        # Получаем конкурс напрямую (без _get_or_404, чтобы не триггерить _check_and_update_status)
+        contest = db.session.get(Contest, contest_id)
+        if not contest:
+            raise NotFoundError(f"Конкурс с id={contest_id} не найден")
+
+        self._check_ownership(contest, user_id)
+
+        if not contest.is_finished:
+            raise ConflictError("Конкурс ещё не завершён - переоткрыть можно только завершённый конкурс")
+
+        contest.is_finished = False
+        contest.is_reopened = True
 
         try:
             db.session.commit()

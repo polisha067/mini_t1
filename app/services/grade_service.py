@@ -5,7 +5,7 @@ from app.models.criterion import Criterion
 from app.models.contest import Contest
 from app.models.contest_expert import ContestExpert
 from app.models.user import User
-from app.utils.validators.grade import validate_grade_data
+from app.utils.validators.grade import validate_grade_data, validate_grade_value
 from app.utils.errors import (
     ValidationError,
     NotFoundError,
@@ -168,7 +168,7 @@ class GradeService:
 
         if 'value' in data:
             criterion = GradeService._get_criterion_or_404(grade.criterion_id)
-            valid, error = validate_grade_data({'value': data['value']}, criterion.max_score)
+            valid, error = validate_grade_value(data['value'], criterion.max_score)
             if not valid:
                 raise ValidationError(error)
             grade.value = data['value']

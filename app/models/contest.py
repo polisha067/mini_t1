@@ -13,6 +13,7 @@ class Contest(db.Model):
     end_date = db.Column(db.DateTime, nullable=True)
     logo_path = db.Column(db.String(255), nullable=True)
     is_finished = db.Column(db.Boolean, nullable=False, default=False)
+    is_reopened = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     organizer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     access_key = db.Column(db.String(64), unique=True, nullable=True, default=None)
@@ -39,6 +40,7 @@ class Contest(db.Model):
             "logo_url": logo_url,
             "organizer_id": self.organizer_id,
             "is_finished": self.is_finished,
+            "is_reopened": self.is_reopened,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
     def __repr__(self):

@@ -126,6 +126,27 @@ def finalize_contest(contest_id: int):
     }), 200
 
 
+@contests_bp.route('/<int:contest_id>/reopen', methods=['POST'])
+@jwt_required()
+@role_required('organizer')
+def reopen_contest(contest_id: int):
+    """Переоткрытие завершённого конкурса для пересмотра оценок (только организатор).
+    После переоткрытия автозавершение по «все проголосовали» отключается —
+    закрыть конкурс можно только вручную через POST /contests/{id}/finalize."""
+    user_id = _get_current_user_id()
+    contest = contest_service.reopen(contest_id, user_id)
+
+    return jsonify({
+        "status": "success",
+        "message": (
+            f"Конкурс '{contest.name}' переоткрыт. "
+            "Эксперты могут редактировать оценки. "
+            "Для завершения используйте POST /finalize."
+        ),
+        "contest": contest.to_dict()
+    }), 200
+
+
 @contests_bp.route('/<int:contest_id>/voting-status', methods=['GET'])
 @jwt_required()
 @swag_from('../specs/swagger/contests/voting_status.yml')
