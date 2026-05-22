@@ -36,12 +36,12 @@ class ContestService:
 
     @staticmethod
     def _check_and_update_status(contest: Contest) -> bool:
-        """Проверяет, нужно ли завершить конкурс (по дате или если все эксперты проголосовали), и обновляет статус"""
+        """Проверяет, нужно ли завершить конкурс, и обновляет статус"""
         if contest.is_finished:
             return True
 
         should_finish = False
-        
+
         # 1. Проверка по дате окончания
         if contest.end_date:
             from datetime import datetime, UTC
@@ -51,9 +51,8 @@ class ContestService:
                 now = now.replace(tzinfo=None)
             if end_date < now:
                 should_finish = True
-
-        # 2. Проверка, все ли эксперты проголосовали
-        if not should_finish:
+        else:
+            # Нет даты окончания - завершаем, когда все эксперты поставили все оценки
             teams_count = Team.query.filter_by(contest_id=contest.id).count()
             criteria_count = Criterion.query.filter_by(contest_id=contest.id).count()
             experts_count = ContestExpert.query.filter_by(contest_id=contest.id).count()
@@ -70,13 +69,28 @@ class ContestService:
                 db.session.commit()
             except Exception:
                 db.session.rollback()
-                
+
         return contest.is_finished
 
     @staticmethod
     def _check_ownership(contest: Contest, user_id: int) -> None:
         if contest.organizer_id != user_id:
             raise ForbiddenError("Только организатор конкурса может выполнять это действие")
+
+    @staticmethod
+    def _parse_datetime(value):
+        """Конвертирует ISO-строку даты в объект datetime. Если уже datetime — возвращает как есть."""
+        if value is None:
+            return None
+        from datetime import datetime
+        if isinstance(value, datetime):
+            return value
+        if isinstance(value, str):
+            try:
+                return datetime.fromisoformat(value.replace('Z', '+00:00'))
+            except ValueError:
+                raise ValidationError(f"Некорректный формат даты: {value!r}")
+        raise ValidationError(f"Некорректный тип даты: {type(value)}")
 
     @staticmethod
     def _delete_local_file(relative_path: str) -> bool:
@@ -119,8 +133,8 @@ class ContestService:
         contest = Contest(
             name=data['name'].strip(),
             description=data.get('description', '').strip() or None,
-            start_date=data.get('start_date'),
-            end_date=data.get('end_date'),
+            start_date=ContestService._parse_datetime(data.get('start_date')),
+            end_date=ContestService._parse_datetime(data.get('end_date')),
             logo_path=logo_path,
             organizer_id=user_id,
             access_key=data.get('access_key')
@@ -146,25 +160,16 @@ class ContestService:
 
         query = query.order_by(Contest.created_at.desc())
         paginated = query.paginate(page=page, per_page=per_page, error_out=False)
-        
-        # Проверяем только дату для автоматического завершения (без N+1 запросов)
-        from datetime import datetime, UTC
-        now = datetime.now(UTC)
+
+        # Применяем ту же логику завершения, что и в _check_and_update_status
         changed = False
         for c in paginated.items:
-            if not c.is_finished and c.end_date:
-                end = c.end_date
-                current_now = now.replace(tzinfo=None) if end.tzinfo is None else now
-                if end < current_now:
-                    c.is_finished = True
+            if not c.is_finished:
+                prev = c.is_finished
+                ContestService._check_and_update_status(c)
+                if c.is_finished != prev:
                     changed = True
-        
-        if changed:
-            try:
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
-                
+
         return paginated
 
     @staticmethod
@@ -189,9 +194,9 @@ class ContestService:
         if 'description' in data:
             contest.description = data['description'].strip() or None
         if 'start_date' in data:
-            contest.start_date = data['start_date']
+            contest.start_date = self._parse_datetime(data['start_date'])
         if 'end_date' in data:
-            contest.end_date = data['end_date']
+            contest.end_date = self._parse_datetime(data['end_date'])
 
         if logo_file and logo_file.filename:
             old_logo_path = contest.logo_path
