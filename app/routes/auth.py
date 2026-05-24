@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flasgger import swag_from
 
@@ -84,6 +84,9 @@ def forgot_password():
     user_found, raw_token = AuthService.forgot_password(data)
 
     if user_found:
+        email = data.get('email', '')
+        reset_link = f"http://localhost:4200/reset-password?token={raw_token}"
+        current_app.logger.info(f"Имитация отправки email на {email}: Перейдите по ссылке для сброса пароля: {reset_link}")
         return jsonify({
             "status": "success",
             "message": "Если email зарегистрирован, токен сброса пароля будет отправлен",
