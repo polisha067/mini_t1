@@ -209,6 +209,29 @@
 }
 
 @media (max-width: 600px) {
+  .contest-created-page {
+    padding: 20px 16px;
+    align-items: flex-start;
+    padding-top: 32px;
+  }
+
+  .success-icon {
+    font-size: 56px;
+  }
+
+  .page-title {
+    font-size: 28px;
+  }
+
+  .contest-name {
+    font-size: 20px;
+    margin-bottom: 28px;
+  }
+
+  .info-card {
+    padding: 20px;
+  }
+
   .card-content {
     flex-direction: column;
   }
@@ -223,5 +246,15 @@
 
   .btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 24px;
+  }
+
+  .card-header h3 {
+    font-size: 16px;
   }
 }

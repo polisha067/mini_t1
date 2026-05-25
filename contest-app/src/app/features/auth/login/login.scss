@@ -122,3 +122,43 @@
   font-size: 18px;
   padding: 0;
 }
+
+@media (max-width: 768px) {
+  .login-container {
+    padding: 16px;
+    justify-content: flex-start;
+    padding-top: 88px;
+  }
+
+  .logo {
+    font-size: clamp(72px, 22vw, 140px);
+    margin-bottom: 40px;
+  }
+
+  .form {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .back-btn {
+    top: 16px;
+    left: 16px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .back-arrow {
+    font-size: 22px;
+  }
+
+  .logo {
+    font-size: clamp(56px, 20vw, 96px);
+    margin-bottom: 32px;
+  }
+
+  .input-field,
+  .login-btn {
+    font-size: 16px;
+  }
+}

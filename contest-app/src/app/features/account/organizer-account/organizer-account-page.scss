@@ -176,3 +176,83 @@ h1 {
   font-weight: 600;
   font-size: 14px;
 }
+
+@media (max-width: 768px) {
+  .account-page {
+    padding: 20px 16px;
+  }
+
+  .account-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .back-btn,
+  .logout-btn {
+    flex: 1 1 auto;
+    min-width: 140px;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  h1 {
+    font-size: 28px;
+    margin-bottom: 24px;
+  }
+
+  .profile-card {
+    max-width: 100%;
+    padding: 20px;
+  }
+
+  .row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .value {
+    text-align: left;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+
+    h2 {
+      font-size: 24px;
+    }
+  }
+
+  .create-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .contest-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .contest-date {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-page {
+    padding: 16px 12px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .section-header h2 {
+    font-size: 22px;
+  }
+}

@@ -12,6 +12,11 @@
   font-style: normal;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
 html,
 body {
   height: 100%;
@@ -22,10 +27,33 @@ body {
   min-height: 100vh;
   margin: 0;
   font-family: 'GeneralFont', sans-serif;
+  overflow-x: hidden;
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+svg {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+@media (max-width: 768px) {
+  button:not(.eye-btn) {
+    min-height: 44px;
+  }
 }

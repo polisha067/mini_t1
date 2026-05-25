@@ -8,6 +8,8 @@
   align-items: center;
   text-align: center;
   position: relative;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .back-btn {
@@ -195,4 +197,49 @@
 
 .custom-select-option:hover {
   background-color: #7c773b;
+}
+
+@media (max-width: 768px) {
+  .register-container {
+    justify-content: flex-start;
+    padding-top: 88px;
+  }
+
+  .logo {
+    font-size: clamp(72px, 22vw, 140px);
+    margin-bottom: 40px;
+  }
+
+  .form {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    padding: 16px;
+    padding-top: 80px;
+  }
+
+  .back-btn {
+    top: 16px;
+    left: 16px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .back-arrow {
+    font-size: 22px;
+  }
+
+  .logo {
+    font-size: clamp(56px, 20vw, 96px);
+    margin-bottom: 28px;
+  }
+
+  .input-field,
+  .register-btn {
+    font-size: 16px;
+  }
 }

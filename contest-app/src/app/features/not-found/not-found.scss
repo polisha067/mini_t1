@@ -36,3 +36,36 @@
   font-size: 24px;
   margin: 0;
 }
+
+@media (max-width: 768px) {
+  .not-found {
+    padding: 24px 16px;
+  }
+
+  .title {
+    font-size: clamp(80px, 22vw, 140px);
+  }
+
+  .code {
+    font-size: clamp(72px, 20vw, 120px);
+  }
+
+  .message {
+    font-size: 20px;
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: clamp(56px, 18vw, 96px);
+  }
+
+  .code {
+    font-size: clamp(48px, 16vw, 80px);
+  }
+
+  .message {
+    font-size: 16px;
+  }
+}

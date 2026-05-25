@@ -2,8 +2,9 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
+import { HttpErrorResponse } from '@angular/common/http';
+import { forkJoin, of, throwError, timeout } from 'rxjs';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { TeamService } from '../../../core/team.service';
 import { CriterionService } from '../../../core/criterion.service';
 import { GradeService } from '../../../core/grade.service';
@@ -38,7 +39,8 @@ export class EvaluationPage implements OnInit {
   existingGrades: Record<number, Grade> = {};
 
   isSubmitting = false;
-  successMessage: string | null = null;
+  showSuccessToast = false;
+  private toastHideTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -135,7 +137,7 @@ export class EvaluationPage implements OnInit {
 
   selectTeam(team: Team): void {
     this.selectedTeam = team;
-    this.successMessage = null;
+    this.showSuccessToast = false;
     this.error = null;
     this.initGrades();
 
@@ -150,9 +152,11 @@ export class EvaluationPage implements OnInit {
             comment: g.comment || '',
           };
         });
+        this.cdr.detectChanges();
       },
       error: () => {
         this.existingGrades = {};
+        this.cdr.detectChanges();
       },
     });
   }
@@ -168,61 +172,124 @@ export class EvaluationPage implements OnInit {
       return;
     }
 
-    this.isSubmitting = true;
-    this.error = null;
-    this.successMessage = null;
-
-    const entries = Object.entries(this.grades).filter(
-      ([_, g]) => g.value !== null && g.value !== undefined
+    const entries = Object.entries(this.grades).filter(([_, g]) =>
+      this.hasGradeValue(g.value)
     );
 
     if (entries.length === 0) {
-      this.isSubmitting = false;
       this.error = 'Выставьте хотя бы одну оценку';
       return;
     }
 
-    let completed = 0;
-    let hasError = false;
+    this.isSubmitting = true;
+    this.error = null;
+    this.showSuccessToast = false;
 
-    const saveDone = () => {
-      completed++;
-      if (completed === entries.length && !hasError) {
-        this.isSubmitting = false;
-        this.successMessage = 'Оценки успешно сохранены';
-        this.initGrades();
-      }
-    };
-
-    const saveErr = (err: unknown) => {
-      hasError = true;
-      completed++;
-      this.error = flaskErrorMessage(err) || 'Ошибка при сохранении';
-      this.isSubmitting = false;
-    };
-
-    entries.forEach(([criterionIdStr, gradeData]) => {
+    const teamId = this.selectedTeam.id;
+    const requests = entries.map(([criterionIdStr, gradeData]) => {
       const criterionId = +criterionIdStr;
-      const existingGrade = this.existingGrades[criterionId];
-
-      if (existingGrade) {
-        this.gradeService
-          .update(existingGrade.id, {
-            value: gradeData.value!,
-            comment: gradeData.comment || undefined,
-          })
-          .subscribe({ next: saveDone, error: saveErr });
-      } else {
-        this.gradeService
-          .create({
-            team_id: this.selectedTeam!.id,
-            criterion_id: criterionId,
-            value: gradeData.value!,
-            comment: gradeData.comment || undefined,
-          })
-          .subscribe({ next: saveDone, error: saveErr });
-      }
+      const payload = {
+        value: Number(gradeData.value),
+        comment: gradeData.comment?.trim() || undefined,
+      };
+      return this.saveGradeForCriterion(teamId, criterionId, payload);
     });
+
+    forkJoin(requests)
+      .pipe(
+        timeout(30_000),
+        finalize(() => {
+          this.isSubmitting = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.error = null;
+          this.reloadTeamGrades();
+          this.showGradesSavedToast();
+        },
+        error: (err) => {
+          this.error =
+            flaskErrorMessage(err) ||
+            (err?.name === 'TimeoutError' ? 'Превышено время ожидания. Попробуйте снова.' : null) ||
+            'Ошибка при сохранении';
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  private saveGradeForCriterion(
+    teamId: number,
+    criterionId: number,
+    payload: { value: number; comment?: string }
+  ) {
+    const existing = this.existingGrades[criterionId];
+    if (existing?.id) {
+      return this.gradeService.update(existing.id, payload).pipe(timeout(20_000));
+    }
+
+    return this.gradeService
+      .create({
+        team_id: teamId,
+        criterion_id: criterionId,
+        value: payload.value,
+        comment: payload.comment,
+      })
+      .pipe(
+        timeout(20_000),
+        catchError((err: HttpErrorResponse) => {
+          if (err.status === 409) {
+            return this.gradeService.getTeamGrades(teamId, 1, 100).pipe(
+              switchMap((response) => {
+                const grades = (response as { grades?: Grade[] }).grades ?? [];
+                const found = grades.find((g) => g.criterion_id === criterionId);
+                if (!found) {
+                  return throwError(() => err);
+                }
+                this.existingGrades[criterionId] = found;
+                return this.gradeService.update(found.id, payload);
+              })
+            );
+          }
+          return throwError(() => err);
+        })
+      );
+  }
+
+  private reloadTeamGrades(): void {
+    if (!this.selectedTeam) {
+      return;
+    }
+    this.gradeService.getTeamGrades(this.selectedTeam.id, 1, 100).subscribe({
+      next: (response) => {
+        const grades = (response as { grades?: Grade[] }).grades ?? [];
+        this.existingGrades = {};
+        grades.forEach((g) => {
+          this.existingGrades[g.criterion_id] = g;
+          if (this.grades[g.criterion_id]) {
+            this.grades[g.criterion_id] = {
+              value: g.value,
+              comment: g.comment || '',
+            };
+          }
+        });
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private showGradesSavedToast(): void {
+    if (this.toastHideTimer) {
+      clearTimeout(this.toastHideTimer);
+    }
+    this.showSuccessToast = true;
+    this.cdr.detectChanges();
+    this.toastHideTimer = setTimeout(() => {
+      this.showSuccessToast = false;
+      this.toastHideTimer = null;
+      this.cdr.detectChanges();
+    }, 2500);
   }
 
   goBack(): void {
@@ -230,9 +297,14 @@ export class EvaluationPage implements OnInit {
   }
 
   canSubmit(): boolean {
-    return Object.values(this.grades).some(
-      (g) => g.value !== null && g.value !== undefined
-    );
+    return Object.values(this.grades).some((g) => this.hasGradeValue(g.value));
+  }
+
+  private hasGradeValue(value: number | null | undefined): boolean {
+    if (value === null || value === undefined || value === ('' as unknown as number)) {
+      return false;
+    }
+    return !Number.isNaN(Number(value));
   }
 
   getMaxScore(criterionId: number): number {

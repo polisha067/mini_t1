@@ -1,4 +1,8 @@
 <div class="evaluation-page">
+  <div class="success-toast" *ngIf="showSuccessToast" role="status">
+    оценки выставлены
+  </div>
+
   <header class="top-bar">
     <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
       <span class="arrow">←</span>
@@ -94,10 +98,6 @@
               ← К списку команд
             </button>
           </div>
-        </div>
-
-        <div class="success-message" *ngIf="successMessage">
-          {{ successMessage }}
         </div>
 
         <div class="error-message" *ngIf="error">
