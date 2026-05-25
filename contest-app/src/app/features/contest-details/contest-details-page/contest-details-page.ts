@@ -163,6 +163,10 @@ export class ContestDetailsPage implements OnInit {
     this.router.navigate(['/contests', this.contestId, 'participants']);
   }
 
+  goToTeam(entry: RankingEntry): void {
+    this.router.navigate(['/contests', this.contestId, 'teams', entry.team_id]);
+  }
+
   generateAccessKey(): void {
     if (!this.contestId) return;
     this.contestService.generateAccessKey(this.contestId).subscribe({

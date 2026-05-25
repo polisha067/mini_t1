@@ -16,6 +16,7 @@ import {
   expertEvaluationGuard,
 } from './core/guards/auth.guard';
 import { ContestCreatedPage } from './features/contest-created/contest-created-page/contest-created-page';
+import { TeamScoresPage } from './features/team-scores/team-scores-page/team-scores-page';
 
 export const routes: Routes = [
   { path: '', component: ContestListComponent },
@@ -23,6 +24,7 @@ export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'register', component: Register },
   { path: 'contests/:contestId/participants', component: ParticipantsPage },
+  { path: 'contests/:contestId/teams/:teamId', component: TeamScoresPage },
   { path: 'contests/:id', component: ContestDetailsPage },
   { path: 'contest/:id', component: ContestDetailsPage },
   { path: 'participants', component: ParticipantsPage },

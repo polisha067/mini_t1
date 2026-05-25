@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import {
   RankingEntry,
   PaginatedResponse,
-  ApiResponse,
+  TeamScoresResponse,
 } from '../shared/models/contest.model';
 
 @Injectable({
@@ -36,6 +36,12 @@ export class RankingService {
     return this.http.get<PaginatedResponse<RankingEntry>>(
       `${this.baseUrl}/${contestId}/ranking`,
       { params }
+    );
+  }
+
+  getTeamScores(contestId: number, teamId: number): Observable<TeamScoresResponse> {
+    return this.http.get<TeamScoresResponse>(
+      `${this.baseUrl}/${contestId}/teams/${teamId}/scores`
     );
   }
 }

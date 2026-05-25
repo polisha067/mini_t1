@@ -4,6 +4,7 @@ from app.extensions import db
 from app.models.team import Team
 from app.models.grade import Grade
 from app.models.contest import Contest
+from app.models.criterion import Criterion
 from app.utils.errors import NotFoundError
 
 
@@ -117,4 +118,57 @@ class RankingService:
                 "has_next": pagination.has_next,
                 "has_prev": pagination.has_prev,
             }
+        }
+
+    @staticmethod
+    def get_team_scores(contest_id: int, team_id: int) -> dict:
+        """Средние оценки команды по каждому критерию (как в итоговом рейтинге)."""
+        RankingService._get_contest_or_404(contest_id)
+
+        team = db.session.get(Team, team_id)
+        if not team or team.contest_id != contest_id:
+            raise NotFoundError(f"Команда с id={team_id} не найдена в конкурсе {contest_id}")
+
+        criteria = (
+            Criterion.query.filter_by(contest_id=contest_id)
+            .order_by(Criterion.id.asc())
+            .all()
+        )
+
+        criteria_scores = []
+        total_score = 0.0
+
+        for criterion in criteria:
+            row = (
+                db.session.query(
+                    func.avg(Grade.value).label("avg_score"),
+                    func.count(Grade.id).label("grades_count"),
+                )
+                .filter(
+                    Grade.team_id == team_id,
+                    Grade.criterion_id == criterion.id,
+                )
+                .first()
+            )
+            avg = row.avg_score if row else None
+            count = int(row.grades_count or 0) if row else 0
+            avg_val = round(float(avg), 2) if avg is not None else None
+            if avg_val is not None:
+                total_score += avg_val
+
+            criteria_scores.append({
+                "criterion_id": criterion.id,
+                "criterion_name": criterion.name,
+                "criterion_description": criterion.description,
+                "max_score": criterion.max_score,
+                "average_score": avg_val,
+                "grades_count": count,
+            })
+
+        return {
+            "contest_id": contest_id,
+            "team_id": team.id,
+            "team_name": team.name,
+            "total_score": round(total_score, 2),
+            "criteria_scores": criteria_scores,
         }

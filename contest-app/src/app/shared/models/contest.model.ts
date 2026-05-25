@@ -61,6 +61,25 @@ export interface RankingEntry {
   grades_count: number;
 }
 
+// Оценка команды по одному критерию (среднее по экспертам)
+export interface TeamCriterionScore {
+  criterion_id: number;
+  criterion_name: string;
+  criterion_description: string | null;
+  max_score: number;
+  average_score: number | null;
+  grades_count: number;
+}
+
+export interface TeamScoresResponse {
+  status: string;
+  contest_id: number;
+  team_id: number;
+  team_name: string;
+  total_score: number;
+  criteria_scores: TeamCriterionScore[];
+}
+
 // Назначение эксперта на конкурс
 export interface ContestExpert {
   id: number;

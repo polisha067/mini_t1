@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../../shared/services/auth.service';
 import { ContestService } from '../../../core/contest.service';
 import { User, Contest } from '../../../shared/models/contest.model';
@@ -56,18 +57,24 @@ export class OrganizerAccountPage implements OnInit {
     this.isLoadingContests = true;
     this.contestsError = '';
 
-    this.contestService.getList(1, 100, this.user.id).subscribe({
-      next: (response) => {
-        this.createdContests = (response['contests'] as Contest[]) || [];
-        this.isLoadingContests = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Organizer contests error:', err);
-        this.isLoadingContests = false;
-        this.contestsError = 'Не удалось загрузить конкурсы организатора.';
-        this.cdr.detectChanges();
-      }
-    });
+    this.contestService
+      .getList(1, 100, this.user.id)
+      .pipe(
+        finalize(() => {
+          this.isLoadingContests = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          this.createdContests = (response['contests'] as Contest[]) || [];
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Organizer contests error:', err);
+          this.contestsError = 'Не удалось загрузить конкурсы организатора.';
+          this.cdr.detectChanges();
+        },
+      });
   }
 }

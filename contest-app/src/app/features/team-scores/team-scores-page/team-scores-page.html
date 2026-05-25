@@ -1,0 +1,54 @@
+<div class="team-scores-page">
+  <header class="top-bar">
+    <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
+      <span class="arrow">←</span>
+    </button>
+  </header>
+
+  <main class="content">
+    <p class="contest-label" *ngIf="contestName">{{ contestName }}</p>
+    <h1 class="page-title">{{ teamName || 'Команда' }}</h1>
+    <p class="page-subtitle">Оценки по критериям</p>
+
+    <div *ngIf="isLoading" class="loading-box">Загрузка...</div>
+
+    <div *ngIf="!isLoading && error" class="error-box">
+      <p>{{ error }}</p>
+      <button type="button" class="retry-btn" (click)="loadData()">Попробовать снова</button>
+    </div>
+
+    <ng-container *ngIf="!isLoading && !error">
+      <div class="total-card">
+        <span class="total-label">Итоговый балл</span>
+        <span class="total-value">{{ formatScore(totalScore) }}</span>
+      </div>
+
+      <section class="scores-list" *ngIf="criteriaScores.length > 0">
+        <article
+          class="score-card"
+          *ngFor="let item of criteriaScores"
+          [class.empty]="item.average_score === null"
+        >
+          <div class="score-card-header">
+            <h2 class="criterion-name">{{ item.criterion_name }}</h2>
+            <span class="score-badge">{{ formatScore(item.average_score) }}</span>
+          </div>
+          <p class="criterion-desc" *ngIf="item.criterion_description">
+            {{ item.criterion_description }}
+          </p>
+          <div class="score-meta">
+            <span>макс. {{ item.max_score }}</span>
+            <span *ngIf="item.grades_count > 0">
+              {{ item.grades_count }} {{ item.grades_count === 1 ? 'оценка' : 'оценки' }}
+            </span>
+            <span *ngIf="item.grades_count === 0">оценок нет</span>
+          </div>
+        </article>
+      </section>
+
+      <p *ngIf="criteriaScores.length === 0" class="no-data">
+        Критерии для этого конкурса ещё не заданы.
+      </p>
+    </ng-container>
+  </main>
+</div>

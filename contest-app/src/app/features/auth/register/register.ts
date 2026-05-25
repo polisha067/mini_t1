@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { finalize, timeout } from 'rxjs/operators';
+import { TimeoutError } from 'rxjs';
 import { AuthService, RegisterRequest } from '../../../shared/services/auth.service';
 import { CommonModule } from '@angular/common';
 
@@ -17,18 +19,19 @@ export class Register {
     username: '',
     email: '',
     password: '',
-    role: ''
+    role: '',
   };
-  confirmPassword: string = '';
-  errorMessage: string = '';
-  isLoading: boolean = false;
-  showPassword: boolean = false;
-  showConfirmPassword: boolean = false;
-  isRoleDropdownOpen: boolean = false;
+  confirmPassword = '';
+  errorMessage = '';
+  isLoading = false;
+  showPassword = false;
+  showConfirmPassword = false;
+  isRoleDropdownOpen = false;
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   selectRole(role: 'expert' | 'organizer'): void {
@@ -37,7 +40,12 @@ export class Register {
   }
 
   onSubmit(): void {
-    if (!this.userData.username || !this.userData.email || !this.userData.password || !this.userData.role) {
+    if (
+      !this.userData.username ||
+      !this.userData.email ||
+      !this.userData.password ||
+      !this.userData.role
+    ) {
       this.errorMessage = 'Пожалуйста, заполните все обязательные поля';
       return;
     }
@@ -52,71 +60,96 @@ export class Register {
       return;
     }
 
+    if (this.isLoading) {
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
 
-    // 1. Регистрируем пользователя
-    this.authService.register(this.userData).subscribe({
-      next: () => {
-        this.isLoading = false;
-        
-        // 2. Автоматически логиним после успешной регистрации
-        this.authService.login({ 
-          email: this.userData.email, 
-          password: this.userData.password 
-        }).subscribe({
-          next: (response) => {
-            // 3. Редирект в зависимости от роли
-            const user = response.user;
-            if (user.role === 'organizer') {
-              this.router.navigate(['/account/organizer']);
-            } else if (user.role === 'expert') {
-              this.router.navigate(['/account/expert']);
-            } else {
-              this.router.navigate(['/']);
-            }
-          },
-          error: () => {
-            // Если автологин упал — кидаем на страницу входа как фолбэк
-            this.router.navigate(['/login'], { queryParams: { registered: 'true' } });
+    this.authService
+      .registerAndLogin(this.userData)
+      .pipe(
+        timeout(32_000),
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          const user = response?.user;
+          if (!user?.role) {
+            this.errorMessage =
+              'Регистрация прошла, но вход не завершился. Войдите вручную.';
+            this.cdr.detectChanges();
+            return;
           }
-        });
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = this.getRegisterErrorMessage(err);
-        console.error('Registration error:', err);
-      }
-    });
+          this.navigateByRole(user.role);
+        },
+        error: (err) => {
+          this.errorMessage = this.getRegisterErrorMessage(err);
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   goHome(): void {
     this.router.navigate(['/']);
   }
 
-  private getRegisterErrorMessage(err: HttpErrorResponse): string {
-    if (err.status === 0) {
+  private navigateByRole(role: string): void {
+    if (role === 'organizer') {
+      this.router.navigate(['/account/organizer']);
+    } else if (role === 'expert') {
+      this.router.navigate(['/account/expert']);
+    } else {
+      this.router.navigate(['/']);
+    }
+  }
+
+  private getRegisterErrorMessage(err: unknown): string {
+    if (
+      err instanceof TimeoutError ||
+      (typeof err === 'object' &&
+        err !== null &&
+        (err as { name?: string }).name === 'TimeoutError')
+    ) {
+      return 'Сервер не ответил вовремя. Проверьте, что backend запущен (http://localhost:5000).';
+    }
+
+    const httpErr = err as HttpErrorResponse;
+
+    if (httpErr.status === 0) {
       return 'Нет соединения с сервером. Проверьте, что backend запущен.';
     }
 
-    if (err.status === 422) {
-      return err.error?.error?.message || 'Проверьте корректность заполненных данных (имя от 3 символов, пароль от 6).';
+    if (httpErr.status === 422) {
+      return (
+        httpErr.error?.error?.message ||
+        'Проверьте корректность заполненных данных (имя от 3 символов, пароль от 6).'
+      );
     }
 
-    if (err.status === 409) {
-      const msg = err.error?.error?.message 
-               || err.error?.message 
-               || err.error?.detail
-               || 'Пользователь с таким email или именем уже существует.';
-      return msg;
+    if (httpErr.status === 409) {
+      return (
+        httpErr.error?.error?.message ||
+        httpErr.error?.message ||
+        httpErr.error?.detail ||
+        'Пользователь с таким email или именем уже существует.'
+      );
     }
 
-    const backendMessage = err.error?.error?.message || err.error?.message;
+    if (httpErr.status === 401) {
+      return 'Регистрация выполнена, но автоматический вход не удался. Попробуйте войти вручную.';
+    }
+
+    const backendMessage = httpErr.error?.error?.message || httpErr.error?.message;
     if (backendMessage) {
       return backendMessage;
     }
 
-    if (err.status >= 500) {
+    if (httpErr.status >= 500) {
       return 'Ошибка сервера. Попробуйте снова через минуту.';
     }
 

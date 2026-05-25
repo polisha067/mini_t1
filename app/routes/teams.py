@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from flasgger import swag_from
 
 from app.services.team_service import TeamService
+from app.services.ranking_service import RankingService
 from app.utils.decorators.rbac import role_required
 
 teams_bp = Blueprint('teams', __name__, url_prefix='/contests/<int:contest_id>/teams')
@@ -64,6 +65,17 @@ def list_teams(contest_id: int):
             "has_next": pagination.has_next,
             "has_prev": pagination.has_prev,
         }
+    }), 200
+
+
+@teams_bp.route('/<int:team_id>/scores', methods=['GET'])
+@jwt_required(optional=True)
+def get_team_scores(contest_id: int, team_id: int):
+    """Средние оценки команды по критериям (доступно без авторизации)."""
+    result = RankingService.get_team_scores(contest_id, team_id)
+    return jsonify({
+        "status": "success",
+        **result,
     }), 200
 
 

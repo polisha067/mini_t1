@@ -211,6 +211,7 @@ export class CreateContestPage implements AfterViewInit {
 
     // Вспомогательный метод для редиректа
     private finishCreation(contestId: number, key: string | null): void {
+      this.isSubmitting = false;
       this.router.navigate(['/contest-created'], {
         queryParams: {
           id: contestId,

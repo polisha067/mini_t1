@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { Observable, BehaviorSubject, tap, timeout, switchMap } from 'rxjs';
 import { Router } from '@angular/router';
 import {
   User,
@@ -18,6 +18,7 @@ export type { LoginRequest, RegisterRequest, AuthResponse } from '../../shared/m
 })
 export class AuthService {
   private readonly apiUrl = '/api/auth';
+  private readonly requestTimeoutMs = 15_000;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -42,27 +43,30 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/login`, credentials)
-      .pipe(
-        tap((response) => {
-          this.saveAuthData(response);
-        })
-      );
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
+      timeout(this.requestTimeoutMs),
+      tap((response) => {
+        this.saveAuthData(response);
+      })
+    );
   }
 
   refreshToken(): Observable<AuthResponse> {
     const refreshToken = localStorage.getItem('refresh_token');
     return this.http
-      .post<AuthResponse>(`${this.apiUrl}/refresh`, {}, {
-        headers: { Authorization: `Bearer ${refreshToken}` }
-      })
+      .post<AuthResponse>(
+        `${this.apiUrl}/refresh`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${refreshToken}` },
+        }
+      )
       .pipe(
+        timeout(this.requestTimeoutMs),
         tap((response) => {
           if (response.access_token) {
             localStorage.setItem('access_token', response.access_token);
           }
-          // Сохраняем новый refresh_token если сервер его ротирует
           if (response.refresh_token) {
             localStorage.setItem('refresh_token', response.refresh_token);
           }
@@ -84,7 +88,18 @@ export class AuthService {
   }
 
   register(userData: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData);
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/register`, userData)
+      .pipe(timeout(this.requestTimeoutMs));
+  }
+
+  /** Регистрация с автоматическим входом (один поток запросов). */
+  registerAndLogin(userData: RegisterRequest): Observable<AuthResponse> {
+    return this.register(userData).pipe(
+      switchMap(() =>
+        this.login({ email: userData.email, password: userData.password })
+      )
+    );
   }
 
   logout(): void {

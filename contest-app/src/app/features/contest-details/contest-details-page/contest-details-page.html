@@ -45,33 +45,56 @@
       </section>
 
       <section class="rating-box">
+        <p class="rating-hint" *ngIf="ranking && ranking.length > 0">
+          Нажмите на команду, чтобы посмотреть оценки по критериям
+        </p>
         <div class="podium" *ngIf="ranking && ranking.length > 0">
           
-          <div class="podium-card second" *ngIf="ranking.length >= 2">
+          <button
+            type="button"
+            class="podium-card second clickable"
+            *ngIf="ranking.length >= 2"
+            (click)="goToTeam(ranking[1])"
+          >
             <div class="rank-badge">2</div>
             <div class="team-name">{{ ranking[1].team_name }}</div>
             <div class="score-pill">{{ ranking[1].total_score }}</div>
-          </div>
+          </button>
 
-          <div class="podium-card first" *ngIf="ranking.length >= 1">
+          <button
+            type="button"
+            class="podium-card first clickable"
+            *ngIf="ranking.length >= 1"
+            (click)="goToTeam(ranking[0])"
+          >
             <div class="rank-badge">1</div>
             <div class="team-name">{{ ranking[0].team_name }}</div>
             <div class="score-pill">{{ ranking[0].total_score }}</div>
-          </div>
+          </button>
 
-          <div class="podium-card third" *ngIf="ranking.length >= 3">
+          <button
+            type="button"
+            class="podium-card third clickable"
+            *ngIf="ranking.length >= 3"
+            (click)="goToTeam(ranking[2])"
+          >
             <div class="rank-badge">3</div>
             <div class="team-name">{{ ranking[2].team_name }}</div>
             <div class="score-pill">{{ ranking[2].total_score }}</div>
-          </div>
+          </button>
         </div>
 
         <div class="ranking-list" *ngIf="ranking && ranking.length > 3">
-          <div class="ranking-row" *ngFor="let entry of ranking.slice(3)">
+          <button
+            type="button"
+            class="ranking-row clickable"
+            *ngFor="let entry of ranking.slice(3)"
+            (click)="goToTeam(entry)"
+          >
             <div class="row-rank">{{ entry.rank }}</div>
             <div class="row-team">{{ entry.team_name }}</div>
             <div class="row-score">{{ entry.total_score }}</div>
-          </div>
+          </button>
         </div>
 
         <p *ngIf="(!ranking || ranking.length === 0) && (!teams || teams.length === 0)" class="no-data">

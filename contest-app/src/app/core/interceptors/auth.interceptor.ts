@@ -58,6 +58,12 @@ function handle401(
   next: HttpHandlerFn,
   authService: AuthService
 ): Observable<HttpEvent<unknown>> {
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (!refreshToken) {
+    authService.clearAuthState();
+    return throwError(() => new HttpErrorResponse({ status: 401, statusText: 'Unauthorized' }));
+  }
+
   if (!refreshInFlight$) {
     refreshInFlight$ = authService.refreshToken().pipe(
       timeout(15_000),
