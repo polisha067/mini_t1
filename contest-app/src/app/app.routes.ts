@@ -3,6 +3,8 @@ import { ContestListComponent } from './features/contests/contest-list/contest-l
 import { NotFound } from './features/not-found/not-found';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
+import { ForgotPassword } from './features/auth/forgot-password/forgot-password';
+import { PasswordResetSent } from './features/auth/password-reset-sent/password-reset-sent';
 import { ParticipantsPage } from './features/participants/participants-page/participants-page';
 import { EvaluationPage } from './features/evaluation/evaluation-page/evaluation-page';
 import { CreateContestPage } from './features/create-contest/create-contest-page/create-contest-page';
@@ -23,6 +25,8 @@ export const routes: Routes = [
   { path: 'contest-created', component: ContestCreatedPage },
   { path: 'login', component: Login },
   { path: 'register', component: Register },
+  { path: 'forgot-password', component: ForgotPassword },
+  { path: 'password-reset-sent', component: PasswordResetSent },
   { path: 'contests/:contestId/participants', component: ParticipantsPage },
   { path: 'contests/:contestId/teams/:teamId', component: TeamScoresPage },
   { path: 'contests/:id', component: ContestDetailsPage },
