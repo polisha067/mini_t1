@@ -131,4 +131,9 @@ export class AuthService {
   private clearAuth(): void {
     this.clearAuthState();
   }
+
+
+  forgotPassword(data: { email: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password`, data);
+  }
 }
