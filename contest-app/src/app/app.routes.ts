@@ -11,6 +11,7 @@ import { CreateContestPage } from './features/create-contest/create-contest-page
 import { ContestDetailsPage } from './features/contest-details/contest-details-page/contest-details-page';
 import { ExpertAccountPage } from './features/account/expert-account/expert-account-page';
 import { OrganizerAccountPage } from './features/account/organizer-account/organizer-account-page';
+import { ResetPassword } from './features/auth/reset-password/reset-password.component';
 import {
   accountRedirectGuard,
   organizerGuard,
@@ -26,6 +27,7 @@ export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'register', component: Register },
   { path: 'forgot-password', component: ForgotPassword },
+  { path: 'reset-password', component: ResetPassword },
   { path: 'password-reset-sent', component: PasswordResetSent },
   { path: 'contests/:contestId/participants', component: ParticipantsPage },
   { path: 'contests/:contestId/teams/:teamId', component: TeamScoresPage },

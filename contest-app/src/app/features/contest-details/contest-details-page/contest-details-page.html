@@ -34,8 +34,8 @@
           <div class="contest-description">
             <p>{{ contest.description || 'Описание конкурса пока не добавлено' }}</p>
             <div class="contest-dates" *ngIf="contest.start_date || contest.end_date">
-              <p *ngIf="contest.start_date">Начало: {{ formatDate(contest.start_date) }}</p>
-              <p *ngIf="contest.end_date">Окончание: {{ formatDate(contest.end_date) }}</p>
+              <p>Начало: {{ contest.start_date | date:'d MMMM yyyy г., HH:mm' }}</p>
+              <p>Окончание: {{ contest.end_date | date:'d MMMM yyyy г., HH:mm' }}</p>
             </div>
             <p class="contest-status" [class.finished]="contest.is_finished">
               {{ contest.is_finished ? 'Завершён' : 'Активен' }}

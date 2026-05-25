@@ -251,7 +251,7 @@
   background: #34345a;
   color: #f5f1e8;
   width: 170px;
-  height: 200px;
+  height: 220px; // Увеличили высоту с 200px до 220px, чтобы дать воздуху тексту
 
   .rank-badge {
     background: rgba(245,241,232,0.2);
@@ -271,7 +271,7 @@
   background: #ebe6dc;
   color: #1e1e36;
   width: 170px;
-  height: 180px;
+  height: 200px; // Увеличили высоту с 180px до 200px — теперь имя не перекроется!
   border: 1px solid rgba(52, 52, 90, 0.18);
   box-shadow: 0 4px 16px rgba(52, 52, 90, 0.08);
 
@@ -283,8 +283,11 @@
   .team-name {
     color: #1e1e36;
     font-weight: 800;
-    font-size: 17px;
+    font-size: 16px; // Чуть-чуть уменьшили с 17px до 16px для идеального баланса
     letter-spacing: 0.01em;
+    display: block; // Делаем блочным для корректного переноса слов
+    word-wrap: break-word; // Разрешаем перенос длинных слов
+    width: 100%;
   }
 
   .score-pill {
