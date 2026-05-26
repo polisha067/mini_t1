@@ -23,22 +23,14 @@
           <span class="total-label">Итоговый балл</span>
           <span class="total-value">{{ formatScore(totalScore) }}</span>
         </div>
-        <button
-          *ngIf="isExpert() && contest && !contest.is_finished"
-          type="button"
-          class="edit-grades-btn"
-          (click)="goToEvaluation()"
-        >
+        <button *ngIf="isExpert() && contest && !contest.is_finished" type="button" class="edit-grades-btn"
+          (click)="goToEvaluation()">
           Редактировать оценки
         </button>
       </div>
 
       <section class="scores-list" *ngIf="criteriaScores.length > 0">
-        <article
-          class="score-card"
-          *ngFor="let item of criteriaScores"
-          [class.empty]="item.average_score === null"
-        >
+        <article class="score-card" *ngFor="let item of criteriaScores" [class.empty]="item.average_score === null">
           <div class="score-card-header">
             <h2 class="criterion-name">{{ item.criterion_name }}</h2>
             <span class="score-badge">{{ formatScore(item.average_score) }}</span>
@@ -55,12 +47,12 @@
           </div>
 
           <!-- Детали оценок экспертов -->
-          <div class="individual-grades" *ngIf="gradesByCriterion[item.criterion_id] && gradesByCriterion[item.criterion_id].length > 0">
+          <div class="individual-grades"
+            *ngIf="gradesByCriterion[item.criterion_id] && gradesByCriterion[item.criterion_id].length > 0">
             <h3 class="grades-title">Оценки экспертов:</h3>
             <div class="grade-item" *ngFor="let grade of gradesByCriterion[item.criterion_id]">
               <div class="grade-item-header">
                 <span class="expert-name">
-                  <span class="expert-icon">👤</span>
                   {{ getExpertUsername(grade) }}
                 </span>
                 <span class="expert-score">{{ grade.value }}</span>
