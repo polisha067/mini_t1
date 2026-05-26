@@ -5,7 +5,8 @@ import { catchError, finalize, timeout } from 'rxjs/operators';
 import { of, TimeoutError } from 'rxjs';
 import { RankingService } from '../../../core/ranking.service';
 import { ContestService } from '../../../core/contest.service';
-import { TeamCriterionScore } from '../../../shared/models/contest.model';
+import { AuthService } from '../../../shared/services/auth.service';
+import { TeamCriterionScore, Contest } from '../../../shared/models/contest.model';
 
 @Component({
   selector: 'app-team-scores-page',
@@ -17,6 +18,7 @@ import { TeamCriterionScore } from '../../../shared/models/contest.model';
 export class TeamScoresPage implements OnInit {
   contestId!: number;
   teamId!: number;
+  contest: Contest | null = null;
   contestName: string | null = null;
   teamName: string | null = null;
   totalScore = 0;
@@ -29,6 +31,7 @@ export class TeamScoresPage implements OnInit {
     private router: Router,
     private rankingService: RankingService,
     private contestService: ContestService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -57,10 +60,11 @@ export class TeamScoresPage implements OnInit {
         catchError(() => of(null))
       )
       .subscribe((contestRes) => {
-        const contest =
-          (contestRes as { contest?: { name?: string } })?.contest ||
-          (contestRes as { data?: { name?: string } })?.data;
-        this.contestName = contest?.name ?? null;
+        this.contest =
+          (contestRes as { contest?: Contest })?.contest ||
+          (contestRes as { data?: Contest })?.data ||
+          null;
+        this.contestName = this.contest?.name ?? null;
         this.cdr.detectChanges();
       });
 
@@ -96,6 +100,14 @@ export class TeamScoresPage implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/contests', this.contestId]);
+  }
+
+  isExpert(): boolean {
+    return this.authService.isExpert();
+  }
+
+  goToEvaluation(): void {
+    this.router.navigate(['/evaluation'], { queryParams: { contestId: this.contestId, teamId: this.teamId } });
   }
 
   formatScore(score: number | null): string {

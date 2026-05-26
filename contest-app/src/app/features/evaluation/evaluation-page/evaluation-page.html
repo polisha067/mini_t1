@@ -49,6 +49,10 @@
           {{ selectedTeam.description }}
         </p>
 
+        <div class="warning-banner" *ngIf="contest?.is_finished">
+          Голосование по этому конкурсу завершено. Выставленные оценки больше нельзя изменять.
+        </div>
+
         <div class="grades-form">
           <div class="grade-row" *ngFor="let criterion of criteria">
             <div class="criterion-info">
@@ -68,6 +72,7 @@
                 [min]="0"
                 [max]="getMaxScore(criterion.id)"
                 name="grade_{{ criterion.id }}"
+                [disabled]="isSubmitting || (contest?.is_finished ?? false)"
               />
 
               <input
@@ -76,6 +81,7 @@
                 placeholder="комментарий"
                 [(ngModel)]="grades[criterion.id].comment"
                 name="comment_{{ criterion.id }}"
+                [disabled]="isSubmitting || (contest?.is_finished ?? false)"
               />
             </div>
           </div>
@@ -85,7 +91,7 @@
               class="submit-btn"
               type="button"
               (click)="submitGrades()"
-              [disabled]="isSubmitting || !canSubmit()"
+              [disabled]="isSubmitting || !canSubmit() || (contest?.is_finished ?? false)"
             >
               {{ isSubmitting ? 'Сохранение...' : 'Сохранить оценки' }}
             </button>

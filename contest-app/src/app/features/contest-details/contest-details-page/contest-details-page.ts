@@ -151,8 +151,49 @@ export class ContestDetailsPage implements OnInit {
     return this.authService.isOrganizer();
   }
 
+  isContestOrganizer(): boolean {
+    const user = this.authService.getCurrentUser();
+    return user?.role === 'organizer' && this.contest?.organizer_id === user.id;
+  }
+
   isExpert(): boolean {
     return this.authService.isExpert();
+  }
+
+  finalizeContest(): void {
+    if (!this.contestId) return;
+    if (confirm('Вы уверены, что хотите завершить этот конкурс? После завершения эксперты не смогут изменять и выставлять оценки.')) {
+      this.contestService.finalize(this.contestId).subscribe({
+        next: (response: any) => {
+          if (this.contest) {
+            this.contest.is_finished = true;
+          }
+          alert('Конкурс успешно завершен!');
+          this.loadData();
+        },
+        error: (err: any) => {
+          alert('Ошибка при завершении конкурса: ' + (err.error?.message || err.error?.error?.message || err.message));
+        },
+      });
+    }
+  }
+
+  reopenContest(): void {
+    if (!this.contestId) return;
+    if (confirm('Вы уверены, что хотите переоткрыть этот конкурс? Эксперты снова смогут изменять оценки.')) {
+      this.contestService.reopen(this.contestId).subscribe({
+        next: (response: any) => {
+          if (this.contest) {
+            this.contest.is_finished = false;
+          }
+          alert('Конкурс успешно переоткрыт!');
+          this.loadData();
+        },
+        error: (err: any) => {
+          alert('Ошибка при переоткрытии конкурса: ' + (err.error?.message || err.error?.error?.message || err.message));
+        },
+      });
+    }
   }
 
   goToEvaluation(): void {

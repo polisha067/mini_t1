@@ -19,8 +19,18 @@
 
     <ng-container *ngIf="!isLoading && !error">
       <div class="total-card">
-        <span class="total-label">Итоговый балл</span>
-        <span class="total-value">{{ formatScore(totalScore) }}</span>
+        <div class="total-score-box">
+          <span class="total-label">Итоговый балл</span>
+          <span class="total-value">{{ formatScore(totalScore) }}</span>
+        </div>
+        <button
+          *ngIf="isExpert() && contest && !contest.is_finished"
+          type="button"
+          class="edit-grades-btn"
+          (click)="goToEvaluation()"
+        >
+          Редактировать оценки
+        </button>
       </div>
 
       <section class="scores-list" *ngIf="criteriaScores.length > 0">

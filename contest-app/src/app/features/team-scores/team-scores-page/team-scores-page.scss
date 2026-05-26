@@ -74,6 +74,12 @@
   box-shadow: 0 8px 24px rgba(52, 52, 90, 0.2);
 }
 
+.total-score-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .total-label {
   font-size: 15px;
   font-weight: 600;
@@ -84,6 +90,28 @@
   font-size: 32px;
   font-weight: 900;
   line-height: 1;
+}
+
+.edit-grades-btn {
+  background: #9d984d;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(157, 152, 77, 0.25);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #b8b46a;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .scores-list {

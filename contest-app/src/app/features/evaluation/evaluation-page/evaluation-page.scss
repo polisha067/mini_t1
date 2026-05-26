@@ -115,6 +115,19 @@
   text-align: center;
 }
 
+.warning-banner {
+  max-width: 800px;
+  margin: 0 auto 24px;
+  padding: 16px 20px;
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 16px;
+  color: #856404;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(133, 100, 4, 0.08);
+}
+
 /* большой блок */
 .evaluation-box {
   width: 100%;

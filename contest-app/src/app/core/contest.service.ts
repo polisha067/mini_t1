@@ -70,6 +70,13 @@ export class ContestService {
     );
   }
 
+  reopen(contestId: number): Observable<ApiResponse<Contest>> {
+    return this.http.post<ApiResponse<Contest>>(
+      `${this.apiUrl}/${contestId}/reopen`,
+      {}
+    );
+  }
+
   getVotingStatus(contestId: number): Observable<ApiResponse<VotingStatus>> {
     return this.http.get<ApiResponse<VotingStatus>>(
       `${this.apiUrl}/${contestId}/voting-status`

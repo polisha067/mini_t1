@@ -10,7 +10,7 @@ import { CriterionService } from '../../../core/criterion.service';
 import { GradeService } from '../../../core/grade.service';
 import { ContestService } from '../../../core/contest.service';
 import { AuthService } from '../../../shared/services/auth.service';
-import { Team, Criterion, Grade } from '../../../shared/models/contest.model';
+import { Team, Criterion, Grade, Contest } from '../../../shared/models/contest.model';
 
 function flaskErrorMessage(err: unknown): string | null {
   const e = err as { error?: { error?: { message?: string }; message?: string } };
@@ -26,6 +26,7 @@ function flaskErrorMessage(err: unknown): string | null {
 })
 export class EvaluationPage implements OnInit {
   contestId: number | null = null;
+  contest: Contest | null = null;
   contestTitle: string | null = null;
   teams: Team[] = [];
   criteria: Criterion[] = [];
@@ -54,18 +55,24 @@ export class EvaluationPage implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const idParam = this.route.snapshot.queryParamMap.get('contestId');
-    this.contestId = idParam ? +idParam : null;
-    if (!this.contestId || !Number.isFinite(this.contestId)) {
-      this.isLoading = false;
-      this.error =
-        'Не указан конкурс. Откройте оценивание из личного кабинета эксперта (список конкурсов).';
-      return;
-    }
-    this.loadData();
+    this.route.queryParamMap.subscribe((params) => {
+      const idParam = params.get('contestId');
+      this.contestId = idParam ? +idParam : null;
+
+      const teamIdParam = params.get('teamId');
+      const autoTeamId = teamIdParam ? +teamIdParam : null;
+
+      if (!this.contestId || !Number.isFinite(this.contestId)) {
+        this.isLoading = false;
+        this.error =
+          'Не указан конкурс. Откройте оценивание из личного кабинета эксперта (список конкурсов).';
+        return;
+      }
+      this.loadDataAndSelectTeam(autoTeamId);
+    });
   }
 
-  loadData(): void {
+  loadDataAndSelectTeam(autoTeamId: number | null): void {
     if (!this.contestId) {
       return;
     }
@@ -92,40 +99,47 @@ export class EvaluationPage implements OnInit {
       ),
     })
       .pipe(
-          finalize(() => {
-            this.isLoading = false;
-            this.cdr.detectChanges(); // <-- Принудительно убираем загрузку на UI
-          })
-        )
-        .subscribe({
-          next: (bundle) => {
-            const meta = bundle.meta as {
-              contest?: { name?: string };
-              data?: { name?: string };
-            } | null;
-            const c = meta?.contest || meta?.data;
-            this.contestTitle = c?.name ?? null;
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (bundle) => {
+          const meta = bundle.meta as {
+            contest?: Contest;
+            data?: Contest;
+          } | null;
+          this.contest = meta?.contest || meta?.data || null;
+          this.contestTitle = this.contest?.name ?? null;
 
-            const tr = bundle.teams as { teams?: Team[] };
-            const cr = bundle.criteria as { criteria?: Criterion[] };
-            this.teams = Array.isArray(tr?.teams) ? tr.teams : [];
-            this.criteria = Array.isArray(cr?.criteria) ? cr.criteria : [];
+          const tr = bundle.teams as { teams?: Team[] };
+          const cr = bundle.criteria as { criteria?: Criterion[] };
+          this.teams = Array.isArray(tr?.teams) ? tr.teams : [];
+          this.criteria = Array.isArray(cr?.criteria) ? cr.criteria : [];
 
-            this.initGrades();
+          this.initGrades();
 
-            if (!this.error && this.teams.length === 0 && this.criteria.length === 0) {
-              this.error =
-                'Нет команд или критериев для оценивания. Если вы только что присоединились — обновите страницу.';
+          if (autoTeamId) {
+            const teamToSelect = this.teams.find((t) => t.id === autoTeamId);
+            if (teamToSelect) {
+              this.selectTeam(teamToSelect);
             }
-            this.cdr.detectChanges(); // <-- Обновляем данные на UI
-          },
-          error: (err) => {
-            if (!this.error) {
-              this.error = flaskErrorMessage(err);
-            }
-            this.cdr.detectChanges(); // <-- Показываем ошибку на UI
-          },
-        });
+          }
+
+          if (!this.error && this.teams.length === 0 && this.criteria.length === 0) {
+            this.error =
+              'Нет команд или критериев для оценивания. Если вы только что присоединились — обновите страницу.';
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          if (!this.error) {
+            this.error = flaskErrorMessage(err);
+          }
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   initGrades(): void {
