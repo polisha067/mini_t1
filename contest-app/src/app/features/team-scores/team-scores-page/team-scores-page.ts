@@ -148,7 +148,7 @@ export class TeamScoresPage implements OnInit {
   }
 
   getExpertUsername(grade: Grade): string {
-    return this.expertsMap[grade.expert_id] || `Эксперт #${grade.expert_id}`;
+    return grade.expert_username || this.expertsMap[grade.expert_id] || `Эксперт #${grade.expert_id}`;
   }
 
   formatScore(score: number | null): string {
