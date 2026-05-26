@@ -3,6 +3,9 @@
     <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
       <span class="arrow">←</span>
     </button>
+    <button class="account-button" type="button" *ngIf="isOrganizer()" (click)="goToEditContest()">
+      РЕДАКТИРОВАТЬ
+    </button>
     <button class="account-button" type="button" *ngIf="isOrganizer()" (click)="goToParticipants()">
       УЧАСТНИКИ
     </button>
