@@ -5,8 +5,9 @@ import { catchError, finalize, timeout } from 'rxjs/operators';
 import { of, TimeoutError } from 'rxjs';
 import { RankingService } from '../../../core/ranking.service';
 import { ContestService } from '../../../core/contest.service';
+import { GradeService } from '../../../core/grade.service';
 import { AuthService } from '../../../shared/services/auth.service';
-import { TeamCriterionScore, Contest } from '../../../shared/models/contest.model';
+import { TeamCriterionScore, Contest, Grade } from '../../../shared/models/contest.model';
 
 @Component({
   selector: 'app-team-scores-page',
@@ -23,6 +24,7 @@ export class TeamScoresPage implements OnInit {
   teamName: string | null = null;
   totalScore = 0;
   criteriaScores: TeamCriterionScore[] = [];
+  gradesByCriterion: Record<number, Grade[]> = {};
   isLoading = true;
   error: string | null = null;
 
@@ -31,6 +33,7 @@ export class TeamScoresPage implements OnInit {
     private router: Router,
     private rankingService: RankingService,
     private contestService: ContestService,
+    private gradeService: GradeService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -65,6 +68,24 @@ export class TeamScoresPage implements OnInit {
           (contestRes as { data?: Contest })?.data ||
           null;
         this.contestName = this.contest?.name ?? null;
+        this.cdr.detectChanges();
+      });
+
+    this.gradeService
+      .getTeamGrades(this.teamId, 1, 100)
+      .pipe(
+        timeout(20_000),
+        catchError(() => of({ grades: [] as Grade[] }))
+      )
+      .subscribe((res: any) => {
+        const gradesList = res?.grades || res?.data || [];
+        this.gradesByCriterion = {};
+        gradesList.forEach((g: Grade) => {
+          if (!this.gradesByCriterion[g.criterion_id]) {
+            this.gradesByCriterion[g.criterion_id] = [];
+          }
+          this.gradesByCriterion[g.criterion_id].push(g);
+        });
         this.cdr.detectChanges();
       });
 

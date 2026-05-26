@@ -181,6 +181,73 @@
   letter-spacing: 0.03em;
 }
 
+.individual-grades {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(52, 52, 90, 0.15);
+}
+
+.grades-title {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 750;
+  color: #34345a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.grade-item {
+  background: #fdfcf9;
+  border: 1px solid rgba(52, 52, 90, 0.08);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.grade-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expert-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #34345a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.expert-icon {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.expert-score {
+  font-size: 14px;
+  font-weight: 800;
+  color: #9d984d;
+  background: rgba(157, 152, 77, 0.08);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.expert-comment {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  color: #5a5a7a;
+  line-height: 1.4;
+  font-style: italic;
+  position: relative;
+  padding-left: 12px;
+  border-left: 2px solid rgba(157, 152, 77, 0.4);
+}
+
 .loading-box,
 .error-box,
 .no-data {

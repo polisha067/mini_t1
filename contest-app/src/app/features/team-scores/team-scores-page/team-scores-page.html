@@ -53,6 +53,23 @@
             </span>
             <span *ngIf="item.grades_count === 0">оценок нет</span>
           </div>
+
+          <!-- Детали оценок экспертов -->
+          <div class="individual-grades" *ngIf="gradesByCriterion[item.criterion_id] && gradesByCriterion[item.criterion_id].length > 0">
+            <h3 class="grades-title">Оценки экспертов:</h3>
+            <div class="grade-item" *ngFor="let grade of gradesByCriterion[item.criterion_id]">
+              <div class="grade-item-header">
+                <span class="expert-name">
+                  <span class="expert-icon">👤</span>
+                  {{ grade.expert_username || ('Эксперт #' + grade.expert_id) }}
+                </span>
+                <span class="expert-score">{{ grade.value }}</span>
+              </div>
+              <p class="expert-comment" *ngIf="grade.comment">
+                {{ grade.comment }}
+              </p>
+            </div>
+          </div>
         </article>
       </section>
 
