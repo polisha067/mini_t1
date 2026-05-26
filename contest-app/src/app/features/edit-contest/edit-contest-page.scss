@@ -4,7 +4,7 @@
   font-family: Arial, sans-serif;
 }
 
-.create-contest-page {
+.edit-contest-page {
   min-height: 100vh;
   padding: 24px;
   background: #f5f1e8;
@@ -13,7 +13,7 @@
 }
 
 .top-bar,
-.create-contest-content {
+.edit-contest-content {
   width: 100%;
   max-width: 980px;
   margin-left: auto;
@@ -388,7 +388,7 @@
 }
 
 @media (max-width: 520px) {
-  .create-contest-page {
+  .edit-contest-page {
     padding: 16px;
   }
 

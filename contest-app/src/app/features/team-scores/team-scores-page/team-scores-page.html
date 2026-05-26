@@ -61,7 +61,7 @@
               <div class="grade-item-header">
                 <span class="expert-name">
                   <span class="expert-icon">👤</span>
-                  {{ grade.expert_username || ('Эксперт #' + grade.expert_id) }}
+                  {{ getExpertUsername(grade) }}
                 </span>
                 <span class="expert-score">{{ grade.value }}</span>
               </div>

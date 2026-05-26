@@ -180,6 +180,16 @@
   }
 }
 
+.edit-btn {
+  background: #34345a;
+  color: #fff;
+
+  &:hover {
+    background: #474775;
+    box-shadow: 0 6px 16px rgba(52, 52, 90, 0.25);
+  }
+}
+
 .rating-box {
   width: 100%;
   max-width: 900px;

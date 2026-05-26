@@ -25,6 +25,7 @@ export class TeamScoresPage implements OnInit {
   totalScore = 0;
   criteriaScores: TeamCriterionScore[] = [];
   gradesByCriterion: Record<number, Grade[]> = {};
+  expertsMap: Record<number, string> = {};
   isLoading = true;
   error: string | null = null;
 
@@ -68,6 +69,21 @@ export class TeamScoresPage implements OnInit {
           (contestRes as { data?: Contest })?.data ||
           null;
         this.contestName = this.contest?.name ?? null;
+        this.cdr.detectChanges();
+      });
+
+    this.contestService
+      .getContestExperts(this.contestId)
+      .pipe(
+        timeout(20_000),
+        catchError(() => of({ experts: [] }))
+      )
+      .subscribe((res: any) => {
+        const expertsList = res?.experts || res?.data || [];
+        this.expertsMap = {};
+        expertsList.forEach((e: any) => {
+          this.expertsMap[e.id] = e.username;
+        });
         this.cdr.detectChanges();
       });
 
@@ -129,6 +145,10 @@ export class TeamScoresPage implements OnInit {
 
   goToEvaluation(): void {
     this.router.navigate(['/evaluation'], { queryParams: { contestId: this.contestId, teamId: this.teamId } });
+  }
+
+  getExpertUsername(grade: Grade): string {
+    return this.expertsMap[grade.expert_id] || `Эксперт #${grade.expert_id}`;
   }
 
   formatScore(score: number | null): string {

@@ -48,7 +48,7 @@ export class ContestService {
 
   update(
     contestId: number,
-    data: UpdateContestData
+    data: FormData | UpdateContestData
   ): Observable<ApiResponse<Contest>> {
     return this.http.put<ApiResponse<Contest>>(`${this.apiUrl}/${contestId}`, data);
   }
@@ -75,6 +75,10 @@ export class ContestService {
       `${this.apiUrl}/${contestId}/reopen`,
       {}
     );
+  }
+
+  getContestExperts(contestId: number): Observable<any> {
+    return this.http.get(`/api/experts/contests/${contestId}/experts`);
   }
 
   getVotingStatus(contestId: number): Observable<ApiResponse<VotingStatus>> {

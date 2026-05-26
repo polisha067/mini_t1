@@ -3,9 +3,6 @@
     <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
       <span class="arrow">←</span>
     </button>
-    <button class="account-button" type="button" *ngIf="isOrganizer()" (click)="goToEditContest()">
-      РЕДАКТИРОВАТЬ
-    </button>
     <button class="account-button" type="button" *ngIf="isOrganizer()" (click)="goToParticipants()">
       УЧАСТНИКИ
     </button>
@@ -49,6 +46,9 @@
               </button>
               <button *ngIf="contest.is_finished" type="button" (click)="reopenContest()" class="action-btn reopen-btn">
                 Открыть заново
+              </button>
+              <button type="button" (click)="goToEditContest()" class="action-btn edit-btn">
+                Редактировать конкурс
               </button>
             </div>
           </div>
