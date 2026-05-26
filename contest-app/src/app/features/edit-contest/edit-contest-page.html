@@ -1,0 +1,132 @@
+--- contest-app/src/app/features/edit-contest/edit-contest-page/edit-contest-page.html (原始)
+
+
++++ contest-app/src/app/features/edit-contest/edit-contest-page/edit-contest-page.html (修改后)
+<div class="edit-contest-page">
+  <header class="top-bar">
+    <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+        <path d="M360-240 120-480l240-240 56 56-144 144h568v80H272l144 144-56 56Z"/>
+      </svg>
+    </button>
+  </header>
+
+  <main class="edit-contest-content">
+    <section class="hero">
+      <h1 class="page-title">Редактирование конкурса</h1>
+      <p class="subtitle">Измените информацию о конкурсе, критерии и команды</p>
+    </section>
+
+    <div *ngIf="isLoading" class="loading-box">
+      <p>Загрузка данных конкурса...</p>
+    </div>
+
+    <div *ngIf="!isLoading && error" class="error-box">
+      <p>{{ error }}</p>
+      <button type="button" class="retry-btn" (click)="loadContestData()">Попробовать снова</button>
+    </div>
+
+    <ng-container *ngIf="!isLoading && !error">
+      <section class="upload-card">
+        <div class="image-card clickable" (click)="fileInput.click()">
+          <img [src]="getLogoUrl(logoPath)" alt="Preview" />
+          <div class="overlay">Нажмите, чтобы выбрать</div>
+        </div>
+
+        <div class="upload-info">
+          <h2>Изображение конкурса</h2>
+          <p>Загрузите изображение. Оно будет отображаться в карточке конкурса.</p>
+
+          <div class="file-upload">
+            <input type="file" accept="image/*" (change)="onFileSelected($event)" #fileInput hidden />
+            <button type="button" class="upload-btn" (click)="fileInput.click()">📁 Выбрать изображение</button>
+            <span class="file-name">{{ selectedFile?.name || (contest?.logo_path ? 'Текущее изображение' : 'Файл не выбран') }}</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="contest-form">
+        <section class="form-section">
+          <h2 class="section-title">Основная информация</h2>
+          <div class="form-grid">
+            <label class="field">
+              <span>Название конкурса *</span>
+              <input type="text" class="input-field" placeholder="Введите название конкурса" [(ngModel)]="name" name="name" required />
+            </label>
+            <label class="field field-wide">
+              <span>Описание конкурса</span>
+              <textarea class="input-field textarea-field" placeholder="Расскажите о конкурсе, целях и условиях" [(ngModel)]="description" name="description" rows="4"></textarea>
+            </label>
+            <label class="field">
+              <span>Дата начала</span>
+              <div class="date-wrapper">
+                <input type="text" class="input-field date-input" placeholder="дд.мм.гггг, --:--" #startDateInput />
+                <span class="date-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px" fill="#34345a"><path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Z"/></svg>
+                </span>
+              </div>
+            </label>
+            <label class="field">
+              <span>Дата окончания</span>
+              <div class="date-wrapper">
+                <input type="text" class="input-field date-input" placeholder="дд.мм.гггг, --:--" #endDateInput />
+                <span class="date-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px" fill="#34345a"><path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Z"/></svg>
+                </span>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Критерии оценки</h2>
+              <p class="section-subtitle">Добавьте параметры, по которым будет оцениваться конкурс</p>
+            </div>
+            <button class="add-criterion-btn" type="button" (click)="addCriterion($event)">+ Добавить</button>
+          </div>
+          <div class="criterion-list">
+            <div class="criterion-item" *ngFor="let c of criteria; let i = index; trackBy: trackByIndex">
+              <div class="criterion-number">{{ i + 1 }}</div>
+              <div class="criterion-fields">
+                <input type="text" class="input-field" placeholder="Название критерия *" [(ngModel)]="criteria[i].name" name="c_name_{{i}}" />
+                <input type="text" class="input-field" placeholder="Описание" [(ngModel)]="criteria[i].description" name="c_desc_{{i}}" />
+                <input type="number" class="input-field score-input" placeholder="Балл" [(ngModel)]="criteria[i].max_score" name="c_max_{{i}}" min="1" max="100" />
+              </div>
+              <button type="button" class="remove-criterion-btn" (click)="removeCriterion(i, $event)" *ngIf="criteria.length > 1">✕</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Команды</h2>
+              <p class="section-subtitle">Добавьте команды, которые будут участвовать в конкурсе</p>
+            </div>
+            <button class="add-criterion-btn" type="button" (click)="addTeam($event)">+ Добавить</button>
+          </div>
+          <div class="criterion-list">
+            <div class="criterion-item" *ngFor="let t of teams; let i = index; trackBy: trackByIndex">
+              <div class="criterion-number">{{ i + 1 }}</div>
+              <div class="criterion-fields">
+                <input type="text" class="input-field" placeholder="Название команды *" [(ngModel)]="teams[i].name" name="t_name_{{i}}" />
+              </div>
+              <button type="button" class="remove-criterion-btn" (click)="removeTeam(i, $event)" *ngIf="teams.length > 1">✕</button>
+            </div>
+          </div>
+        </section>
+
+        <div *ngIf="error" class="error-message">{{ error }}</div>
+
+        <div class="form-actions">
+          <button type="button" class="back-btn" (click)="goBack()">Отмена</button>
+          <button type="button" class="submit-btn" [disabled]="isSubmitting" (click)="onSubmit()">
+            {{ isSubmitting ? 'Сохранение...' : 'Сохранить изменения' }}
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </main>
+</div>

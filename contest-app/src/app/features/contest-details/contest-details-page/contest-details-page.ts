@@ -163,6 +163,10 @@ export class ContestDetailsPage implements OnInit {
     this.router.navigate(['/contests', this.contestId, 'participants']);
   }
 
+  goToEditContest(): void {
+    this.router.navigate(['/contest', this.contestId, 'edit']);
+  }
+  
   goToTeam(entry: RankingEntry): void {
     this.router.navigate(['/contests', this.contestId, 'teams', entry.team_id]);
   }
