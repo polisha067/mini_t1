@@ -6,7 +6,13 @@
     "logLevel": "debug"
   },
   "/uploads": {
-    "target": "http://web:5000",
+    "target": "http://nginx:80",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/logos": {
+    "target": "http://nginx:80",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"

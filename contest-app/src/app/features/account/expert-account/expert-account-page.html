@@ -1,8 +1,22 @@
-<div class="account-page">
-  <div class="account-header">
-    <button class="back-btn" type="button" (click)="goHome()">На главную</button>
-    <button class="logout-btn" type="button" (click)="logout()">Выйти</button>
+<header class="main-header">
+  <div class="header-brand" (click)="goHome()">
+    <button class="back-nav-btn" type="button" aria-label="Назад">
+      <span class="arrow">←</span>
+    </button>
+    <span class="logo-text logo-font">
+      <span class="consonant">М</span>
+      <span class="vowel">Е</span>
+      <span class="consonant">Т</span>
+      <span class="consonant">К</span>
+      <span class="vowel">А</span>
+    </span>
   </div>
+  <div class="header-actions">
+    <button class="btn-logout-accent" (click)="logout()">Выйти</button>
+  </div>
+</header>
+
+<div class="account-page">
 
   <h1>Аккаунт эксперта</h1>
 

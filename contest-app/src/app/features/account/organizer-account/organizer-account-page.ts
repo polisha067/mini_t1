@@ -48,6 +48,15 @@ export class OrganizerAccountPage implements OnInit {
     this.router.navigate(['/contest', contestId]);
   }
 
+  goToEditContest(contestId: number, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.router.navigate(['/contest', contestId, 'edit']);
+  }
+
+  
   private loadCreatedContests(): void {
     if (!this.user) {
       this.contestsError = 'Пользователь не найден.';

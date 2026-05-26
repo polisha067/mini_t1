@@ -19,16 +19,18 @@
 
     <ng-container *ngIf="!isLoading && !error">
       <div class="total-card">
-        <span class="total-label">Итоговый балл</span>
-        <span class="total-value">{{ formatScore(totalScore) }}</span>
+        <div class="total-score-box">
+          <span class="total-label">Итоговый балл</span>
+          <span class="total-value">{{ formatScore(totalScore) }}</span>
+        </div>
+        <button *ngIf="isExpert() && contest && !contest.is_finished" type="button" class="edit-grades-btn"
+          (click)="goToEvaluation()">
+          Редактировать оценки
+        </button>
       </div>
 
       <section class="scores-list" *ngIf="criteriaScores.length > 0">
-        <article
-          class="score-card"
-          *ngFor="let item of criteriaScores"
-          [class.empty]="item.average_score === null"
-        >
+        <article class="score-card" *ngFor="let item of criteriaScores" [class.empty]="item.average_score === null">
           <div class="score-card-header">
             <h2 class="criterion-name">{{ item.criterion_name }}</h2>
             <span class="score-badge">{{ formatScore(item.average_score) }}</span>
@@ -42,6 +44,23 @@
               {{ item.grades_count }} {{ item.grades_count === 1 ? 'оценка' : 'оценки' }}
             </span>
             <span *ngIf="item.grades_count === 0">оценок нет</span>
+          </div>
+
+          <!-- Детали оценок экспертов -->
+          <div class="individual-grades"
+            *ngIf="gradesByCriterion[item.criterion_id] && gradesByCriterion[item.criterion_id].length > 0">
+            <h3 class="grades-title">Оценки экспертов:</h3>
+            <div class="grade-item" *ngFor="let grade of gradesByCriterion[item.criterion_id]">
+              <div class="grade-item-header">
+                <span class="expert-name">
+                  {{ getExpertUsername(grade) }}
+                </span>
+                <span class="expert-score">{{ grade.value }}</span>
+              </div>
+              <p class="expert-comment" *ngIf="grade.comment">
+                {{ grade.comment }}
+              </p>
+            </div>
           </div>
         </article>
       </section>

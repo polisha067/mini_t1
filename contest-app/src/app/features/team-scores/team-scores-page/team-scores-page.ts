@@ -5,7 +5,9 @@ import { catchError, finalize, timeout } from 'rxjs/operators';
 import { of, TimeoutError } from 'rxjs';
 import { RankingService } from '../../../core/ranking.service';
 import { ContestService } from '../../../core/contest.service';
-import { TeamCriterionScore } from '../../../shared/models/contest.model';
+import { GradeService } from '../../../core/grade.service';
+import { AuthService } from '../../../shared/services/auth.service';
+import { TeamCriterionScore, Contest, Grade } from '../../../shared/models/contest.model';
 
 @Component({
   selector: 'app-team-scores-page',
@@ -17,10 +19,13 @@ import { TeamCriterionScore } from '../../../shared/models/contest.model';
 export class TeamScoresPage implements OnInit {
   contestId!: number;
   teamId!: number;
+  contest: Contest | null = null;
   contestName: string | null = null;
   teamName: string | null = null;
   totalScore = 0;
   criteriaScores: TeamCriterionScore[] = [];
+  gradesByCriterion: Record<number, Grade[]> = {};
+  expertsMap: Record<number, string> = {};
   isLoading = true;
   error: string | null = null;
 
@@ -29,6 +34,8 @@ export class TeamScoresPage implements OnInit {
     private router: Router,
     private rankingService: RankingService,
     private contestService: ContestService,
+    private gradeService: GradeService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -57,10 +64,44 @@ export class TeamScoresPage implements OnInit {
         catchError(() => of(null))
       )
       .subscribe((contestRes) => {
-        const contest =
-          (contestRes as { contest?: { name?: string } })?.contest ||
-          (contestRes as { data?: { name?: string } })?.data;
-        this.contestName = contest?.name ?? null;
+        this.contest =
+          (contestRes as { contest?: Contest })?.contest ||
+          (contestRes as { data?: Contest })?.data ||
+          null;
+        this.contestName = this.contest?.name ?? null;
+        this.cdr.detectChanges();
+      });
+
+    this.contestService
+      .getContestExperts(this.contestId)
+      .pipe(
+        timeout(20_000),
+        catchError(() => of({ experts: [] }))
+      )
+      .subscribe((res: any) => {
+        const expertsList = res?.experts || res?.data || [];
+        this.expertsMap = {};
+        expertsList.forEach((e: any) => {
+          this.expertsMap[e.id] = e.username;
+        });
+        this.cdr.detectChanges();
+      });
+
+    this.gradeService
+      .getTeamGrades(this.teamId, 1, 100)
+      .pipe(
+        timeout(20_000),
+        catchError(() => of({ grades: [] as Grade[] }))
+      )
+      .subscribe((res: any) => {
+        const gradesList = res?.grades || res?.data || [];
+        this.gradesByCriterion = {};
+        gradesList.forEach((g: Grade) => {
+          if (!this.gradesByCriterion[g.criterion_id]) {
+            this.gradesByCriterion[g.criterion_id] = [];
+          }
+          this.gradesByCriterion[g.criterion_id].push(g);
+        });
         this.cdr.detectChanges();
       });
 
@@ -96,6 +137,18 @@ export class TeamScoresPage implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/contests', this.contestId]);
+  }
+
+  isExpert(): boolean {
+    return this.authService.isExpert();
+  }
+
+  goToEvaluation(): void {
+    this.router.navigate(['/evaluation'], { queryParams: { contestId: this.contestId, teamId: this.teamId } });
+  }
+
+  getExpertUsername(grade: Grade): string {
+    return grade.expert_username || this.expertsMap[grade.expert_id] || `Эксперт #${grade.expert_id}`;
   }
 
   formatScore(score: number | null): string {

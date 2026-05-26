@@ -128,7 +128,7 @@ class GradeService:
                 raise ForbiddenError(
                     "Сначала присоединитесь к конкурсу по ключу в личном кабинете эксперта."
                 )
-            query = Grade.query.filter_by(team_id=team_id, expert_id=viewer_user_id)
+            query = Grade.query.filter_by(team_id=team_id)
         elif user.role == "organizer":
             if contest.organizer_id != viewer_user_id:
                 raise ForbiddenError("Вы не организатор этого конкурса")

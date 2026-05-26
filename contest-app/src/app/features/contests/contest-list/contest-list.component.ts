@@ -113,15 +113,22 @@ export class ContestListComponent implements OnInit {
 
   getLogoUrl(logoPath: string | null): string {
     if (!logoPath) {
-      return 'https://placehold.co/520x360/png?text=Preview';
+      return 'assets/images/photo.jpg';
     }
 
-    if (logoPath.startsWith('http')) {
+    if (logoPath.startsWith('http') || logoPath.startsWith('blob:') || logoPath.startsWith('data:')) {
       return logoPath;
     }
 
-    const cleanPath = logoPath.startsWith('/') ? logoPath.substring(1) : logoPath;
+    const cleanPath = logoPath.replace(/^\/+/, '');
+    if (cleanPath.startsWith('uploads/')) {
+      return `/${cleanPath}`;
+    }
+    return `/uploads/${cleanPath}`;
+  }
 
-    return `/${cleanPath}`;
+  handleImageError(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    target.src = 'assets/images/photo.jpg';
   }
 }

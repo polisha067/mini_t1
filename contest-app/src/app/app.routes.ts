@@ -20,6 +20,7 @@ import {
 } from './core/guards/auth.guard';
 import { ContestCreatedPage } from './features/contest-created/contest-created-page/contest-created-page';
 import { TeamScoresPage } from './features/team-scores/team-scores-page/team-scores-page';
+import { EditContestPage } from './features/edit-contest/edit-contest-page';
 
 export const routes: Routes = [
   { path: '', component: ContestListComponent },
@@ -41,6 +42,7 @@ export const routes: Routes = [
   },
   { path: 'create-contest', component: CreateContestPage, canActivate: [organizerGuard] },
   { path: 'account', canActivate: [accountRedirectGuard], component: ContestListComponent },
+  { path: 'contest/:id/edit', component: EditContestPage, canActivate: [organizerGuard] },
   { path: 'account/expert', component: ExpertAccountPage, canActivate: [expertGuard] },
   { path: 'account/organizer', component: OrganizerAccountPage, canActivate: [organizerGuard] },
   { path: '404', component: NotFound },

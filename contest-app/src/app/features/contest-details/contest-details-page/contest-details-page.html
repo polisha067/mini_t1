@@ -1,15 +1,27 @@
-<div class="contest-details-page">
-  <header class="top-bar">
-    <button class="back-button" type="button" aria-label="Назад" (click)="goBack()">
+<header class="main-header">
+  <div class="header-brand" (click)="goBack()">
+    <button class="back-nav-btn" type="button" aria-label="Назад">
       <span class="arrow">←</span>
     </button>
-    <button class="account-button" type="button" *ngIf="isOrganizer()" (click)="goToParticipants()">
-      УЧАСТНИКИ
+    <span class="logo-text logo-font">
+      <span class="consonant">М</span>
+      <span class="vowel">Е</span>
+      <span class="consonant">Т</span>
+      <span class="consonant">К</span>
+      <span class="vowel">А</span>
+    </span>
+  </div>
+  <div class="header-actions">
+    <button class="btn-action-outline" type="button" *ngIf="isOrganizer()" (click)="goToParticipants()">
+      участники
     </button>
-    <button class="account-button" type="button" *ngIf="isExpert()" (click)="goToEvaluation()">
-      ОЦЕНИВАНИЕ
+    <button class="btn-action-accent" type="button" *ngIf="isExpert()" (click)="goToEvaluation()">
+      оценивание
     </button>
-  </header>
+  </div>
+</header>
+
+<div class="contest-details-page">
 
   <main class="contest-details-content">
     <h1 class="page-title">КОНКУРСНАЯ ТАБЛИЦА</h1>
@@ -27,7 +39,7 @@
       
       <section class="contest-info-section" *ngIf="contest">
         <div class="image-card">
-          <img [src]="getLogoUrl(contest.logo_path)" [alt]="contest.name" />
+          <img [src]="getLogoUrl(contest.logo_path)" (error)="handleImageError($event)" [alt]="contest.name" />
         </div>
         <div class="contest-text">
           <h2 class="contest-name">{{ contest.name }}</h2>
@@ -40,6 +52,17 @@
             <p class="contest-status" [class.finished]="contest.is_finished">
               {{ contest.is_finished ? 'Завершён' : 'Активен' }}
             </p>
+            <div class="organizer-actions" *ngIf="isContestOrganizer()">
+              <button *ngIf="!contest.is_finished" type="button" (click)="finalizeContest()" class="action-btn finalize-btn">
+                Завершить конкурс
+              </button>
+              <button *ngIf="contest.is_finished" type="button" (click)="reopenContest()" class="action-btn reopen-btn">
+                Открыть заново
+              </button>
+              <button type="button" (click)="goToEditContest()" class="action-btn edit-btn">
+                Редактировать конкурс
+              </button>
+            </div>
           </div>
         </div>
       </section>

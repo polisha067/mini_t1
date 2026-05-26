@@ -2,44 +2,9 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  min-height: 100vh;
-  padding: 32px;
-  background: #f5f1e8;
-  color: #34345a;
-}
-
-.account-header {
-  display: flex;
-  justify-content: flex-end;
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.back-btn,
-.logout-btn {
-  padding: 14px 28px;
-  border: none;
-  border-radius: 16px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 8px 20px rgba(52, 52, 90, 0.15);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(52, 52, 90, 0.2);
-  }
-}
-
-.back-btn {
-  background: #34345a;
-  color: #f5f1e8;
-}
-
-.logout-btn {
-  background: #9d984d;
-  color: #f5f1e8;
+  min-height: calc(100vh - 80px);
+  padding: 48px 24px;
+  color: var(--text-primary);
 }
 
 h1 {
@@ -170,89 +135,118 @@ h1 {
   font-size: 17px;
 }
 
-.contest-date {
-  color: #9d984d;
-  white-space: nowrap;
-  font-weight: 600;
-  font-size: 14px;
-}
+.edit-contest-btn {
+  position: absolute;
+  right: 70px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: #9d984d;
+  color: #f5f1e8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(157, 152, 77, 0.3);
 
-@media (max-width: 768px) {
-  .account-page {
-    padding: 20px 16px;
+  &:hover {
+    background: #34345a;
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 6px 16px rgba(52, 52, 90, 0.4);
   }
 
-  .account-header {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .back-btn,
-  .logout-btn {
-    flex: 1 1 auto;
-    min-width: 140px;
-    padding: 12px 20px;
-    font-size: 14px;
-  }
-
-  h1 {
-    font-size: 28px;
-    margin-bottom: 24px;
-  }
-
-  .profile-card {
-    max-width: 100%;
-    padding: 20px;
-  }
-
-  .row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-
-  .value {
-    text-align: left;
-  }
-
-  .section-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-
-    h2 {
-      font-size: 24px;
-    }
-  }
-
-  .create-btn {
-    width: 100%;
-    text-align: center;
-  }
-
-  .contest-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  .contest-list {
+    position: relative;
   }
 
   .contest-date {
-    white-space: normal;
-  }
-}
-
-@media (max-width: 480px) {
-  .account-page {
-    padding: 16px 12px;
+    color: #9d984d;
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 14px;
   }
 
-  h1 {
-    font-size: 24px;
+  @media (max-width: 768px) {
+    .account-page {
+      padding: 20px 16px;
+    }
+
+    .account-header {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .back-btn,
+    .logout-btn {
+      flex: 1 1 auto;
+      min-width: 140px;
+      padding: 12px 20px;
+      font-size: 14px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 24px;
+    }
+
+    .profile-card {
+      max-width: 100%;
+      padding: 20px;
+    }
+
+    .row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .value {
+      text-align: left;
+    }
+
+    .section-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+
+      h2 {
+        font-size: 24px;
+      }
+    }
+
+    .create-btn {
+      width: 100%;
+      text-align: center;
+    }
+
+    .contest-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .contest-date {
+      white-space: normal;
+    }
   }
 
-  .section-header h2 {
-    font-size: 22px;
+  @media (max-width: 480px) {
+    .account-page {
+      padding: 16px 12px;
+    }
+
+    h1 {
+      font-size: 24px;
+    }
+
+    .section-header h2 {
+      font-size: 22px;
+    }
   }
 }

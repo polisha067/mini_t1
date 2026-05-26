@@ -1,8 +1,22 @@
-<div class="account-page">
-  <div class="account-header">
-    <button class="back-btn" type="button" (click)="goHome()">На главную</button>
-    <button class="logout-btn" type="button" (click)="logout()">Выйти</button>
+<header class="main-header">
+  <div class="header-brand" (click)="goHome()">
+    <button class="back-nav-btn" type="button" aria-label="Назад">
+      <span class="arrow">←</span>
+    </button>
+    <span class="logo-text logo-font">
+      <span class="consonant">М</span>
+      <span class="vowel">Е</span>
+      <span class="consonant">Т</span>
+      <span class="consonant">К</span>
+      <span class="vowel">А</span>
+    </span>
   </div>
+  <div class="header-actions">
+    <button class="btn-logout-accent" (click)="logout()">Выйти</button>
+  </div>
+</header>
+
+<div class="account-page">
 
   <h1>Аккаунт организатора</h1>
 
@@ -44,14 +58,11 @@
     </p>
 
     <div class="contest-list" *ngIf="!isLoadingContests && createdContests.length > 0">
-      <button
-        class="contest-item"
-        type="button"
-        *ngFor="let contest of createdContests"
-        (click)="goToContest(contest.id)"
-      >
+      <button class="contest-item" type="button" *ngFor="let contest of createdContests"
+        (click)="goToContest(contest.id)">
         <span class="contest-name">{{ contest.name }}</span>
-        <span class="contest-date">{{ contest.start_date ? (contest.start_date | date: 'dd.MM.yyyy') : 'Без даты' }}</span>
+        <span class="contest-date">{{ contest.start_date ? (contest.start_date | date: 'dd.MM.yyyy') : 'Без даты'
+          }}</span>
       </button>
     </div>
   </div>

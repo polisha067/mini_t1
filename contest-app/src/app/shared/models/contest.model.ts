@@ -48,6 +48,7 @@ export interface Grade {
   created_at: string;
   updated_at: string;
   expert_id: number;
+  expert_username?: string | null;
   team_id: number;
   criterion_id: number;
 }

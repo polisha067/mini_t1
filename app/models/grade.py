@@ -30,6 +30,7 @@ class Grade(db.Model):
             'value': self.value,
             'comment': self.comment,
             'expert_id': self.expert_id,
+            'expert_username': self.expert.username if self.expert else None,
             'team_id': self.team_id,
             'criterion_id': self.criterion_id,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
