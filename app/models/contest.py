@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timezone
 from app.extensions import db
 from flask import current_app
 
@@ -23,6 +23,13 @@ class Contest(db.Model):
     criteria = db.relationship("Criterion", back_populates="contest", cascade="all, delete-orphan")
     assigned_experts = db.relationship("ContestExpert", back_populates="contest", lazy="dynamic", cascade="all, delete-orphan")
 
+    def _format_dt(self, dt):
+        if not dt:
+            return None
+        if dt.tzinfo is not None:
+            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt.isoformat() + "Z"
+
     def to_dict(self):
         logo_url = None
         if self.logo_path:
@@ -34,14 +41,14 @@ class Contest(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "start_date": self.start_date.isoformat() if self.start_date else None,
-            "end_date": self.end_date.isoformat() if self.end_date else None,
+            "start_date": self._format_dt(self.start_date),
+            "end_date": self._format_dt(self.end_date),
             "logo_path": self.logo_path,
             "logo_url": logo_url,
             "organizer_id": self.organizer_id,
             "is_finished": self.is_finished,
             "is_reopened": self.is_reopened,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": self._format_dt(self.created_at),
         }
     def __repr__(self):
         return f'<Contest {self.name}>'

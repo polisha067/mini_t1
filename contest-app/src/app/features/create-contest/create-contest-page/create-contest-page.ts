@@ -52,7 +52,9 @@ export class CreateContestPage implements AfterViewInit {
       dateFormat: 'Y-m-d\\TH:i:S',
       time_24hr: true,
       locale: Russian,
-      onChange: (_, dateStr) => { this.startDate = dateStr; },
+      onChange: (selectedDates) => { 
+        this.startDate = selectedDates.length ? selectedDates[0].toISOString() : ''; 
+      },
     });
 
     flatpickr(this.endDateInput.nativeElement, {
@@ -60,7 +62,9 @@ export class CreateContestPage implements AfterViewInit {
       dateFormat: 'Y-m-d\\TH:i:S',
       time_24hr: true,
       locale: Russian,
-      onChange: (_, dateStr) => { this.endDate = dateStr; },
+      onChange: (selectedDates) => { 
+        this.endDate = selectedDates.length ? selectedDates[0].toISOString() : ''; 
+      },
     });
   }
 

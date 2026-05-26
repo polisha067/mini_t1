@@ -82,15 +82,20 @@ class ContestService:
 
     @staticmethod
     def _parse_datetime(value):
-        """Конвертирует ISO-строку даты в объект datetime. Если уже datetime — возвращает как есть."""
+        """Конвертирует ISO-строку даты в объект datetime в UTC."""
         if value is None:
             return None
-        from datetime import datetime
+        from datetime import datetime, timezone
         if isinstance(value, datetime):
+            if value.tzinfo is not None:
+                return value.astimezone(timezone.utc).replace(tzinfo=None)
             return value
         if isinstance(value, str):
             try:
-                return datetime.fromisoformat(value.replace('Z', '+00:00'))
+                dt = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                if dt.tzinfo is not None:
+                    return dt.astimezone(timezone.utc).replace(tzinfo=None)
+                return dt
             except ValueError:
                 raise ValidationError(f"Некорректный формат даты: {value!r}")
         raise ValidationError(f"Некорректный тип даты: {type(value)}")
