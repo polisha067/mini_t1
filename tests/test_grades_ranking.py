@@ -101,3 +101,56 @@ def test_ranking_includes_team_after_grade(client):
     top = next(r for r in rows if r["team_id"] == team_id)
     assert top["total_score"] >= 7.0
     assert top["grades_count"] == 1
+
+
+def test_expert_cannot_see_other_experts_grades_on_team(client):
+    contest_id, team_id, criterion_id, expert1_headers = _full_setup(client)
+    
+    # Expert 1 grades the team
+    client.post(
+        "/api/grades",
+        json={"team_id": team_id, "criterion_id": criterion_id, "value": 8, "comment": "Exp1 Grade"},
+        headers=expert1_headers,
+    )
+    
+    # Create Expert 2
+    register_success(
+        client,
+        username="expert2_test",
+        email="expert2_test@example.com",
+        password="secret12",
+        role="expert",
+    )
+    expert2_headers = bearer(login_token(client, "expert2_test@example.com", "secret12"))
+    
+    # Get contest access key
+    org_headers = bearer(login_token(client, "org_gr@example.com", "secret12"))
+    key_resp = client.post(
+        f"/api/experts/contests/{contest_id}/access-key/generate",
+        headers=org_headers,
+    )
+    access_key = key_resp.get_json()["access_key"]
+    
+    # Expert 2 joins the contest
+    join = client.post(
+        f"/api/experts/contests/{contest_id}/join",
+        json={"access_key": access_key},
+        headers=expert2_headers,
+    )
+    assert join.status_code == 201
+    
+    # Expert 2 queries the team grades
+    listed = client.get(f"/api/teams/{team_id}/grades", headers=expert2_headers)
+    assert listed.status_code == 200
+    grades = listed.get_json()["grades"]
+    # Expert 2 should not see Expert 1's grade!
+    assert len(grades) == 0
+    
+    # Organizer queries the team grades
+    listed_org = client.get(f"/api/teams/{team_id}/grades", headers=org_headers)
+    assert listed_org.status_code == 200
+    grades_org = listed_org.get_json()["grades"]
+    # Organizer should see Expert 1's grade!
+    assert len(grades_org) == 1
+    assert grades_org[0]["value"] == 8
+

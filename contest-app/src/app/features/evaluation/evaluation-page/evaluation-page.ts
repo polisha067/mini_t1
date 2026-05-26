@@ -157,7 +157,11 @@ export class EvaluationPage implements OnInit {
 
     this.gradeService.getTeamGrades(team.id, 1, 100).subscribe({
       next: (response) => {
-        const grades = (response as { grades?: Grade[] }).grades ?? [];
+        const currentUser = this.authService.getCurrentUser();
+        const expertId = currentUser?.id;
+        const grades = ((response as { grades?: Grade[] }).grades ?? []).filter(
+          (g) => expertId != null && g.expert_id == expertId
+        );
         this.existingGrades = {};
         grades.forEach((g) => {
           this.existingGrades[g.criterion_id] = g;
@@ -277,7 +281,11 @@ export class EvaluationPage implements OnInit {
     }
     this.gradeService.getTeamGrades(this.selectedTeam.id, 1, 100).subscribe({
       next: (response) => {
-        const grades = (response as { grades?: Grade[] }).grades ?? [];
+        const currentUser = this.authService.getCurrentUser();
+        const expertId = currentUser?.id;
+        const grades = ((response as { grades?: Grade[] }).grades ?? []).filter(
+          (g) => expertId != null && g.expert_id == expertId
+        );
         this.existingGrades = {};
         grades.forEach((g) => {
           this.existingGrades[g.criterion_id] = g;
