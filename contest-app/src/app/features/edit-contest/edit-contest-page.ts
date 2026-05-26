@@ -324,8 +324,18 @@ export class EditContestPage implements OnInit {
   }
 
   getLogoUrl(logoPath: string | null): string {
-    if (!logoPath) return 'https://placehold.co/520x360/png?text=Preview';
-    if (logoPath.startsWith('http')) return logoPath;
-    return `/${logoPath.replace(/^\/+/, '')}`;
+    if (!logoPath) return 'assets/images/photo.jpg';
+    if (logoPath.startsWith('http') || logoPath.startsWith('blob:') || logoPath.startsWith('data:')) return logoPath;
+    
+    const cleanPath = logoPath.replace(/^\/+/, '');
+    if (cleanPath.startsWith('uploads/')) {
+      return `/${cleanPath}`;
+    }
+    return `/uploads/${cleanPath}`;
+  }
+
+  handleImageError(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    target.src = 'assets/images/photo.jpg';
   }
 }

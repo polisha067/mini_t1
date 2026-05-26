@@ -1,51 +1,76 @@
+<header class="main-header">
+  <div class="header-brand" (click)="goToAccount()">
+    <span class="logo-text logo-font">
+      <span class="consonant">М</span>
+      <span class="vowel">Е</span>
+      <span class="consonant">Т</span>
+      <span class="consonant">К</span>
+      <span class="vowel">А</span>
+    </span>
+  </div>
+  <div class="header-actions">
+    <!-- If not authenticated -->
+    <ng-container *ngIf="!isAuthenticated()">
+      <button class="btn-register-link" (click)="goToRegister()">регистрация</button>
+      <button class="btn-login-accent" (click)="goToLogin()">вход</button>
+    </ng-container>
+    <!-- If authenticated -->
+    <ng-container *ngIf="isAuthenticated()">
+      <button class="account-link" (click)="goToAccount()">
+        {{ getAccountLabel() }}
+      </button>
+      <button class="btn-logout-accent" (click)="logout()">Выйти</button>
+    </ng-container>
+  </div>
+</header>
+
 <div class="container">
-  <div class="auth-buttons" *ngIf="!isAuthenticated()">
-    <button class="btn-register" (click)="goToRegister()">регистрация</button>
-    <button class="btn-login" (click)="goToLogin()">вход</button>
-  </div>
-  <div class="account-header" *ngIf="isAuthenticated()">
-    <button class="account-name" (click)="goToAccount()">{{ getAccountLabel() }}</button>
-    <button class="btn-logout" (click)="logout()">выйти</button>
-  </div>
-
   <div class="hero">
-  <h1 class="logo logo-font">
-    <span class="consonant">М</span>
-    <span class="vowel">Е</span>
-    <span class="consonant">Т</span>
-    <span class="consonant">К</span>
-    <span class="vowel">А</span>
-  </h1>
-  <p class="subtitle">сервис для удобных и честных соревнований</p>
-</div>
-
-  <div class="search">
-    <input type="text" placeholder="найдите конкурс" [(ngModel)]="searchQuery" (input)="onSearch()">
+    <h1 class="logo logo-font">
+      <span class="consonant">М</span>
+      <span class="vowel">Е</span>
+      <span class="consonant">Т</span>
+      <span class="consonant">К</span>
+      <span class="vowel">А</span>
+    </h1>
+    <p class="subtitle">сервис для удобных и честных соревнований</p>
   </div>
 
-  <h2 class="section-title">актуальные<br>конкурсы</h2>
-
-  <div class="scroll-container">
-    <div class="scroll-list" *ngIf="!isLoading">
-      <div class="contest-card" *ngFor="let contest of filteredContests" (click)="goToContest(contest.id)">
-        <img [src]="getLogoUrl(contest.logo_path)" alt="{{ contest.name }}" class="contest-image">
-        <h3>{{ contest.name }}</h3>
-        <p class="year">{{ getYear(contest.start_date) }}</p>
-      </div>
-      <p *ngIf="filteredContests.length === 0" class="no-data">
-        {{ searchQuery ? 'Ничего не найдено' : 'Конкурсы пока не созданы' }}
-      </p>
+  <div class="search-wrapper">
+    <div class="search">
+      <input type="text" placeholder="найдите конкурс" [(ngModel)]="searchQuery" (input)="onSearch()">
     </div>
-    <p *ngIf="isLoading" class="loading-text">Загрузка...</p>
+  </div>
+
+  <div class="content-section">
+    <h2 class="section-title">актуальные<br>конкурсы</h2>
+
+    <div class="scroll-container">
+      <div class="scroll-list" *ngIf="!isLoading">
+        <div class="contest-card" *ngFor="let contest of filteredContests" (click)="goToContest(contest.id)">
+          <div class="card-image-wrapper">
+            <img [src]="getLogoUrl(contest.logo_path)" (error)="handleImageError($event)" alt="{{ contest.name }}" class="contest-image">
+          </div>
+          <div class="card-content">
+            <h3>{{ contest.name }}</h3>
+            <p class="year">{{ getYear(contest.start_date) }}</p>
+          </div>
+        </div>
+        <p *ngIf="filteredContests.length === 0" class="no-data">
+          {{ searchQuery ? 'Ничего не найдено' : 'Конкурсы пока не созданы' }}
+        </p>
+      </div>
+      <p *ngIf="isLoading" class="loading-text">Загрузка...</p>
+    </div>
   </div>
 
   <div class="info-row">
-    <div class="description">
+    <div class="description card-info">
       <h3>наш сервис:</h3>
       <p>Метка - это порядок там, где обычно хаос. Эксперты выставляют оценки в удобной форме, организаторы не сводят таблицы вручную, а участники видят прозрачные результаты и хранят историю всех хакатонов в избранном. Никаких потерянных баллов, никакого «кто кому что поставил» - просто честный рейтинг.</p>
     </div>
 
-    <div class="team">
+    <div class="team card-info">
       <h3>работали:</h3>
       <p>команда студентов МАИ программы топ айти</p>
     </div>

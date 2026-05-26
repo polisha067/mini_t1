@@ -25,7 +25,7 @@
     <ng-container *ngIf="!isLoading && !error">
       <section class="upload-card">
         <div class="image-card clickable" (click)="fileInput.click()">
-          <img [src]="getLogoUrl(logoPath)" alt="Preview" />
+          <img [src]="getLogoUrl(logoPath)" (error)="handleImageError($event)" alt="Preview" />
           <div class="overlay">Нажмите, чтобы выбрать</div>
         </div>
 
