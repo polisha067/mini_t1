@@ -75,3 +75,4 @@ contest-app/.angular/
 contest-app/node_modules/
 contest-app/dist/
 contest-app/.tsbuildinfo
+push_to_sfera.ps1
