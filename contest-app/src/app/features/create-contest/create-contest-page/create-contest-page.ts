@@ -52,7 +52,7 @@ export class CreateContestPage implements AfterViewInit {
       dateFormat: 'Y-m-d\\TH:i:S',
       time_24hr: true,
       locale: Russian,
-      onChange: (selectedDates) => { 
+      onChange: (selectedDates: any[]) => { 
         this.startDate = selectedDates.length ? selectedDates[0].toISOString() : ''; 
       },
     });
@@ -62,7 +62,7 @@ export class CreateContestPage implements AfterViewInit {
       dateFormat: 'Y-m-d\\TH:i:S',
       time_24hr: true,
       locale: Russian,
-      onChange: (selectedDates) => { 
+      onChange: (selectedDates: any[]) => { 
         this.endDate = selectedDates.length ? selectedDates[0].toISOString() : ''; 
       },
     });
