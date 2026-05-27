@@ -33,8 +33,8 @@ class Grade(db.Model):
             'expert_username': self.expert.username if self.expert else None,
             'team_id': self.team_id,
             'criterion_id': self.criterion_id,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
+            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None
         }
 
     def __repr__(self):

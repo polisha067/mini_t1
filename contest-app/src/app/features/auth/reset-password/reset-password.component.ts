@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router'; // Импортируем роутер для кнопки назад
+import { Router, ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../../shared/services/auth.service';
 
 @Component({
   selector: 'app-reset-password',
@@ -10,7 +11,7 @@ import { Router } from '@angular/router'; // Импортируем роутер
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.scss']
 })
-export class ResetPassword {
+export class ResetPassword implements OnInit {
   newPassword = '';
   confirmPassword = '';
 
@@ -20,9 +21,27 @@ export class ResetPassword {
   isLoading = false;
   errorMessage = '';
 
-  constructor(private router: Router) {}
+  token: string | null = null;
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private authService: AuthService
+  ) {}
+
+  ngOnInit() {
+    this.token = this.route.snapshot.queryParamMap.get('token');
+    if (!this.token) {
+      this.errorMessage = 'Токен не найден. Воспользуйтесь ссылкой из письма.';
+    }
+  }
 
   onSubmit() {
+    if (!this.token) {
+      this.errorMessage = 'Токен не найден. Воспользуйтесь ссылкой из письма.';
+      return;
+    }
+
     if (!this.newPassword || !this.confirmPassword) {
       this.errorMessage = 'пожалуйста, заполните все поля';
       return;
@@ -36,11 +55,17 @@ export class ResetPassword {
     this.errorMessage = '';
     this.isLoading = true;
 
-    console.log('Отправка на бэкенд нового пароля:', this.newPassword);
-    
-    setTimeout(() => {
-      this.isLoading = false;
-    }, 2000);
+    this.authService.resetPassword({ token: this.token, password: this.newPassword }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        alert('Пароль успешно изменён! Вы можете войти с новым паролем.');
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err.error?.message || 'Произошла ошибка при сбросе пароля';
+      }
+    });
   }
 
   goHome() {
