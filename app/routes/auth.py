@@ -111,6 +111,7 @@ def forgot_password():
         # В локальной разработке возвращаем токен прямо в ответе для удобства тестирования без почты
         if current_app.config.get('DEBUG'):
             response_data['reset_token'] = raw_token
+            current_app.logger.info(f"Локальный режим: Ссылка для сброса пароля пользователя {email} -> {reset_link}")
             
         return jsonify(response_data), 200
 
