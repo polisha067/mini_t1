@@ -14,7 +14,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None))
     reset_token_hash = db.Column(db.String(64), nullable=True, index=True)
     reset_token_expires = db.Column(db.DateTime, nullable=True)
 
@@ -34,14 +34,17 @@ class User(db.Model):
         """Генерирует токен сброса пароля, сохраняет хеш в БД, возвращает сырой токен"""
         raw_token = secrets.token_urlsafe(32)
         self.reset_token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-        self.reset_token_expires = datetime.now(UTC) + timedelta(hours=1)
+        self.reset_token_expires = datetime.now(UTC).replace(tzinfo=None) + timedelta(hours=1)
         return raw_token
 
     def verify_reset_token(self, raw_token: str) -> bool:
         """Проверяет токен сброса пароля"""
         if not self.reset_token_hash or not self.reset_token_expires:
             return False
-        if datetime.now(UTC) > self.reset_token_expires:
+        expires = self.reset_token_expires
+        if expires.tzinfo is not None:
+            expires = expires.replace(tzinfo=None)
+        if datetime.now(UTC).replace(tzinfo=None) > expires:
             return False
         expected_hash = hashlib.sha256(raw_token.encode()).hexdigest()
         return secrets.compare_digest(self.reset_token_hash, expected_hash)
