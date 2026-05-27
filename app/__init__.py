@@ -6,12 +6,12 @@ from flask import Flask
 from flask_cors import CORS
 from flasgger import Swagger
 from app.config import config
-from app.extensions import db, migrate, jwt
+from app.extensions import db, migrate, jwt, login_manager, mail
 from app.jwt_config import init_jwt
 from app.admin import init_admin
-from app.extensions import login_manager
 from app.cli import init_cli
 from app import routes
+
 from app.utils.errors import register_error_handlers, register_jwt_error_handlers
 
 
@@ -88,6 +88,9 @@ def create_app(config_name=None):
 
     # Flask-Migrate для миграций
     migrate.init_app(app, db)
+
+    # Flask-Mail для отправки писем
+    mail.init_app(app)
 
     # Инициализация админки
     init_admin(app)

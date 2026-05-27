@@ -3,7 +3,8 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from flasgger import swag_from
 
 from app.services.auth_service import AuthService
-
+from app.extensions import mail
+from flask_mail import Message
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
@@ -85,14 +86,33 @@ def forgot_password():
 
     if user_found:
         email = data.get('email', '')
-        reset_link = f"http://localhost:4200/reset-password?token={raw_token}"
-        current_app.logger.info(f"Имитация отправки email на {email}: Перейдите по ссылке для сброса пароля: {reset_link}")
-        return jsonify({
+        # В Production ссылаемся на IP сервера или домен. Для локальной разработки можно оставить localhost через env.
+        base_url = current_app.config.get('CORS_ORIGINS', ['http://localhost:4200'])[0]
+        if base_url == '*':
+            base_url = 'http://103.76.54.43'
+        
+        reset_link = f"{base_url}/reset-password?token={raw_token}"
+        
+        try:
+            msg = Message(
+                subject="Сброс пароля (Hackathon System)",
+                recipients=[email],
+                body=f"Здравствуйте!\n\nДля сброса пароля перейдите по следующей ссылке:\n{reset_link}\n\nЕсли вы не запрашивали сброс пароля, проигнорируйте это письмо."
+            )
+            mail.send(msg)
+            current_app.logger.info(f"Письмо для сброса пароля успешно отправлено на {email}")
+        except Exception as e:
+            current_app.logger.error(f"Ошибка при отправке письма на {email}: {str(e)}")
+        response_data = {
             "status": "success",
             "message": "Если email зарегистрирован, токен сброса пароля будет отправлен",
-            "reset_token": raw_token,
             "expires_in_minutes": 60
-        }), 200
+        }
+        # В локальной разработке возвращаем токен прямо в ответе для удобства тестирования без почты
+        if current_app.config.get('DEBUG'):
+            response_data['reset_token'] = raw_token
+            
+        return jsonify(response_data), 200
 
     return jsonify({
         "status": "success",

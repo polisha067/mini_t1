@@ -54,6 +54,15 @@ class Config:
     # Максимальный размер файла для валидации в бизнес-логике (5 MB)
     MAX_LOGO_SIZE = 5 * 1024 * 1024
 
+    # Настройки Flask-Mail
+    MAIL_SERVER = os.environ.get('SMTP_HOST', 'smtp.yandex.ru')
+    MAIL_PORT = int(os.environ.get('SMTP_PORT', 465))
+    MAIL_USE_TLS = MAIL_PORT == 587
+    MAIL_USE_SSL = MAIL_PORT == 465
+    MAIL_USERNAME = os.environ.get('SMTP_USER')
+    MAIL_PASSWORD = os.environ.get('SMTP_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.environ.get('SMTP_USER')
+
 
 class DevelopmentConfig(Config):
     """
@@ -78,12 +87,7 @@ class ProductionConfig(Config):
     """
     DEBUG = False
 
-    @property
-    def SQLALCHEMY_DATABASE_URI(self):
-        uri = os.environ.get('DATABASE_URL')
-        if not uri:
-            raise RuntimeError("DATABASE_URL is required in production!")
-        return uri
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
     PROPAGATE_EXCEPTIONS = False
     LOG_LEVEL = 'WARNING'

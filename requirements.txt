@@ -13,3 +13,4 @@ python-dotenv==1.0.0
 click==8.1.7
 flasgger==0.9.7.1
 pytest==8.0.2
+Flask-Mail==0.9.1
