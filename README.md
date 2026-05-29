@@ -1,23 +1,23 @@
 # mini_t1
 
-Система оценки хакатонов. Backend на Flask + PostgreSQL, frontend на Angular.
+Система оценки хакатонов и интеллектуальных конкурсов.
+**Backend** - Flask (Python 3.11) + PostgreSQL 15.
+**Frontend** - Angular 21 (SPA).
+Инфраструктура - Docker Compose + Nginx.
 
 ---
 
-
-## Быстрый старт
+## Быстрый старт (локальная разработка)
 
 ### 1. Настрой окружение
-
-Скопируй `.env.example` в `.env` и заполни своими данными:
 
 ```bash
 copy .env.example .env
 ```
 
 **Обязательно замени:**
-- `SECRET_KEY` — сгенерируй: `python -c "import secrets; print(secrets.token_hex(32))"`
-- `JWT_SECRET_KEY` — сгенерируй так же
+- `SECRET_KEY` - сгенерируй: `python -c "import secrets; print(secrets.token_hex(32))"`
+- `JWT_SECRET_KEY` - сгенерируй так же
 
 ### 2. Запусти через Docker
 
@@ -26,8 +26,14 @@ docker-compose up --build
 ```
 
 **Сервисы будут доступны:**
-- Frontend (Angular): `http://localhost:4200`
-- Backend (Flask API): `http://localhost:5000`
+
+| Сервис | URL |
+|--------|-----|
+| Frontend (Angular, dev-сервер) | `http://localhost:4200` |
+| Backend (Flask API) | `http://localhost:5000` |
+| Nginx (прокси, статика) | `http://localhost:8080` |
+| Swagger UI | `http://localhost:5000/apidocs/` |
+| Админ-панель | `http://localhost:5000/admin` |
 
 ### 3. Примени миграции
 
@@ -37,110 +43,377 @@ docker-compose exec web flask db upgrade
 
 ---
 
+## Деплой на сервер (продакшн)
+
+Используется файл `docker-compose.prod.yml` и скрипт `deploy.ps1` (PowerShell).
+
+```powershell
+# Из корня проекта
+.\deploy.ps1
+```
+
+Скрипт делает следующее:
+1. Упаковывает проект в `project.tar.gz` (исключая `.git`, `node_modules`, кеши)
+2. Загружает архив на сервер по SSH + SCP
+3. Разворачивает через `docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build`
+
+**Настройки деплоя** (внутри `deploy.ps1`):
+- `$SERVER_IP` = `103.76.54.43`
+- `$USER` = `minions`
+- `$REMOTE_DIR` = `~/mini_t1_prod`
+- SSH-ключ: `.\ssh\ssh-key-1779860741794`
+
+В продакшн-конфигурации (`docker-compose.prod.yml`):
+- Nginx слушает порт `80`
+- Frontend собирается в статику (`Dockerfile.prod`) и раздаётся через Nginx
+- Исходный код не монтируется в контейнер (`./:/app` убрано)
+- Используется `.env.prod`
+
+---
+
 ## Запуск отдельных сервисов
 
-### Только фронтенд
-
 ```bash
+# Только фронтенд
 docker-compose up frontend --build
-```
 
-### Только бекенд + база данных
-
-```bash
+# Только бэкенд + база данных
 docker-compose up web db --build
-```
 
-### Только база данных
-
-```bash
+# Только база данных
 docker-compose up db
-```
 
-### Все сервисы в фоновом режиме
-
-```bash
+# Все сервисы в фоновом режиме
 docker-compose up -d
-```
 
-### Остановить сервисы
-
-```bash
 # Остановить все
 docker-compose down
 
 # Остановить всё с удалением базы данных
 docker-compose down -v
-
-# Остановить только фронтенд
-docker-compose stop frontend
-
-# Остановить только бекенд
-docker-compose stop web
 ```
+
+---
+
+## Конфигурация окружения
+
+Все параметры задаются через `.env` (разработка) или `.env.prod` (продакшн).
+
+| Переменная | Описание | Пример |
+|------------|----------|--------|
+| `FLASK_CONFIG` | Конфигурация приложения | `development` / `production` |
+| `SECRET_KEY` | Секрет Flask-сессий | `<random_hex_32>` |
+| `JWT_SECRET_KEY` | Секрет JWT | `<random_hex_32>` |
+| `DATABASE_URL` | Строка подключения к PostgreSQL | `postgresql://user:pass@db:5432/db_name` |
+| `DB_NAME` | Имя базы данных | `hackathon_db` |
+| `DB_USER` | Пользователь БД | `postgres` |
+| `DB_PASSWORD` | Пароль БД | `postgres123` |
+| `LOG_LEVEL` | Уровень логирования | `DEBUG` / `INFO` / `WARNING` |
+| `CORS_ORIGINS` | Разрешённые origin (через запятую) | `http://localhost:4200` |
+| `UPLOAD_FOLDER` | Путь для загрузок внутри контейнера | `/app/uploads` |
+| `UPLOADS_URL` | Публичный URL-префикс для файлов (через Nginx) | `/uploads` |
+| `MAX_CONTENT_LENGTH` | Лимит загрузки Flask (байт) | `16777216` (16 MB) |
+| `MAX_LOGO_SIZE` | Бизнес-лимит размера логотипа (байт) | `5242880` (5 MB) |
+| `ALLOWED_EXTENSIONS` | Допустимые расширения файлов | `png,jpg,jpeg,gif,webp` |
+| `SMTP_HOST` | SMTP-сервер для отправки писем | `smtp.yandex.ru` |
+| `SMTP_PORT` | SMTP-порт | `465` (SSL) / `587` (TLS) |
+| `SMTP_USER` | SMTP-логин | `you@yandex.ru` |
+| `SMTP_PASSWORD` | SMTP-пароль | |
+
+---
+
+## Модели данных
+
+| Модель | Таблица | Описание |
+|--------|---------|----------|
+| `User` | `users` | Организаторы и эксперты. Роль: `organizer` / `expert` |
+| `Contest` | `contests` | Конкурс/хакатон. Поля: название, описание, даты, логотип, статус, `access_key` |
+| `Team` | `teams` | Команда участников, привязана к конкурсу |
+| `Criterion` | `criteria` | Критерий оценивания с полем `max_score`, привязан к конкурсу |
+| `Grade` | `grades` | Оценка эксперта: команда x критерий. Содержит `value` и опциональный `comment` (до 3000 символов) |
+| `ContestExpert` | `contest_experts` | M2M: назначение эксперта на конкурс |
+| `SuperUser` | `super_users` | Суперпользователь только для Flask-Admin |
+
+### Статусы конкурса
+
+| Флаг | Значение |
+|------|----------|
+| `is_finished=False`, `is_reopened=False` | Активный конкурс, оценки принимаются |
+| `is_finished=True`, `is_reopened=False` | Завершён (вручную или автоматически) |
+| `is_finished=False`, `is_reopened=True` | Переоткрыт - оценки редактируются, автозавершение отключено |
+
+**Автозавершение** происходит при обращении к конкурсу если:
+- Установлена `end_date` и текущее время > `end_date`, **или**
+- Нет `end_date` и все эксперты выставили все оценки (`teams x criteria x experts`)
+
+### Access Key (ключ доступа к конкурсу)
+
+Поле `access_key` у конкурса - необязательный уникальный ключ (строка до 64 символов).
+Эксперты используют его в личном кабинете для самостоятельного присоединения к конкурсу.
+
+---
+
+## JWT токены
+
+| Токен | Время жизни |
+|-------|------------|
+| `access_token` | 1 час (3600 сек) |
+| `refresh_token` | 30 дней |
+
+Токены передаются в заголовке: `Authorization: Bearer <token>`.
+Также поддерживается query-параметр: `?token=<access_token>`.
+
+---
+
+## API Endpoints
+
+Базовый префикс: `/api`
+
+### Сервисные
+
+| Метод | Endpoint | Описание | Auth |
+|-------|----------|----------|------|
+| GET | `/api/status` | Статус сервера + версия | - |
+| GET | `/api/home` | Данные главной страницы | optional JWT |
+
+### Auth (Аутентификация)
+
+| Метод | Endpoint | Описание | Auth |
+|-------|----------|----------|------|
+| POST | `/api/auth/register` | Регистрация пользователя (`username`, `email`, `password`, `role`) | - |
+| POST | `/api/auth/login` | Вход, возвращает `access_token` + `refresh_token` | - |
+| POST | `/api/auth/logout` | Выход (клиент должен удалить оба токена) | JWT |
+| GET | `/api/auth/me` | Данные текущего пользователя | JWT |
+| POST | `/api/auth/refresh` | Обновление access-токена по refresh-токену | Refresh JWT |
+| POST | `/api/auth/forgot-password` | Запрос сброса пароля - отправляет письмо со ссылкой | - |
+| POST | `/api/auth/reset-password` | Сброс пароля по токену (`token`, `new_password`) | - |
+
+> В режиме DEBUG (`forgot-password`) токен сброса также возвращается в теле ответа для удобства тестирования без почты. Токен действителен 1 час.
+
+### Contests (Конкурсы)
+
+| Метод | Endpoint | Описание | Auth |
+|-------|----------|----------|------|
+| POST | `/api/contests` | Создать конкурс (JSON или `multipart/form-data` с логотипом) | JWT + organizer |
+| GET | `/api/contests` | Список конкурсов с пагинацией (`?page=1&per_page=10&organizer_id=N`) | optional JWT |
+| GET | `/api/contests/<id>` | Детали конкурса | optional JWT |
+| PUT | `/api/contests/<id>` | Обновить конкурс | JWT + organizer (owner) |
+| DELETE | `/api/contests/<id>` | Удалить конкурс (cascade: команды, критерии, оценки, назначения) | JWT + organizer (owner) |
+| POST | `/api/contests/<id>/finalize` | Завершить голосование вручную | JWT + organizer (owner) |
+| POST | `/api/contests/<id>/reopen` | Переоткрыть завершённый конкурс для пересмотра оценок | JWT + organizer (owner) |
+| GET | `/api/contests/<id>/voting-status` | Статус голосования (ожидаемые/фактические оценки) | JWT |
+
+> Завершённый конкурс (`is_finished=True`) нельзя удалить.
+
+### Teams (Команды)
+
+| Метод | Endpoint | Описание | Auth |
+|-------|----------|----------|------|
+| POST | `/api/contests/<contest_id>/teams` | Создать команду в конкурсе | JWT + organizer |
+| GET | `/api/contests/<contest_id>/teams` | Список команд конкурса с пагинацией | optional JWT |
+| GET | `/api/teams/<id>` | Детали команды | optional JWT |
+| PUT | `/api/teams/<id>` | Обновить команду | JWT + organizer (owner) |
+| DELETE | `/api/teams/<id>` | Удалить команду (cascade: оценки) | JWT + organizer (owner) |
+
+### Criteria (Критерии оценивания)
+
+| Метод | Endpoint | Описание | Auth |
+|-------|----------|----------|------|
+| POST | `/api/contests/<contest_id>/criteria` | Создать критерий (поля: `name`, `description`, `max_score`) | JWT + organizer |
+| GET | `/api/contests/<contest_id>/criteria` | Список критериев конкурса | optional JWT |
+| GET | `/api/criteria/<id>` | Детали критерия | optional JWT |
+| PUT | `/api/criteria/<id>` | Обновить критерий | JWT + organizer (owner) |
+| DELETE | `/api/criteria/<id>` | Удалить критерий (cascade: оценки) | JWT + organizer (owner) |
+
+### Grades (Оценки)
+
+| Метод | Endpoint | Описание | Auth |
+|-------|----------|----------|------|
+| POST | `/api/grades` | Выставить оценку (поля: `team_id`, `criterion_id`, `value`, `comment`) | JWT + expert |
+| GET | `/api/teams/<team_id>/grades` | Оценки команды | JWT (expert/organizer) |
+| GET | `/api/experts/<expert_id>/grades` | Оценки конкретного эксперта | JWT + expert (owner) |
+| PUT | `/api/grades/<id>` | Обновить оценку (`value`, `comment`) | JWT + expert (owner) |
+| DELETE | `/api/grades/<id>` | Удалить оценку | JWT + expert (owner) |
+
+**Правила выставления оценок:**
+- Эксперт должен быть назначен на конкурс (`ContestExpert`)
+- Нельзя поставить оценку дважды (команда + критерий уникальны для каждого эксперта)
+- Значение `value` не может превышать `max_score` критерия
+- Нельзя выставлять/редактировать оценки в завершённом конкурсе
+- Просмотр оценок команды: эксперт видит все оценки (если назначен на конкурс), организатор - все (если владелец конкурса)
+
+### Ranking (Рейтинг)
+
+| Метод | Endpoint | Описание | Auth |
+|-------|----------|----------|------|
+| GET | `/api/contests/<contest_id>/ranking` | Рейтинг команд с пагинацией (`?sort_order=desc&page=1&per_page=10`) | optional JWT |
+| GET | `/api/contests/<contest_id>/teams/<team_id>/scores` | Средние оценки команды по каждому критерию | optional JWT |
+
+**Алгоритм рейтинга:** среднее по каждому критерию от всех экспертов -> сумма средних по всем критериям = итоговый балл команды.
+
+### Expert Assignments (Назначение экспертов)
+
+| Метод | Endpoint | Описание | Auth |
+|-------|----------|----------|------|
+| POST | `/api/contests/<contest_id>/experts` | Назначить эксперта на конкурс | JWT + organizer |
+| GET | `/api/contests/<contest_id>/experts` | Список экспертов конкурса | JWT |
+| GET | `/api/experts/me/contests` | Конкурсы текущего эксперта | JWT + expert |
+| DELETE | `/api/contests/<contest_id>/experts/<expert_id>` | Снять эксперта с конкурса | JWT + organizer |
+
+### Admin
+
+| Метод | Endpoint | Описание | Auth |
+|-------|----------|----------|------|
+| GET | `/admin/*` | Flask-Admin веб-интерфейс | Session Cookie (Flask-Login) |
+
+---
+
+## API Documentation (Swagger)
+
+| | URL |
+|-|-----|
+| Swagger UI | `http://localhost:5000/apidocs/` |
+| OpenAPI JSON | `http://localhost:5000/apispec_1.json` |
+
+В Swagger UI можно авторизоваться через кнопку **Authorize** (формат: `Bearer <token>`).
 
 ---
 
 ## Админ-панель
 
-Для управления данными через веб-интерфейс предусмотрена админ-панель.
-
 ### Доступ
 
 | Параметр | Значение |
 |----------|----------|
-| **URL** | `http://localhost:5000/admin` |
-| **Аутентификация** | Session Cookie (Flask-Login) |
+| URL | `http://localhost:5000/admin` |
+| Аутентификация | Session Cookie (Flask-Login) |
 
 ### Создание суперпользователя
-
-Суперпользователь создаётся только через CLI:
 
 ```bash
 docker-compose exec web flask create-superuser
 ```
 
-**Введите данные:**
-```
-Username: admin
-Email: admin@hackathon.local
-Password: ******
-Repeat for confirmation: ******
-```
+Суперпользователи хранятся в изолированной таблице `super_users` и не имеют доступа к API.
 
-### Вход в админ-панель
-
-1. Откройте `http://localhost:5000/admin`
-2. Введите логин и пароль созданные через CLI
-
-### Разделы админ-панели
+### Разделы
 
 | Раздел | Описание |
 |--------|----------|
 | Суперпользователи | Управление доступом к админке (только просмотр) |
 | Пользователи | Организаторы и эксперты системы |
-| Конкурсы | Хакатоны и интеллектуальные конкурсы |
+| Конкурсы | Хакатоны и конкурсы |
 | Команды | Команды участников |
 | Критерии | Критерии оценивания |
 | Оценки | Оценки экспертов |
-| Назначения экспертов | Назначение экспертов на конкурсы |
+| Назначения экспертов | M2M: эксперт <-> конкурс |
 
 ### Безопасность
 
-- Отдельная таблица `super_users` (изолирована от основных пользователей)
-- Нет API endpoint для создания SuperUser
+- Таблица `super_users` изолирована от `users`
+- Нет API-endpoint для создания SuperUser
 - Блокировка после 5 неудачных попыток входа (30 минут)
-- Session Cookie: HttpOnly + Secure + SameSite=Lax
-- Все действия логируются в консоль приложения
-
-### Полезные команды
+- Session Cookie: `HttpOnly + Secure + SameSite=Lax`
+- Все действия логируются
 
 ```bash
-# Посмотреть список суперпользователей
+# Посмотреть суперпользователей
 docker-compose exec db psql -U postgres -d hackathon_db -c "SELECT id, username, email, is_active FROM super_users;"
 
-# Сбросить блокировку после неудачных попыток
+# Сбросить блокировку
 docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users SET failed_attempts=0, locked_until=NULL WHERE username='admin';"
+```
+
+---
+
+## Загрузка файлов (логотипы конкурсов)
+
+- Принимаются форматы: `png`, `jpg`, `jpeg`, `gif`, `webp`
+- Максимальный размер файла: **5 MB** (бизнес-лимит), лимит Flask - 16 MB
+- Хранятся в `./uploads/logos/` (монтируется в контейнер)
+- Раздаются через Nginx по URL `/uploads/logos/<filename>` и `/logos/<filename>`
+- При обновлении/удалении конкурса старый логотип удаляется с диска
+
+---
+
+## Frontend (Angular)
+
+**Версия:** Angular 21 | TypeScript 5.9
+
+### Страницы и маршруты
+
+| Маршрут | Компонент | Guard |
+|---------|-----------|-------|
+| `/` | `ContestListComponent` | - |
+| `/login` | `Login` | - |
+| `/register` | `Register` | - |
+| `/forgot-password` | `ForgotPassword` | - |
+| `/reset-password` | `ResetPassword` | - |
+| `/password-reset-sent` | `PasswordResetSent` | - |
+| `/contests/:id` | `ContestDetailsPage` | - |
+| `/contests/:contestId/participants` | `ParticipantsPage` | - |
+| `/contests/:contestId/teams/:teamId` | `TeamScoresPage` | - |
+| `/evaluation` | `EvaluationPage` | `expertGuard`, `expertEvaluationGuard` |
+| `/create-contest` | `CreateContestPage` | `organizerGuard` |
+| `/contest/:id/edit` | `EditContestPage` | `organizerGuard` |
+| `/account/expert` | `ExpertAccountPage` | `expertGuard` |
+| `/account/organizer` | `OrganizerAccountPage` | `organizerGuard` |
+| `/contest-created` | `ContestCreatedPage` | - |
+| `/**` | редирект на `/404` | - |
+
+### Локальный запуск фронтенда (без Docker)
+
+```bash
+cd contest-app
+npm install
+npm start          # ng serve с proxy на localhost:5000
+```
+
+---
+
+## Тесты
+
+Тесты расположены в директории `tests/` и запускаются через `pytest`.
+
+```bash
+# Запустить все тесты
+docker-compose exec web pytest
+
+# С подробным выводом
+docker-compose exec web pytest -v
+
+# Конкретный файл
+docker-compose exec web pytest tests/test_auth.py
+```
+
+**Покрытие тестами:**
+- `test_auth.py` - регистрация, вход, me
+- `test_contests.py` - CRUD конкурсов
+- `test_contest_reopen.py` - finalize / reopen логика
+- `test_grades_ranking.py` - оценки и рейтинг
+- `test_expert_flow.py` - полный сценарий эксперта
+- `test_teams_criteria.py` - команды и критерии
+- `test_models_user.py` - юнит-тесты модели User
+- `test_health.py` - `/api/status`
+
+Тесты используют отдельную базу данных (`hackathon_test`), задаётся через `TEST_DATABASE_URL`.
+
+---
+
+## Миграции
+
+```bash
+# Создать новую миграцию (после изменения моделей)
+docker-compose exec web flask db migrate -m "Описание изменений"
+
+# Применить миграции
+docker-compose exec web flask db upgrade
+
+# Откатить миграцию
+docker-compose exec web flask db downgrade
+
+# Проверить таблицы в БД
+docker-compose exec db psql -U postgres -d hackathon_db -c "\dt"
 ```
 
 ---
@@ -148,143 +421,35 @@ docker-compose exec db psql -U postgres -d hackathon_db -c "UPDATE super_users S
 ## Основные команды
 
 | Команда | Описание |
-| :--- | :--- |
+|---------|----------|
 | `docker-compose up --build` | Собрать и запустить все сервисы |
-| `docker-compose up frontend --build` | Запустить только фронтенд |
-| `docker-compose up web db --build` | Запустить бекенд с базой данных |
-| `docker-compose up -d` | Запустить все сервисы в фоне |
+| `docker-compose up -d` | Запустить все в фоне |
 | `docker-compose down` | Остановить все сервисы |
-| `docker-compose down -v` | Остановить + удалить базу данных |
-| `docker-compose stop frontend` | Остановить только фронтенд |
-| `docker-compose stop web` | Остановить только бекенд |
-| `flask db migrate -m "Описание"` | Создать новую миграцию |
-| `flask db upgrade` | Применить миграции |
-| `flask db downgrade` | Откатить миграцию |
-| `flask create-superuser` | Создать суперпользователя для админки |
+| `docker-compose down -v` | Остановить + удалить volume БД |
+| `docker-compose exec web flask db upgrade` | Применить миграции |
+| `docker-compose exec web flask db migrate -m "..."` | Создать миграцию |
+| `docker-compose exec web flask create-superuser` | Создать суперпользователя |
+| `docker-compose exec web pytest` | Запустить тесты |
+| `.\deploy.ps1` | Деплой на продакшн-сервер |
+| `.\push_to_sfera.ps1` | Синхронизировать все ветки с remote `sfera` |
 
 ---
 
-## API Documentation (Swagger)
+## Стек технологий
 
-Документация API доступна через Swagger UI:
-
-| Описание | URL |
-|----------|-----|
-| **Swagger UI** | `http://localhost:5000/apidocs/` |
-| **API Spec (JSON)** | `http://localhost:5000/apispec_1.json` |
-
-В Swagger UI можно:
-- Просматривать все доступные endpoints
-- Тестировать API прямо из браузера
-- Авторизоваться через JWT токен (кнопка Authorize)
-
----
-
-## API Endpoints
-
-| Метод | Endpoint | Описание |
-| :--- | :--- | :--- |
-| POST | `/api/auth/register` | Регистрация пользователя |
-| POST | `/api/auth/login` | Вход (получение JWT токена) |
-| POST | `/api/auth/logout` | Выход (инвалидация токена) |
-| GET | `/api/auth/me` | Получить текущего пользователя | JWT |
-
-### Contests (Конкурсы)
-
-| Метод | Endpoint | Описание | Auth |
-| :--- | :--- | :--- | :--- |
-| POST | `/api/contests` | Создать конкурс | JWT + organizer |
-| GET | `/api/contests` | Список конкурсов (пагинация) | optional |
-| GET | `/api/contests/<id>` | Детали конкурса | optional |
-| PUT | `/api/contests/<id>` | Обновить конкурс | JWT + organizer (owner) |
-| DELETE | `/api/contests/<id>` | Удалить конкурс (cascade) | JWT + organizer (owner) |
-| POST | `/api/contests/<id>/finalize` | Завершить голосование | JWT + organizer (owner) |
-| GET | `/api/contests/<id>/voting-status` | Статус голосования | JWT |
-
-### Teams (Команды)
-
-| Метод | Endpoint | Описание | Auth |
-| :--- | :--- | :--- | :--- |
-| POST | `/api/contests/<contest_id>/teams` | Создать команду | JWT + organizer |
-| GET | `/api/contests/<contest_id>/teams` | Список команд конкурса (пагинация) | optional |
-| GET | `/api/teams/<id>` | Детали команды | optional |
-| PUT | `/api/teams/<id>` | Обновить команду | JWT + organizer (owner) |
-| DELETE | `/api/teams/<id>` | Удалить команду (cascade: grades) | JWT + organizer (owner) |
-
-### Criteria (Критерии оценивания)
-
-| Метод | Endpoint | Описание | Auth |
-| :--- | :--- | :--- | :--- |
-| POST | `/api/contests/<contest_id>/criteria` | Создать критерий | JWT + organizer |
-| GET | `/api/contests/<contest_id>/criteria` | Список критериев конкурса | optional |
-| GET | `/api/criteria/<id>` | Детали критерия | optional |
-| PUT | `/api/criteria/<id>` | Обновить критерий | JWT + organizer (owner) |
-| DELETE | `/api/criteria/<id>` | Удалить критерий (cascade: grades) | JWT + organizer (owner) |
-
-### Grade (Оценки)
-| Метод | Endpoint | Описание | Auth |
-| :--- | :--- | :--- | :--- |
-| POST | `/api/grades` | 	Выставить оценку |JWT + expert |
-| GET | `/api/teams/<team_id>/grades` | Список оценок команды | optional |
-| GET | `/api/experts/<expert_id>/grades` |Список оценок эксперта |JWT + expert (owner) |
-| PUT | `/api/grades/<id>` | Обновить оценку |JWT + expert (owner) |
-| DELETE | `/api/grades/<id>` | Удалить оценку | 	JWT + expert (owner) |
-
-### Ranking (Рейтинг)
-| Метод | Endpoint | Описание | Auth |
-| :--- | :--- | :--- | :--- |
-| GET | `/api/contests/<contest_id>/ranking` | Итоговый рейтинг команд конкурса | optional |
-
-### Expert Assignments (Назначение экспертов)
-| Метод | Endpoint | Описание | Auth |
-| :--- | :--- | :--- | :--- |
-| POST | `/api/contests/<contest_id>/experts` | Назначить эксперта на конкурс | JWT + organizer |
-| GET | `/api/contests/<contest_id>/experts` | Список экспертов конкурса | JWT |
-| GET | `/api/experts/me/contests` | Мои конкурсы (для эксперта) | JWT + expert |
-| DELETE | `/api/contests/<contest_id>/experts/<expert_id>` | Снять эксперта с конкурса | JWT + organizer |
-
-### Admin
-
-| Метод | Endpoint | Описание | Auth |
-| :--- | :--- | :--- | :--- |
-| GET | `/admin/*` | Админ-панель | Session Cookie |
-
----
-
-## Для разработчиков
-
-### Добавить новую миграцию
-
-```bash
-# 1. Измени модели в app/models/
-# 2. Создай миграцию
-docker-compose exec web flask db migrate -m "Описание изменений"
-
-# 3. Проверь файл в migrations/versions/
-# 4. Закоммить миграцию в Git
-git add migrations/versions/xxxx_*.py
-git commit -m "Add migration: описание"
-
-# 5. Примени миграцию
-docker-compose exec web flask db upgrade
-```
-
-### Проверить таблицы в БД
-
-```bash
-docker-compose exec db psql -U postgres -d hackathon_db -c "\dt"
-```
----
-
-## Технологии
-
-| Компонент | Технология |
-|-----------|------------|
-| Backend | Python 3.11 + Flask |
+| Слой | Технология |
+|------|-----------|
+| Backend | Python 3.11 + Flask 3.0 |
 | Database | PostgreSQL 15 |
-| ORM | SQLAlchemy |
+| ORM | SQLAlchemy 3 (Flask-SQLAlchemy) |
 | Migrations | Alembic (Flask-Migrate) |
-| Admin Panel | Flask-Admin + Flask-Login |
-| API Auth | JWT (Flask-JWT-Extended) |
-| Admin Auth | Session Cookie (Flask-Login) |
+| Auth API | JWT (Flask-JWT-Extended) |
+| Auth Admin | Session Cookie (Flask-Login) |
+| Admin Panel | Flask-Admin |
+| API Docs | Flasgger (Swagger UI / OpenAPI) |
+| Email | Flask-Mail (SMTP) |
+| Frontend | Angular 21 |
+| Frontend build | Angular CLI 21 |
+| Proxy | Nginx (alpine) |
 | Containerization | Docker + Docker Compose |
+| Testing | pytest |
