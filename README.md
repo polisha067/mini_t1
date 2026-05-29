@@ -7,6 +7,33 @@
 
 ---
 
+## Структура проекта
+
+```text
+c:\mini_t1
+├── app/                  # Backend: Flask приложение
+│   ├── admin/            # Настройки админ-панели (Flask-Admin)
+│   ├── models/           # SQLAlchemy модели данных (User, Contest, Team, Grade и др.)
+│   ├── routes/           # REST API endpoints (Blueprints)
+│   ├── services/         # Бизнес-логика (AuthService, ContestService и др.)
+│   └── utils/            # Вспомогательные утилиты, валидаторы, ошибки
+├── contest-app/          # Frontend: Angular приложение
+│   ├── src/app/          # Исходный код Angular
+│   │   ├── core/         # Guards, Interceptors, сервисы аутентификации
+│   │   ├── features/     # Модули страниц (авторизация, конкурсы, оценки и др.)
+│   │   └── shared/       # Общие компоненты, модели, сервисы
+│   ├── Dockerfile        # Docker-файл для dev-сборки Angular
+│   └── Dockerfile.prod   # Docker-файл для prod-сборки Angular
+├── migrations/           # Миграции базы данных (Alembic)
+├── tests/                # Интеграционные и юнит-тесты (pytest)
+├── docker-compose.yml    # Конфигурация Docker Compose для разработки
+├── docker-compose.prod.yml # Конфигурация Docker Compose для продакшена
+├── nginx.conf            # Конфигурация Nginx прокси
+└── deploy.ps1            # PowerShell скрипт для деплоя на сервер
+```
+
+---
+
 ## Быстрый старт (локальная разработка)
 
 ### 1. Настрой окружение
