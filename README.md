@@ -57,11 +57,11 @@ docker-compose exec web flask db upgrade
 2. Загружает архив на сервер по SSH + SCP
 3. Разворачивает через `docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build`
 
-**Настройки деплоя** (внутри `deploy.ps1`):
-- `$SERVER_IP` = `103.76.54.43`
-- `$USER` = `minions`
-- `$REMOTE_DIR` = `~/mini_t1_prod`
-- SSH-ключ: `.\ssh\ssh-key-1779860741794`
+**Настройки деплоя** задаются внутри `deploy.ps1`:
+- `$SERVER_IP` - IP-адрес продакшн-сервера
+- `$USER` - SSH-пользователь на сервере
+- `$REMOTE_DIR` - директория проекта на сервере (например `~/mini_t1_prod`)
+- `$SSH_KEY` - путь к SSH-ключу (например `.\ssh\<key-name>`)
 
 В продакшн-конфигурации (`docker-compose.prod.yml`):
 - Nginx слушает порт `80`
@@ -107,7 +107,7 @@ docker-compose down -v
 | `DATABASE_URL` | Строка подключения к PostgreSQL | `postgresql://user:pass@db:5432/db_name` |
 | `DB_NAME` | Имя базы данных | `hackathon_db` |
 | `DB_USER` | Пользователь БД | `postgres` |
-| `DB_PASSWORD` | Пароль БД | `postgres123` |
+| `DB_PASSWORD` | Пароль БД | `<strong_password>` |
 | `LOG_LEVEL` | Уровень логирования | `DEBUG` / `INFO` / `WARNING` |
 | `CORS_ORIGINS` | Разрешённые origin (через запятую) | `http://localhost:4200` |
 | `UPLOAD_FOLDER` | Путь для загрузок внутри контейнера | `/app/uploads` |
