@@ -48,7 +48,7 @@
     <div class="scroll-container">
       <div class="scroll-list" *ngIf="!isLoading">
         <div class="contest-card" *ngFor="let contest of filteredContests" (click)="goToContest(contest.id)">
-          <div class="card-image-wrapper">
+          <div class="card-image-wrapper" *ngIf="getLogoUrl(contest.logo_path)">
             <img [src]="getLogoUrl(contest.logo_path)" (error)="handleImageError($event)" alt="{{ contest.name }}" class="contest-image">
           </div>
           <div class="card-content">

@@ -128,8 +128,8 @@ export class ContestDetailsPage implements OnInit {
     this.router.navigate(['/']);
   }
 
-  getLogoUrl(logoPath: string | null): string {
-    if (!logoPath) return 'assets/images/photo.jpg';
+  getLogoUrl(logoPath: string | null): string | null {
+    if (!logoPath) return null;
     if (logoPath.startsWith('http') || logoPath.startsWith('blob:') || logoPath.startsWith('data:')) return logoPath;
     
     const cleanPath = logoPath.replace(/^\/+/, '');

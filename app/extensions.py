@@ -1,3 +1,7 @@
+import werkzeug.utils
+if not hasattr(werkzeug.utils, 'cached_property'):
+    werkzeug.utils.cached_property = property
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager

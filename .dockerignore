@@ -12,3 +12,6 @@ env/
 .gitignore
 *.md
 .DS_Store
+node_modules/
+.angular/
+dist/

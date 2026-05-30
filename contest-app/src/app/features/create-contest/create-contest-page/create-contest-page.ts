@@ -8,6 +8,7 @@ import { ContestService } from '../../../core/contest.service';
 import { forkJoin } from 'rxjs';
 import { TeamService } from '../../../core/team.service';
 import { CriterionService } from '../../../core/criterion.service';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-create-contest-page',
@@ -43,7 +44,8 @@ export class CreateContestPage implements AfterViewInit {
     private router: Router,
     private contestService: ContestService,
     private teamService: TeamService,
-    private criterionService: CriterionService
+    private criterionService: CriterionService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngAfterViewInit(): void {
@@ -152,6 +154,7 @@ export class CreateContestPage implements AfterViewInit {
 
       this.isSubmitting = true;
       this.error = null;
+      this.cdr.detectChanges();
 
       this.generateAccessKey();
 
@@ -199,6 +202,7 @@ export class CreateContestPage implements AfterViewInit {
               error: (err) => {
                 this.isSubmitting = false;
                 this.error = 'Конкурс создан, но произошла ошибка при сохранении команд или критериев.';
+                this.cdr.detectChanges();
               }
             });
           } else {
@@ -208,7 +212,8 @@ export class CreateContestPage implements AfterViewInit {
         },
         error: (err: any) => {
           this.isSubmitting = false;
-          this.error = err.error?.error?.message || 'Ошибка при создании конкурса';
+          this.error = err.error?.error?.message || err.error?.message || 'Ошибка при создании конкурса';
+          this.cdr.detectChanges();
         }
       });
     }

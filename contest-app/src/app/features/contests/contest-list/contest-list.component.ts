@@ -111,9 +111,9 @@ export class ContestListComponent implements OnInit {
     return new Date(dateStr).getFullYear().toString();
   }
 
-  getLogoUrl(logoPath: string | null): string {
+  getLogoUrl(logoPath: string | null): string | null {
     if (!logoPath) {
-      return 'assets/images/photo.jpg';
+      return null;
     }
 
     if (logoPath.startsWith('http') || logoPath.startsWith('blob:') || logoPath.startsWith('data:')) {

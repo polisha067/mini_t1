@@ -38,7 +38,7 @@
     <ng-container *ngIf="!isLoading && !error">
       
       <section class="contest-info-section" *ngIf="contest">
-        <div class="image-card">
+        <div class="image-card" *ngIf="getLogoUrl(contest.logo_path)">
           <img [src]="getLogoUrl(contest.logo_path)" (error)="handleImageError($event)" [alt]="contest.name" />
         </div>
         <div class="contest-text">
