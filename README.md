@@ -1,7 +1,7 @@
 # mini_t1
 
 Система оценки хакатонов и интеллектуальных конкурсов
-**Backend** - Flask (Python 3.11) + PostgreSQL 15
+**Backend** - Flask + PostgreSQL 15
 **Frontend** - Angular 21 (SPA)
 Инфраструктура - Docker Compose + Nginx
 
